@@ -3,7 +3,7 @@ RM = rm
 CFLAGS  = -g -Wall -O2
 LFLAGS =
 LIBS =
-SRCDIR = src/c/lib
+SRCDIR = "src"
 SOURCES	= $(shell ls ${SRCDIR}/*.c)
 OBJECTS	= $(SOURCES:.c=.o)
 
@@ -18,6 +18,6 @@ $(MAIN): $(OBJECTS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJECTS) $(LFLAGS) $(LIBS)
 
 clean:
-	$(RM) $(OBJS) $(MAIN)
+	-$(RM) $(OBJECTS) $(MAIN)
 
 .PHONY: all clean
