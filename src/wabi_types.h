@@ -11,7 +11,7 @@
 #define wabi_word_t uint64_t
 #define wabi_size_t uint64_t
 
-#define WABI_WORD_SIZE 64
+#define WABI_WORD_SIZE sizeof(wabi_word_t)
 
 #define WABI_TYPE_TAG_NIL       0x0000000000000000
 #define WABI_TYPE_TAG_BOOL      0x1000000000000000
@@ -49,8 +49,8 @@
 
 typedef struct wabi_pair_struct
 {
-  wabi_word_t* car;
-  wabi_word_t* cdr;
+  wabi_word_t car;
+  wabi_word_t cdr;
 } wabi_pair_t;
 
 typedef struct wabi_binary_struct

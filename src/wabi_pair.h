@@ -11,4 +11,7 @@ wabi_word_t *wabi_const_new(wabi_vm_t* vm, wabi_word_t c);
 wabi_word_t *wabi_binary_new(wabi_vm_t* vm, wabi_word_t size);
 wabi_word_t *wabi_binary_copy(wabi_vm_t* vm, void* ptr, wabi_word_t size);
 
+wabi_word_t *wabi_pair_car(wabi_vm_t *vm, wabi_word_t *p);
+wabi_word_t *wabi_pair_cdr(wabi_vm_t *vm, wabi_word_t *p);
+
 #endif

@@ -6,6 +6,7 @@
 #include "wabi_vm.h"
 #include "wabi_mem.h"
 #include "wabi_pair.h"
+#include "wabi_pr.h"
 
 int main(int argc, char** argv)
 {
@@ -19,27 +20,28 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  printf("size: %lu\n", wabi_mem_used(vm));
-  wabi_word_t *wnil = wabi_const_new(vm, WABI_VALUE_NIL);
-  /* wabi_word_t *wtrue = wabi_const_new(vm, WABI_VALUE_TRUE); */
-  /* wabi_word_t *wfalse = wabi_const_new(vm, WABI_VALUE_FALSE); */
+  wabi_word_t *nil = wabi_const_new(vm, WABI_VALUE_NIL);
 
-  printf("size: %lu\n", wabi_mem_used(vm));
   wabi_const_new(vm, WABI_VALUE_TRUE);
-
-  printf("size: %lu\n", wabi_mem_used(vm));
   wabi_const_new(vm, WABI_VALUE_FALSE);
+  wabi_small_new(vm, 01);
+  wabi_word_t *n0 = wabi_small_new(vm, 123);
+  wabi_word_t *n1 = wabi_small_new(vm, 124);
+  wabi_word_t* pair = wabi_pair_cons(vm, n0, nil);
+  wabi_word_t* pair1 = wabi_pair_cons(vm, n0, pair);
+  vm->mem_root = pair1;
 
-  printf("size: %lu\n", wabi_mem_used(vm));
-  wabi_word_t *wnum = wabi_small_new(vm, 123);
+  wabi_pr(vm, vm->mem_root);
+  printf("\n\n");
 
-  wabi_pair_t* pair = (wabi_pair_t*) wabi_pair_cons(vm, wnum, wnil);
-  wabi_word_t* w = (wabi_word_t*) pair;
-  printf("size: %lu\n", wabi_mem_used(vm));
+  printf("before collect used: %lu\n", wabi_mem_used(vm));
+  wabi_mem_collect(vm);
+  printf("after collect used: %lu\n", wabi_mem_used(vm));
 
-  wabi_mem_collect(vm, w);
-  printf("size: %lu\n", wabi_mem_used(vm));
+  wabi_pr(vm, vm->mem_root);
 
-  free(vm);
+  /* wabi_mem_collect(vm); */
+  /* printf("after collect used: %lu\n", wabi_mem_used(vm)); */
+
   return 0;
 }

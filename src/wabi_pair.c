@@ -7,8 +7,8 @@
 wabi_word_t *wabi_pair_cons(wabi_vm_t* vm, wabi_word_t *a, wabi_word_t* d)
 {
   wabi_pair_t *pair = (wabi_pair_t *) wabi_mem_alloc(vm, 2);
-  pair->car = (wabi_word_t*) ((a - vm->mem_space) | WABI_TYPE_TAG_PAIR);
-  pair->cdr = (wabi_word_t*) (d - vm->mem_space);
+  pair->car = (wabi_word_t) ((a - vm->mem_space) | WABI_TYPE_TAG_PAIR);
+  pair->cdr = (wabi_word_t) (d - vm->mem_space);
   return (wabi_word_t*) pair;
 }
 
@@ -39,4 +39,18 @@ wabi_word_t *wabi_binary_copy(wabi_vm_t* vm, void* ptr, wabi_word_t size)
   wabi_word_t* res = wabi_binary_new(vm, size);
   memcpy(res + 1, ptr, size);
   return res;
+}
+
+wabi_word_t *wabi_pair_car(wabi_vm_t *vm, wabi_word_t *obj)
+{
+  // assert(wabi_type_tag(p) == WABI_TYPE_TAG_PAIR);
+  wabi_pair_t *p = (wabi_pair_t *) obj;
+  return vm->mem_space + (p->car & WABI_TYPE_VALUE_MASK);
+}
+
+wabi_word_t *wabi_pair_cdr(wabi_vm_t *vm, wabi_word_t *obj)
+{
+  // assert(wabi_type_tag(p) == WABI_TYPE_TAG_PAIR);
+  wabi_pair_t *p = (wabi_pair_t *) obj;
+  return vm->mem_space + (p->cdr & WABI_TYPE_VALUE_MASK) ;
 }

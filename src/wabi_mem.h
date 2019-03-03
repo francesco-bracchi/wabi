@@ -10,7 +10,7 @@
 
 wabi_word_t* wabi_mem_alloc(wabi_vm_t *vm, wabi_size_t size);
 void wabi_mem_init(wabi_vm_t *vm, wabi_size_t size);
-void wabi_mem_collect(wabi_vm_t *vm, wabi_word_t* root);
+void wabi_mem_collect(wabi_vm_t *vm);
 wabi_size_t wabi_mem_size(wabi_vm_t *vm);
 wabi_size_t wabi_mem_used(wabi_vm_t *vm);
 
