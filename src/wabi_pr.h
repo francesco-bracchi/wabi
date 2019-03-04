@@ -4,6 +4,6 @@
 
 #include "wabi_types.h"
 
-/* void wabi_pr(wabi_word_t *obj); *7
+void wabi_pr(wabi_word_t *obj);
 
 #endif

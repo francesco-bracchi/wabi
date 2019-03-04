@@ -41,7 +41,7 @@
 #define wabi_is_smallint(value) wabi_of_type(WABI_TYPE_TAG_SMALLINT, value)
 #define wabi_is_binary(value) wabi_of_type(WABI_TYPE_TAG_FORWARD, value)
 #define wabi_is_forward(value) wabi_of_type(WABI_TYPE_TAG_FORWARD, value)
-#define wabi_is_pair(value) wabi_of_type(WABI_TYPE_TAG_PAIR, va
+#define wabi_is_pair(value) wabi_of_type(WABI_TYPE_TAG_PAIR, value)
 
 #define wabi_falsey(value) (&(value) & 0xEF00000000000000)
 #define wabi_truthy(value) !is_falsey(value)
@@ -55,5 +55,10 @@ typedef struct wabi_pair_struct
 } wabi_pair_t;
 
 wabi_size_t wabi_type_size(wabi_word_t* obj);
+wabi_word_t * wabi_smallint_new(long long a);
+wabi_word_t* wabi_nil_new();
+wabi_word_t* wabi_cons(wabi_word_t *car, wabi_word_t *cdr);
+wabi_word_t *wabi_cdr(wabi_word_t *val);
+wabi_word_t *wabi_car(wabi_word_t *val);
 
 #endif
