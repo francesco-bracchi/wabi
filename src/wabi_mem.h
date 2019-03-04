@@ -6,13 +6,11 @@
 #define wabi_mem_h
 
 #include "wabi_types.h"
-#include "wabi_vm.h"
 
-wabi_word_t* wabi_mem_alloc(wabi_vm_t *vm, wabi_size_t size);
-void wabi_mem_init(wabi_vm_t *vm, wabi_size_t size);
-void wabi_mem_collect(wabi_vm_t *vm);
-wabi_size_t wabi_mem_size(wabi_vm_t *vm);
-wabi_size_t wabi_mem_used(wabi_vm_t *vm);
+#define WABI_MEM_FROM 0x0010000000000000
+#define WABI_MEM_TO   0x00FFFFFFFFFFFFFF
+#define WABI_MEM_HALF ((WABI_MEM_FROM - WABI_MEM_TO) / 2)
 
-#define wabi_mem_reference(vm, ptr) ((ptr) - (vm)->space)
+void wabi_mem_init(wabi_size_t size);
+wabi_word_t *wabi_mem_allocate(wabi_size_t size);
 #endif

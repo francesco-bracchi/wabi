@@ -12,6 +12,6 @@ wabi_vm_t* wabi_vm_new()
 }
 
 int wabi_vm_init(wabi_vm_t* vm, wabi_size_t size) {
-  wabi_mem_init(vm, size);
+  // wabi_mem_init(vm, size);
   return 0;
 }

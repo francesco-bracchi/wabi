@@ -30,17 +30,18 @@
 #define WABI_TYPE_VALUE_MASK    0x00FFFFFFFFFFFFFF
 #define WABI_TYPE_TAG_MASK      0xFF00000000000000
 
-#define wabi_tag(value) (*(value) & WABI_TYPE_TAG_MASK)
-#define wabi_value(value) (*(value) & WABI_TYPE_VALUE_MASK)
-#define wabi_tag_value(tag, value) ((tag) | (value))
+#define wabi_type_tag(value) (*(value) & WABI_TYPE_TAG_MASK)
+#define wabi_type_value(value) (*(value) & WABI_TYPE_VALUE_MASK)
+#define wabi_type_tag_value(tag, value) ((tag) | (value))
 
-#define wabi_of_type(type, value) (type == wabi_tag(value))
+#define wabi_of_type(type, value) (type == wabi_type_tag(value))
 
 #define wabi_is_nil(value) (*(value) == WABI_VALUE_NIL)
 #define wabi_is_bool(value) wabi_of_type(WABI_TYPE_TAG_BOOL, value)
 #define wabi_is_smallint(value) wabi_of_type(WABI_TYPE_TAG_SMALLINT, value)
-#define wabi_is_pair(value) wabi_of_type(WABI_TYPE_TAG_PAIR, value)
+#define wabi_is_binary(value) wabi_of_type(WABI_TYPE_TAG_FORWARD, value)
 #define wabi_is_forward(value) wabi_of_type(WABI_TYPE_TAG_FORWARD, value)
+#define wabi_is_pair(value) wabi_of_type(WABI_TYPE_TAG_PAIR, va
 
 #define wabi_falsey(value) (&(value) & 0xEF00000000000000)
 #define wabi_truthy(value) !is_falsey(value)
@@ -52,11 +53,6 @@ typedef struct wabi_pair_struct
   wabi_word_t car;
   wabi_word_t cdr;
 } wabi_pair_t;
-
-typedef struct wabi_binary_struct
-{
-  wabi_word_t size;
-} wabi_binary_t;
 
 wabi_size_t wabi_type_size(wabi_word_t* obj);
 

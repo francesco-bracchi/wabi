@@ -11,4 +11,9 @@
 #define WABI_ERROR_TYPE_MISMATCH 3
 #define WABI_ERROR_TAG_NOT_FOUND 4
 
+int wabi_errno;
+
+char* wabi_err_msg(int errno);
+
+
 #endif
