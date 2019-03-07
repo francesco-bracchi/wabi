@@ -21,10 +21,11 @@ int main(int argc, char** argv)
   wabi_word_t *p0 = wabi_cons(n0, nil);
   wabi_word_t *n1 = wabi_smallint_new(200);
   wabi_word_t *p1 = wabi_cons(n1, p0);
+  wabi_word_t *p2 = wabi_cons(n1, p1);
 
-  wabi_mem_root = p1;
+  wabi_mem_root = p2;
 
-  wabi_pr(p1); printf("\n");
+  wabi_pr(wabi_mem_root); printf("\n");
 
   printf("used %li\n", wabi_mem_used());
   wabi_mem_collect();

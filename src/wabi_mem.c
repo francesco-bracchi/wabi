@@ -5,6 +5,7 @@
 #define wabi_mem_c
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 
@@ -68,7 +69,8 @@ wabi_word_t *
 wabi_mem_copy(wabi_word_t *obj)
 {
   if(wabi_is_forward(obj)) {
-    return (wabi_word_t*) wabi_type_value(obj);
+    printf("it's forward\n");
+    return (wabi_word_t*) (*obj & WABI_TYPE_VALUE_MASK);
   }
 
   wabi_word_t *new_obj = wabi_mem_alloc;
@@ -76,7 +78,8 @@ wabi_mem_copy(wabi_word_t *obj)
   memcpy(new_obj, obj, size * WABI_WORD_SIZE);
   wabi_mem_alloc += size;
 
-  *obj = WABI_TYPE_TAG_FORWARD & ((wabi_word_t) new_obj);
+  *obj = WABI_TYPE_TAG_FORWARD | ((wabi_word_t) new_obj & WABI_TYPE_VALUE_MASK);
+
   return new_obj;
 }
 
@@ -106,7 +109,8 @@ wabi_mem_collect_step()
   }
 }
 
-void wabi_mem_collect()
+void
+wabi_mem_collect()
 {
   wabi_word_t *to_space = wabi_mem_from_space;
   wabi_mem_from_space = wabi_mem_to_space;
