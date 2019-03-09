@@ -4,9 +4,6 @@
 
 #define wabi_mem_c
 
-#include <stdlib.h>
-#include <stdio.h>
-
 #include <string.h>
 
 #include "wabi_object.h"
@@ -41,40 +38,42 @@ wabi_mem_init(wabi_size_t size, int* errno)
   wabi_mem_scan = NULL;
 }
 
-wabi_word_t *
-wabi_mem_copy(wabi_word_t *obj)
+void
+wabi_mem_copy(wabi_word_t *src, wabi_word_t **dst)
 {
-  if(wabi_obj_is_forward(obj)) {
-    return (wabi_word_t *)wabi_obj_value(obj);
+  wabi_word_t tag = wabi_obj_tag(src);
+  if(tag == WABI_TAG_FORWARD) {
+    *dst = (wabi_word_t *) (*src & WABI_VALUE_MASK);
+    return;
   }
 
-  wabi_word_t *new_obj = wabi_mem_alloc;
-  wabi_size_t size = wabi_obj_size(obj);
-  memcpy(new_obj, obj, size * WABI_WORD_SIZE);
-  wabi_mem_alloc += size;
+  *dst = wabi_mem_alloc;
 
-  *obj = WABI_TAG_FORWARD | ((wabi_word_t) new_obj);
-
-  return new_obj;
+  if(tag <= WABI_TAG_ATOMIC_LIMIT) {
+    **dst = *src;
+    wabi_mem_alloc++;
+  } else if(tag == WABI_TAG_PAIR) {
+    **dst = *src;
+    *(*dst + 1) = *(src + 1);
+    wabi_mem_alloc += 2;
+  }
+  *src = WABI_TAG_FORWARD | ((wabi_word_t) *dst);
 }
 
 void
 wabi_mem_collect_step()
 {
   wabi_word_t tag = wabi_obj_tag(wabi_mem_scan);
-
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
     wabi_mem_scan++;
-    return;
   }
-
-  if(tag == WABI_TAG_PAIR) {
-    wabi_word_t *car = (wabi_word_t *)(*wabi_mem_scan & WABI_VALUE_MASK);
-    wabi_word_t *cdr = (wabi_word_t *)(*(wabi_mem_scan + 1) & WABI_VALUE_MASK);
-
-    *cdr = (wabi_word_t) wabi_mem_copy(cdr);
-    *car = (wabi_word_t) wabi_mem_copy(car);
-    wabi_mem_scan+=2;
+  else if(tag == WABI_TAG_PAIR) {
+    wabi_word_t *car, *cdr;
+    wabi_mem_copy((wabi_word_t *) (*wabi_mem_scan & WABI_VALUE_MASK), &car);
+    wabi_mem_copy((wabi_word_t *) *(wabi_mem_scan + 1), &cdr);
+    *wabi_mem_scan = WABI_TAG_PAIR | (wabi_word_t) car;
+    *(wabi_mem_scan + 1) = (wabi_word_t) cdr;
+    wabi_mem_scan += 2;
   }
 }
 
@@ -96,8 +95,8 @@ wabi_mem_collect(int *errno)
   wabi_mem_alloc = wabi_mem_from_space;
   wabi_mem_scan = wabi_mem_from_space;
 
-  wabi_mem_root = wabi_mem_copy(wabi_mem_root);
-  printf("root: %lx\n", *wabi_mem_root);
+  wabi_mem_copy(wabi_mem_root, &wabi_mem_root);
+
   while(wabi_mem_scan < wabi_mem_alloc)
     wabi_mem_collect_step();
 

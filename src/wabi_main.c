@@ -32,16 +32,18 @@ int main(int argc, char** argv)
   wabi_smallint(100, &n0, &errno);
   wabi_cons(n0, nil, &p0, &errno);
   wabi_smallint(200, &n1, &errno);
-  wabi_cons(n1, p0,  &p1, &errno);
+  wabi_cons(n0, p0,  &p1, &errno);
   wabi_cons(n1, p1,  &p2, &errno);
   wabi_mem_root = p1;
 
-  wabi_pr(p1, &errno);
+  wabi_pr(wabi_mem_root, &errno);
   printf("\n");
-  printf("used %li\n", wabi_mem_used());
+  printf("used before collection %li\n", wabi_mem_used());
   wabi_mem_collect();
-  printf("used %li\n", wabi_mem_used());
+  printf("used after collection %li\n", wabi_mem_used());
+  wabi_pr(wabi_mem_root, &errno);
+  printf("\n");
 
-  /* // wabi_pr(wabi_mem_root); printf("\n"); */
+  /* printf("\n"); */
 
 }
