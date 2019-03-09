@@ -2,16 +2,17 @@
 
 #define wabi_pair_h
 
-/* #include "wabi_types.h" */
-/* #include "wabi_vm.h" */
+#include "wabi_object.h"
 
-/* wabi_word_t *wabi_pair_cons(wabi_vm_t* vm, wabi_word_t *a, wabi_word_t* d); */
-/* wabi_word_t *wabi_small_new(wabi_vm_t* vm, long long a); */
-/* wabi_word_t *wabi_const_new(wabi_vm_t* vm, wabi_word_t c); */
-/* wabi_word_t *wabi_binary_new(wabi_vm_t* vm, wabi_word_t size); */
-/* wabi_word_t *wabi_binary_copy(wabi_vm_t* vm, void* ptr, wabi_word_t size); */
+#define WABI_PAIR_SIZE 2
 
-/* wabi_word_t *wabi_pair_car(wabi_vm_t *vm, wabi_word_t *p); */
-/* wabi_word_t *wabi_pair_cdr(wabi_vm_t *vm, wabi_word_t *p); */
+void
+wabi_cons(wabi_obj car, wabi_obj cdr, wabi_obj* res, int *errno);
+
+void
+wabi_car(wabi_obj val, wabi_obj* res, int *errno);
+
+void
+wabi_cdr(wabi_obj val, wabi_obj* res, int *errno);
 
 #endif

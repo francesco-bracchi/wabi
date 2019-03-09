@@ -2,8 +2,9 @@
 
 #define wabi_pr_h
 
-#include "wabi_types.h"
+#include "wabi_object.h"
 
-void wabi_pr(wabi_word_t *obj);
+void
+wabi_pr(wabi_obj obj, int* errno);
 
 #endif

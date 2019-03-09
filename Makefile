@@ -20,7 +20,7 @@ $(MAIN): $(OBJECTS)
 clean:
 	-$(RM) $(OBJECTS) $(MAIN)
 
-run: $(MAIN)
+run: clean $(MAIN)
 	./$(MAIN)
 
 .PHONY: all clean run

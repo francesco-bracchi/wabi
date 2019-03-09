@@ -1,22 +1,28 @@
 #define wabi_pr_c
 
 #include <stdio.h>
-#include "wabi_types.h"
-#include "wabi_pr.h"
 
-void wabi_pr(wabi_word_t *obj) {
-  if(wabi_is_nil(obj)) {
+#include "wabi_object.h"
+#include "wabi_pr.h"
+#include "wabi_pair.h"
+
+void
+wabi_pr(wabi_obj obj, int* errno) {
+
+  if(wabi_obj_is_nil(obj)) {
     printf("nil");
-  } else if (wabi_is_pair(obj)) {
-    wabi_word_t *car = wabi_car(obj);
-    wabi_word_t *cdr = wabi_cdr(obj);
+  } else if (wabi_obj_is_pair(obj)) {
+    wabi_obj car;
+    wabi_obj cdr;
+    wabi_car(obj, &car, errno);
+    wabi_cdr(obj, &cdr, errno);
     printf("(");
-    wabi_pr(car);
+    wabi_pr(car, errno);
     printf(" . ");
-    wabi_pr(cdr);
+    wabi_pr(cdr, errno);
     printf(")");
 
-  } else if (wabi_is_smallint(obj)) {
-    printf("%li", wabi_type_value(obj));
+  } else if (wabi_obj_is_smallint(obj)) {
+    printf("%lli", *obj & WABI_VALUE_MASK);
   }
 }
