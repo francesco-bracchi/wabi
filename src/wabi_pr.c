@@ -8,7 +8,6 @@
 
 void
 wabi_pr(wabi_obj obj, int* errno) {
-
   if(wabi_obj_is_nil(obj)) {
     printf("nil");
   } else if (wabi_obj_is_pair(obj)) {
@@ -23,6 +22,6 @@ wabi_pr(wabi_obj obj, int* errno) {
     printf(")");
 
   } else if (wabi_obj_is_smallint(obj)) {
-    printf("%lli", *obj & WABI_VALUE_MASK);
+    printf("%li", *obj & WABI_VALUE_MASK);
   }
 }

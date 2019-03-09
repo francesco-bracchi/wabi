@@ -7,6 +7,7 @@
 #include "wabi_pair.h"
 #include "wabi_atomic.h"
 #include "wabi_mem.h"
+#include "wabi_pr.h"
 
 int main(int argc, char** argv)
 {
@@ -33,12 +34,10 @@ int main(int argc, char** argv)
   wabi_smallint(200, &n1, &errno);
   wabi_cons(n1, p0,  &p1, &errno);
   wabi_cons(n1, p1,  &p2, &errno);
-  wabi_mem_root = &p1;
-
+  wabi_mem_root = p1;
 
   wabi_pr(p1, &errno);
   printf("\n");
-
   printf("used %li\n", wabi_mem_used());
   wabi_mem_collect();
   printf("used %li\n", wabi_mem_used());

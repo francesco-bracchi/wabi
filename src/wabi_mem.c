@@ -61,8 +61,7 @@ wabi_mem_copy(wabi_word_t *obj)
 void
 wabi_mem_collect_step()
 {
-  wabi_word_t* new_obj = wabi_mem_scan;
-  wabi_word_t tag = wabi_obj_tag(new_obj);
+  wabi_word_t tag = wabi_obj_tag(wabi_mem_scan);
 
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
     wabi_mem_scan++;
@@ -70,10 +69,11 @@ wabi_mem_collect_step()
   }
 
   if(tag == WABI_TAG_PAIR) {
-    wabi_word_t *car = new_obj;
-    wabi_word_t *cdr = new_obj + 1;
-    *cdr = (wabi_word_t) wabi_mem_copy((wabi_word_t *) wabi_obj_value(cdr));
-    *car = ((wabi_word_t) wabi_mem_copy((wabi_word_t *) wabi_obj_value(car)) | WABI_TAG_PAIR);
+    wabi_word_t *car = (wabi_word_t *)(*wabi_mem_scan & WABI_VALUE_MASK);
+    wabi_word_t *cdr = (wabi_word_t *)(*(wabi_mem_scan + 1) & WABI_VALUE_MASK);
+
+    *cdr = (wabi_word_t) wabi_mem_copy(cdr);
+    *car = (wabi_word_t) wabi_mem_copy(car);
     wabi_mem_scan+=2;
   }
 }
@@ -81,7 +81,7 @@ wabi_mem_collect_step()
 void
 wabi_mem_collect(int *errno)
 {
-  wabi_word_t *to_space = wabi_mem_from_space;
+  wabi_word_t *wabi_mem_to_space = wabi_mem_from_space;
   wabi_mem_from_space = wabi_allocate_space();
 
   if(wabi_mem_from_space == NULL) {
@@ -97,11 +97,11 @@ wabi_mem_collect(int *errno)
   wabi_mem_scan = wabi_mem_from_space;
 
   wabi_mem_root = wabi_mem_copy(wabi_mem_root);
-
+  printf("root: %lx\n", *wabi_mem_root);
   while(wabi_mem_scan < wabi_mem_alloc)
     wabi_mem_collect_step();
 
-  free(to_space);
+  free(wabi_mem_to_space);
 }
 
 void
