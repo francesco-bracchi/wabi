@@ -8,10 +8,10 @@
 
 #include <stdint.h>
 
-#define wabi_word_t uint64_t
-#define wabi_size_t uint64_t
-#define wabi_obj wabi_word_t *
-
+typedef uint64_t wabi_word_t;
+typedef wabi_word_t wabi_size_t;
+typedef wabi_word_t* wabi_obj;
+typedef int wabi_error;
 
 #define WABI_WORD_SIZE sizeof(wabi_word_t)
 
@@ -31,7 +31,7 @@
 #define WABI_TAG_ATOMIC_LIMIT WABI_TAG_FORWARD
 
 #define wabi_word_tag(word) ((word) & WABI_TAG_MASK)
-#define wabi_word_value(word) ((word) & WABI_TAG_MASK)
+#define wabi_word_value(word) ((word) & WABI_VALUE_MASK)
 #define wabi_word_is_type(word, type) (wabi_word_tag(word) == type)
 
 #define wabi_obj_tag(obj) wabi_word_tag(*obj)
@@ -46,10 +46,11 @@
 #define wabi_obj_is_bin_blob(obj) wabi_obj_is_type(obj, WABI_TAG_BIN_BLOB)
 #define wabi_obj_is_bin_leaf(obj) wabi_obj_is_type(obj, WABI_TAG_BIN_LEAF)
 #define wabi_obj_is_bin_node(obj) wabi_obj_is_type(obj, WABI_TAG_BIN_NODE)
-#define wabi_obj_is_bin(obj) wabi_obj_is_bin_blob(obj) || wabi_obj_is_bin_leaf(obj) || wabi_obj_is_bin_node(obj)
+#define wabi_obj_is_bin(obj) ((wabi_obj_is_bin_leaf(obj)) || (wabi_obj_is_bin_node(obj)))
 #define wabi_obj_is_pair(obj) wabi_obj_is_type(obj, WABI_TAG_PAIR)
 
 #define wabi_obj_is_atomic(obj) (wabi_obj_tag(obj) < WABI_TAG_ATOMIC_LIMIT)
+
 
 wabi_size_t
 wabi_obj_size(wabi_obj obj);
