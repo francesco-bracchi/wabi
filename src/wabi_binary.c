@@ -25,6 +25,7 @@ wabi_blob_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
 {
   size ++;
   wabi_mem_allocate(size, res, err);
+  if(*err != WABI_ERROR_NONE) return;
   **res = size | WABI_TAG_BIN_BLOB;
   *res = *res + 1;
 }

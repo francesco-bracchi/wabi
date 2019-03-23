@@ -37,6 +37,7 @@ int main(int argc, char** argv)
   wabi_obj ln;
   wabi_obj l;
   wabi_obj root;
+  wabi_obj hash;
 
   wabi_smallint(10, &x, &errno);
   wabi_nil(&nil, &errno);
@@ -55,14 +56,30 @@ int main(int argc, char** argv)
 
   wabi_binary_length(b3, &l, &errno);
   wabi_cons(b3, p1, &root, &errno);
-  wabi_pr(root, &errno);
-  printf("\n");
+
   wabi_mem_root = root;
+
+
+
+  wabi_pr(wabi_mem_root, &errno);
+  printf("\n");
+
+
+  wabi_hash(wabi_mem_root, &hash, &errno);
+  printf("HASH: ");
+  wabi_pr(hash, &errno);
+  printf("\n");
 
   printf("used before collection %li\n", wabi_mem_used());
   wabi_mem_collect();
   printf("used after collection %li\n", wabi_mem_used());
   wabi_pr(wabi_mem_root, &errno);
+  printf("\n");
+
+
+  wabi_hash(wabi_mem_root, &hash, &errno);
+  printf("HASH: ");
+  wabi_pr(hash, &errno);
   printf("\n");
 
 
