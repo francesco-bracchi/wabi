@@ -11,6 +11,7 @@
 #include "wabi_atomic.h"
 #include "wabi_binary.h"
 
+
 wabi_size_t
 wabi_binary_word_size(wabi_size_t size)
 {
@@ -19,6 +20,7 @@ wabi_binary_word_size(wabi_size_t size)
   if(size & 3) word_size++;
   return word_size;
 }
+
 
 void
 wabi_blob_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
@@ -29,6 +31,7 @@ wabi_blob_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
   **res = size | WABI_TAG_BIN_BLOB;
   *res = *res + 1;
 }
+
 
 void
 wabi_binary_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
@@ -49,6 +52,7 @@ wabi_binary_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
 
 }
 
+
 void
 wabi_binary_new_from_cstring(char* cstring, wabi_obj *res, wabi_error *err)
 {
@@ -62,6 +66,7 @@ wabi_binary_new_from_cstring(char* cstring, wabi_obj *res, wabi_error *err)
   leaf = (wabi_binary_leaf_t *) *res;
   memcpy((char *) leaf->data_ptr, cstring, size);
 }
+
 
 void
 wabi_binary_length(wabi_obj bin, wabi_obj *res, wabi_error *err)
@@ -79,6 +84,7 @@ wabi_binary_length(wabi_obj bin, wabi_obj *res, wabi_error *err)
   }
 }
 
+
 void
 wabi_binary_concat(wabi_obj left, wabi_obj right, wabi_obj *res, wabi_error *err)
 {
@@ -95,8 +101,10 @@ wabi_binary_concat(wabi_obj left, wabi_obj right, wabi_obj *res, wabi_error *err
   return;
 }
 
+
 void
 wabi_binary_sub_aux(wabi_obj bin, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err);
+
 
 void
 wabi_binary_sub_leaf(wabi_binary_leaf_t *leaf, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
@@ -109,6 +117,7 @@ wabi_binary_sub_leaf(wabi_binary_leaf_t *leaf, wabi_size_t from, wabi_size_t len
   new_leaf->length = len | WABI_TAG_BIN_LEAF;
   new_leaf->data_ptr = leaf->data_ptr + from;
 }
+
 
 void
 wabi_binary_sub_node(wabi_binary_node_t *node, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
@@ -141,6 +150,7 @@ wabi_binary_sub_node(wabi_binary_node_t *node, wabi_size_t from, wabi_size_t len
   }
 }
 
+
 void
 wabi_binary_sub_aux(wabi_obj bin, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
 {
@@ -152,6 +162,7 @@ wabi_binary_sub_aux(wabi_obj bin, wabi_size_t from, wabi_size_t len, wabi_obj *r
     wabi_binary_sub_node((wabi_binary_node_t *) bin, from, len, res, err);
   }
 }
+
 
 void
 wabi_binary_sub(wabi_obj bin, wabi_obj from, wabi_obj len, wabi_obj* res, wabi_error *err)
@@ -189,6 +200,7 @@ wabi_binary_compact_leaf(wabi_binary_leaf_t *leaf, char *dest)
   memcpy(dest, (char *)leaf->data_ptr, leaf->length & WABI_VALUE_MASK);
 }
 
+
 void
 wabi_binary_compact_node(wabi_binary_node_t *node, char *dest)
 {
@@ -199,12 +211,13 @@ wabi_binary_compact_node(wabi_binary_node_t *node, char *dest)
   left_elem = (wabi_obj) node->left;
   pivot = *left_elem & WABI_VALUE_MASK;
 
-  wabi_binary_compact((wabi_obj) node->left, dest);
-  wabi_binary_compact((wabi_obj) node->right, dest + pivot);
+  wabi_binary_compact_raw((wabi_obj) node->left, dest);
+  wabi_binary_compact_raw((wabi_obj) node->right, dest + pivot);
 }
 
+
 void
-wabi_binary_compact(wabi_obj bin, char *dest)
+wabi_binary_compact_raw(wabi_obj bin, char *dest)
 {
   switch(wabi_obj_tag(bin)) {
   case WABI_TAG_BIN_LEAF:
@@ -215,9 +228,9 @@ wabi_binary_compact(wabi_obj bin, char *dest)
   }
 }
 
-// to be removed
+
 void
-wabi_binary_compact_cmd(wabi_obj bin, wabi_obj *res, wabi_error *err)
+wabi_binary_compact(wabi_obj bin, wabi_obj *res, wabi_error *err)
 {
   wabi_size_t len;
   wabi_binary_leaf_t *leaf;
@@ -230,5 +243,5 @@ wabi_binary_compact_cmd(wabi_obj bin, wabi_obj *res, wabi_error *err)
   wabi_binary_new(len, res, err);
   if(*err != WABI_ERROR_NONE) return;
   leaf = (wabi_binary_leaf_t *) *res;
-  wabi_binary_compact(bin, (char *) leaf->data_ptr);
+  wabi_binary_compact_raw(bin, (char *) leaf->data_ptr);
 }

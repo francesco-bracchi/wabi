@@ -19,6 +19,7 @@ typedef struct wabi_binary_node_struct
   wabi_word_t right;
 } wabi_binary_node_t;
 
+
 #define WABI_BINARY_LEAF_SIZE 3
 #define WABI_BINARY_NODE_SIZE 3
 
@@ -42,6 +43,9 @@ wabi_binary_sub(wabi_obj bin, wabi_obj from, wabi_obj len, wabi_obj* res, wabi_e
 
 // this function is useful during the GC phase
 void
-wabi_binary_compact(wabi_obj bin, char *dest);
+wabi_binary_compact(wabi_obj bin, wabi_obj *res, wabi_error *err);
 
+// this function is useful during the GC phase
+void
+wabi_binary_compact_raw(wabi_obj bin, char *dest);
 #endif

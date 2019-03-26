@@ -7,13 +7,6 @@
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
 
-typedef struct wabi_hash_state_struct
-{
-  wabi_word_t a;
-  wabi_word_t b;
-  wabi_word_t v_hash;
-} wabi_hash_state_t;
-
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
@@ -92,11 +85,19 @@ wabi_hash_obj(wabi_hash_state_t *state, wabi_obj obj)
 }
 
 
-void
-wabi_hash(wabi_obj obj, wabi_obj *res, wabi_error* err)
+wabi_word_t
+wabi_hash_raw(wabi_obj obj)
 {
   wabi_hash_state_t hash_state;
   wabi_hash_state_init(&hash_state);
   wabi_hash_obj(&hash_state, obj);
-  wabi_smallint(hash_state.v_hash & WABI_VALUE_MASK, res, err);
+  return hash_state.v_hash & WABI_VALUE_MASK;
+}
+
+
+void
+wabi_hash(wabi_obj obj, wabi_obj *res, wabi_error* err)
+{
+  wabi_word_t hash = wabi_hash_raw(obj);
+  wabi_smallint(hash & WABI_VALUE_MASK, res, err);
 }

@@ -5,6 +5,7 @@
 #include "wabi_mem.h"
 #include "wabi_err.h"
 
+
 void
 wabi_cons(wabi_obj car, wabi_obj cdr, wabi_obj *res, int *errno)
 {
@@ -22,7 +23,7 @@ wabi_car(wabi_obj pair, wabi_obj *res, int *errno)
     *errno = WABI_ERROR_TYPE_MISMATCH;
     return;
   }
-  *res = (wabi_word_t *) (*pair & WABI_VALUE_MASK);
+  *res = wabi_car_raw(pair);
 }
 
 void
@@ -32,5 +33,5 @@ wabi_cdr(wabi_obj pair, wabi_obj *res, int *errno)
     *errno = WABI_ERROR_TYPE_MISMATCH;
     return;
   }
-  *res = (wabi_word_t *) (*(pair + 1) & WABI_VALUE_MASK);
+  *res = wabi_cdr_raw(pair);
 }

@@ -61,7 +61,7 @@ void wabi_mem_copy_binary(wabi_obj src, wabi_obj *dst)
   new_leaf->length = (wabi_word_t) len | WABI_TAG_BIN_LEAF;
   new_leaf->data_ptr = (wabi_word_t) data;
 
-  wabi_binary_compact(src, data);
+  wabi_binary_compact_raw(src, data);
 }
 
 void
