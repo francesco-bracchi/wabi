@@ -1,36 +1,40 @@
 #define wabi_atomic_c
 
 #include <stdint.h>
-#include "wabi_atomic.h"
+#include <stdio.h>
 #include "wabi_object.h"
 #include "wabi_err.h"
 #include "wabi_mem.h"
+#include "wabi_vm.h"
+#include "wabi_atomic.h"
 
-
-void
-wabi_smallint(int64_t val, wabi_obj* res, int* errno)
+wabi_obj
+wabi_smallint(wabi_vm vm, int64_t val)
 {
-  wabi_mem_allocate(WABI_SMALLINT_SIZE, res, errno);
-  if(*errno != WABI_ERROR_NONE) return;
-  **res = val | WABI_TAG_SMALLINT;
+  wabi_obj res = wabi_mem_allocate(vm, WABI_SMALLINT_SIZE);
+  if(vm->errno) return NULL;
+  *res = val | WABI_TAG_SMALLINT;
+  return res;
 }
 
 
-void
-wabi_nil(wabi_obj *res, int* errno)
+wabi_obj
+wabi_nil(wabi_vm vm)
 {
-  wabi_mem_allocate(WABI_NIL_SIZE, res, errno);
-  if(*errno != WABI_ERROR_NONE) return;
+  wabi_obj res = wabi_mem_allocate(vm, WABI_NIL_SIZE);
+  if(vm->errno) return NULL;
 
-  **res = WABI_VALUE_NIL;
+  *res = WABI_VALUE_NIL;
+  return res;
 }
 
 
-void
-wabi_boolean(int val, wabi_obj *res, wabi_error *errno)
+wabi_obj
+wabi_boolean(wabi_vm vm, int val)
 {
-  wabi_mem_allocate(WABI_BOOLEAN_SIZE, res, errno);
-  if(*errno != WABI_ERROR_NONE) return;
+  wabi_obj res = (wabi_obj) wabi_mem_allocate(vm, WABI_BOOLEAN_SIZE);
+  if(vm->errno) return NULL;
 
-  **res = val ? WABI_VALUE_TRUE : WABI_VALUE_FALSE;
+  *res = val ? WABI_VALUE_TRUE : WABI_VALUE_FALSE;
+  return res;
 }

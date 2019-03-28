@@ -1,20 +1,22 @@
-/* #ifndef wabi_vm_h */
+#ifndef wabi_vm_h
 
-/* #define wabi_vm_h */
-/* #include "wabi_types.h" */
+#define wabi_vm_h
 
-/* typedef struct wabi_vm_struct { */
-/*   wabi_word_t* mem_space; */
-/*   wabi_word_t* mem_space_limit; */
-/*   wabi_word_t* mem_alloc; */
-/*   wabi_word_t* mem_from_space; */
-/*   wabi_word_t* mem_scan; */
-/*   wabi_word_t* mem_root; */
-/*   int errno; */
-/* } wabi_vm_t; */
+#include "wabi_object.h"
+#include "wabi_mem.h"
 
-/* wabi_vm_t* wabi_vm_new(); */
+typedef struct wabi_vm_struct
+{
+  wabi_size_t mem_size;
+  wabi_word_t *mem_from_space;
+  wabi_word_t *mem_limit;
+  wabi_word_t *mem_scan;
+  wabi_word_t *mem_root;
+  wabi_word_t *mem_alloc;
+  int errno;
 
-/* int wabi_vm_init(wabi_vm_t* vm, wabi_size_t size); */
+} wabi_vm_t;
 
-/* #endif */
+typedef wabi_vm_t* wabi_vm;
+
+#endif

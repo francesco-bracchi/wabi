@@ -9,38 +9,40 @@
 
 #include "wabi_object.h"
 #include "wabi_mem.h"
+#include "wabi_vm.h"
 #include "wabi_err.h"
 #include "wabi_binary.h"
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
 wabi_word_t *
-wabi_allocate_space()
+wabi_allocate_space(wabi_word_t size)
 {
-  return (wabi_word_t *) malloc(WABI_WORD_SIZE * wabi_mem_size);
+  return (wabi_word_t *) malloc(WABI_WORD_SIZE * size);
 }
 
 void
-wabi_mem_init(wabi_size_t size, int* errno)
+wabi_mem_init(wabi_vm vm, wabi_size_t size)
 {
-  wabi_mem_size = size;
-  wabi_mem_from_space = wabi_allocate_space();
+  vm->mem_size = size;
+  vm->mem_from_space = wabi_allocate_space(size);
 
-  if(wabi_mem_from_space == NULL) {
-    *errno = WABI_ERROR_NOMEM;
+  if(vm->mem_from_space == NULL) {
+    vm->errno = WABI_ERROR_NOMEM;
     return;
   }
-  if(wabi_mem_from_space + wabi_mem_size > WABI_MEM_LIMIT) {
-    *errno = WABI_ERROR_NOMEM;
+  if(vm->mem_from_space + vm->mem_size > WABI_MEM_LIMIT) {
+    vm->errno = WABI_ERROR_NOMEM;
     return;
   }
 
-  wabi_mem_limit = wabi_mem_from_space + wabi_mem_size;
-  wabi_mem_alloc = wabi_mem_from_space;
-  wabi_mem_scan = NULL;
+  vm->mem_limit = vm->mem_from_space + vm->mem_size;
+  vm->mem_alloc = vm->mem_from_space;
+  vm->mem_scan = NULL;
 }
 
-void wabi_mem_copy_binary(wabi_obj src, wabi_obj *dst)
+void
+wabi_mem_copy_binary(wabi_vm vm, wabi_obj src)
 {
   wabi_size_t len, word_size;
 
@@ -50,11 +52,11 @@ void wabi_mem_copy_binary(wabi_obj src, wabi_obj *dst)
 
   len = *src & WABI_VALUE_MASK;
   word_size = wabi_binary_word_size(len);
-  new_leaf = (wabi_binary_leaf_t *) *dst;
+  new_leaf = (wabi_binary_leaf_t *) vm->mem_alloc;
+  vm->mem_alloc += WABI_BINARY_LEAF_SIZE;
 
-  wabi_mem_alloc += WABI_BINARY_LEAF_SIZE;
-  new_blob = wabi_mem_alloc;
-  wabi_mem_alloc += 1 + word_size;
+  new_blob = vm->mem_alloc;
+  vm->mem_alloc += 1 + word_size;
 
   data = (char *) (new_blob + 1);
 
@@ -64,113 +66,114 @@ void wabi_mem_copy_binary(wabi_obj src, wabi_obj *dst)
   wabi_binary_compact_raw(src, data);
 }
 
-void
-wabi_mem_copy(wabi_word_t *src, wabi_word_t **dst)
+
+wabi_word_t*
+wabi_mem_copy(wabi_vm vm, wabi_word_t *src)
 {
   wabi_word_t tag = wabi_obj_tag(src);
   if(tag == WABI_TAG_FORWARD) {
-    *dst = (wabi_word_t *) (*src & WABI_VALUE_MASK);
-    return;
+    return (wabi_word_t *) (*src & WABI_VALUE_MASK);
   }
-
-  *dst = wabi_mem_alloc;
+  wabi_word_t* res = vm->mem_alloc;
 
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
-    **dst = *src;
-    wabi_mem_alloc++;
+    *res = *src;
+    vm->mem_alloc++;
   } else switch(tag) {
     case WABI_TAG_PAIR:
-      **dst = *src;
-      *(*dst + 1) = *(src + 1);
-      wabi_mem_alloc += 2;
+      *res = *src;
+      *(res + 1) = *(src + 1);
+      vm->mem_alloc += 2;
       break;
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
-      wabi_mem_copy_binary(src, dst);
+      wabi_mem_copy_binary(vm, src);
       break;
     }
-  *src = WABI_TAG_FORWARD | ((wabi_word_t) *dst);
+  *src = WABI_TAG_FORWARD | ((wabi_word_t) *res);
+  return res;
 }
 
 void
-wabi_mem_collect_step()
+wabi_mem_collect_step(wabi_vm vm)
 {
   wabi_word_t tag, *car, *cdr;
 
-  tag = wabi_obj_tag(wabi_mem_scan);
+  tag = wabi_obj_tag(vm->mem_scan);
 
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
-    wabi_mem_scan++;
+    vm->mem_scan++;
   }
   else {
     switch(tag) {
     case WABI_TAG_PAIR:
-      wabi_mem_copy((wabi_word_t *) (*wabi_mem_scan & WABI_VALUE_MASK), &car);
-      wabi_mem_copy((wabi_word_t *) *(wabi_mem_scan + 1), &cdr);
-      *wabi_mem_scan = WABI_TAG_PAIR | (wabi_word_t) car;
-      *(wabi_mem_scan + 1) = (wabi_word_t) cdr;
-      wabi_mem_scan += 2;
+      car = wabi_mem_copy(vm, (wabi_word_t *) (*vm->mem_scan & WABI_VALUE_MASK));
+      cdr = wabi_mem_copy(vm, (wabi_word_t *) *(vm->mem_scan + 1));
+      *vm->mem_scan = WABI_TAG_PAIR | (wabi_word_t) car;
+      *(vm->mem_scan + 1) = (wabi_word_t) cdr;
+      vm->mem_scan += 2;
       break;
     case WABI_TAG_BIN_BLOB:
-      wabi_mem_scan += (*wabi_mem_scan & WABI_VALUE_MASK);
+      vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
       break;
     case WABI_TAG_BIN_LEAF:
-      wabi_mem_scan += 3;
+      vm->mem_scan += 3;
       break;
     }
   }
 }
 
 void
-wabi_mem_collect(int *errno)
+wabi_mem_collect(wabi_vm vm)
 {
-  wabi_word_t *wabi_mem_to_space = wabi_mem_from_space;
-  wabi_mem_from_space = wabi_allocate_space();
+  wabi_word_t *wabi_mem_to_space = vm->mem_from_space;
+  vm->mem_from_space = wabi_allocate_space(vm->mem_size);
 
-  if(wabi_mem_from_space == NULL) {
-    *errno = WABI_ERROR_NOMEM;
+  if(vm->mem_from_space == NULL) {
+    vm->errno = WABI_ERROR_NOMEM;
     return;
   }
-  if(wabi_mem_from_space + wabi_mem_size > WABI_MEM_LIMIT) {
-    *errno = WABI_ERROR_NOMEM;
+  if(vm->mem_from_space + vm->mem_size > WABI_MEM_LIMIT) {
+    vm->errno = WABI_ERROR_NOMEM;
     return;
   }
-  wabi_mem_limit = wabi_mem_from_space + wabi_mem_size;
-  wabi_mem_alloc = wabi_mem_from_space;
-  wabi_mem_scan = wabi_mem_from_space;
+  vm->mem_limit = vm->mem_from_space + vm->mem_size;
+  vm->mem_alloc = vm->mem_from_space;
+  vm->mem_scan = vm->mem_from_space;
 
-  wabi_mem_copy(wabi_mem_root, &wabi_mem_root);
+  vm->mem_root = wabi_mem_copy(vm, vm->mem_root);
 
-  while(wabi_mem_scan < wabi_mem_alloc)
-    wabi_mem_collect_step();
+  while(vm->mem_scan < vm->mem_alloc)
+    wabi_mem_collect_step(vm);
 
   free(wabi_mem_to_space);
 }
 
-void
-wabi_mem_allocate(wabi_size_t size, wabi_word_t **res, int *errno)
+wabi_word_t*
+wabi_mem_allocate(wabi_vm vm, wabi_size_t size)
 {
-  if(wabi_mem_alloc + size >= wabi_mem_limit)
-    wabi_mem_collect(errno);
+  if(vm->mem_alloc + size >= vm->mem_limit)
+    wabi_mem_collect(vm);
 
-  if(wabi_mem_alloc + size >= wabi_mem_limit) {
-    *errno = WABI_ERROR_NOMEM;
-    return;
+  if(vm->mem_alloc + size >= vm->mem_limit) {
+    vm->errno = WABI_ERROR_NOMEM;
+    return NULL;
   }
-  *res = wabi_mem_alloc;
-  wabi_mem_alloc += size;
+  wabi_word_t* res = vm->mem_alloc;
+  vm->mem_alloc += size;
+  return res;
 }
 
 wabi_word_t
-wabi_mem_used()
+wabi_mem_used(wabi_vm vm)
 {
   // if not running gc!
-  return (wabi_word_t)(wabi_mem_alloc - wabi_mem_from_space);
+  return (wabi_word_t)(vm->mem_alloc - vm->mem_from_space);
 }
 
 wabi_word_t
-wabi_mem_total()
+wabi_mem_total(wabi_vm vm)
 {
   // if not running gc!
-  return (wabi_word_t)(wabi_mem_alloc - wabi_mem_from_space);
+  return (wabi_word_t)(vm->mem_alloc - vm->mem_from_space);
 }
