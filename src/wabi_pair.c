@@ -1,37 +1,41 @@
 #define wabi_pair_c
 
+#include <stddef.h>
+
 #include "wabi_pair.h"
 #include "wabi_object.h"
-#include "wabi_mem.h"
+#include "wabi_vm.h"
 #include "wabi_err.h"
+#include "wabi_mem.h"
 
-
-void
-wabi_cons(wabi_obj car, wabi_obj cdr, wabi_obj *res, int *errno)
+wabi_obj
+wabi_cons(wabi_vm vm, wabi_obj car, wabi_obj cdr)
 {
-  wabi_mem_allocate(WABI_PAIR_SIZE, res, errno);
-  if(*errno != WABI_ERROR_NONE) return;
+  wabi_obj res = (wabi_obj) wabi_mem_allocate(vm, 2);
+    // wabi_mem_allocate(vm, WABI_PAIR_SIZE);
+  if(vm->errno) return NULL;
 
-  **res = WABI_TAG_PAIR | ((wabi_word_t) car);
-  *(*res + 1) = (wabi_word_t) cdr;
+  *res = WABI_TAG_PAIR | ((wabi_word_t) car);
+  *(res + 1) = (wabi_word_t) cdr;
+  return res;
 }
 
-void
-wabi_car(wabi_obj pair, wabi_obj *res, int *errno)
+wabi_obj
+wabi_car(wabi_vm vm, wabi_obj pair)
 {
   if(!wabi_obj_is_pair(pair)) {
-    *errno = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
-  *res = wabi_car_raw(pair);
+  return wabi_car_raw(pair);
 }
 
-void
-wabi_cdr(wabi_obj pair, wabi_obj *res, int *errno)
+wabi_obj
+wabi_cdr(wabi_vm vm, wabi_obj pair)
 {
   if(!wabi_obj_is_pair(pair)) {
-    *errno = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
-  *res = wabi_cdr_raw(pair);
+  return wabi_cdr_raw(pair);
 }

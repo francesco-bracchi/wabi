@@ -3,7 +3,6 @@
 #define wabi_vm_h
 
 #include "wabi_object.h"
-#include "wabi_mem.h"
 
 typedef struct wabi_vm_struct
 {
