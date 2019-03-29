@@ -4,11 +4,15 @@
 
 #include "wabi_object.h"
 #include "wabi_err.h"
+#include "wabi_vm.h"
 
 /* int */
 /* wabi_eq_c(wabi_obj a, wabi_obj b); */
 
-void
-wabi_eq(wabi_obj a, wabi_obj b, wabi_obj *res, wabi_error *err);
+wabi_obj
+wabi_eq(wabi_vm vm, wabi_obj a, wabi_obj b);
+
+int
+wabi_eq_raw(wabi_obj a, wabi_obj b);
 
 #endif

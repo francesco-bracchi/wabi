@@ -1,14 +1,11 @@
 #define wabi_eq_c
 
 #include "wabi_object.h"
+#include "wabi_vm.h"
 #include "wabi_pair.h"
 #include "wabi_atomic.h"
 #include "wabi_hash.h"
 #include "wabi_eq.h"
-
-
-int
-wabi_eq_raw(wabi_obj a, wabi_obj b);
 
 
 int
@@ -69,8 +66,8 @@ wabi_eq_raw(wabi_obj a, wabi_obj b)
 }
 
 
-void
-wabi_eq(wabi_obj a, wabi_obj b, wabi_obj* res, wabi_error *err)
+wabi_obj
+wabi_eq(wabi_vm vm, wabi_obj a, wabi_obj b)
 {
-  wabi_boolean(wabi_eq_raw(a, b), res, err);
+  return wabi_boolean(vm, wabi_eq_raw(a, b));
 }
