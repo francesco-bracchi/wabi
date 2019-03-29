@@ -2,15 +2,16 @@
 
 #define WABI_BINARY_LEAF_SIZE 3
 
-#include <stdio.h>
-
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
+
 #include "wabi_object.h"
+#include "wabi_vm.h"
 #include "wabi_err.h"
 #include "wabi_mem.h"
 #include "wabi_atomic.h"
 #include "wabi_binary.h"
-
 
 wabi_size_t
 wabi_binary_word_size(wabi_size_t size)
@@ -21,176 +22,157 @@ wabi_binary_word_size(wabi_size_t size)
   return word_size;
 }
 
-
-void
-wabi_blob_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_blob_new(wabi_vm vm, wabi_size_t size)
 {
   size ++;
-  wabi_mem_allocate(size, res, err);
-  if(*err != WABI_ERROR_NONE) return;
-  **res = size | WABI_TAG_BIN_BLOB;
-  *res = *res + 1;
+  wabi_obj res = wabi_mem_allocate(vm, size);
+  if(vm->errno) return NULL;
+  *res = size | WABI_TAG_BIN_BLOB;
+  return res + 1;
 }
 
-
-void
-wabi_binary_new(wabi_size_t size, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_new(wabi_vm vm, wabi_size_t size)
 {
-  wabi_size_t word_size;
-  wabi_word_t *blob;
-  wabi_binary_leaf_t *leaf;
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_mem_allocate(vm, WABI_BINARY_LEAF_SIZE);
+  if(vm->errno) return NULL;
 
-  wabi_mem_allocate(WABI_BINARY_LEAF_SIZE, res, err);
-  if(*err != WABI_ERROR_NONE) return;
+  wabi_size_t word_size = wabi_binary_word_size(size);
+  wabi_word_t* blob = (wabi_word_t*) wabi_mem_allocate(vm, word_size + 1);
+  if(vm->errno) return NULL;
 
-  word_size = wabi_binary_word_size(size);
-  wabi_mem_allocate(word_size + 1, &blob, err);
-  *blob = (wabi_word_t) ((word_size + 1) | WABI_TAG_BIN_BLOB);
-  leaf = (wabi_binary_leaf_t *) *res;
   leaf->length = size | WABI_TAG_BIN_LEAF;
-  leaf->data_ptr = (wabi_word_t) (blob + 1);
+  leaf->data_ptr = (wabi_word_t) blob;
 
+  return (wabi_obj) leaf;
 }
 
-
-void
-wabi_binary_new_from_cstring(char* cstring, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_new_from_cstring(wabi_vm vm, char* cstring)
 {
-  wabi_size_t size;
-  wabi_binary_leaf_t *leaf;
-
-  size = strlen(cstring);
-  wabi_binary_new(size, res, err);
-  if(*err != WABI_ERROR_NONE) return;
-
-  leaf = (wabi_binary_leaf_t *) *res;
+  wabi_size_t size = strlen(cstring);
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, size);
+  if(vm->errno) return NULL;
   memcpy((char *) leaf->data_ptr, cstring, size);
+  return (wabi_obj) leaf;
 }
 
 
-void
-wabi_binary_length(wabi_obj bin, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_length(wabi_vm vm, wabi_obj bin)
 {
-  int64_t l;
-
   switch(wabi_obj_tag(bin)) {
   case WABI_TAG_BIN_LEAF:
   case WABI_TAG_BIN_NODE:
-    l = (int64_t) *bin & WABI_VALUE_MASK;
-    wabi_smallint(l, res, err);
-    return;
+    return wabi_smallint(vm, wabi_binary_length_raw(bin));
   default:
-    *err = WABI_ERROR_TYPE_MISMATCH;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
 }
 
-
-void
-wabi_binary_concat(wabi_obj left, wabi_obj right, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_concat(wabi_vm vm, wabi_obj left, wabi_obj right)
 {
   if((wabi_obj_is_bin(left)) && (wabi_obj_is_bin(right))) {
-    wabi_mem_allocate(WABI_BINARY_NODE_SIZE, res, err);
-    wabi_binary_node_t *node = (wabi_binary_node_t *) *res;
-    node->length = ((*left & WABI_VALUE_MASK) + (*right & WABI_VALUE_MASK)) | WABI_TAG_BIN_NODE;
+    wabi_binary_node node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
+    if(vm->errno) return NULL;
+
+    wabi_size_t length = wabi_binary_length_raw(left) + wabi_binary_length_raw(right);
+    node->length = length | WABI_TAG_BIN_NODE;
     node->left = (wabi_word_t) left;
     node->right = (wabi_word_t) right;
-    return;
+    return (wabi_obj) node;
   }
 
-  *err = WABI_ERROR_TYPE_MISMATCH;
-  return;
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
+  return NULL;
 }
 
+wabi_obj
+wabi_binary_sub_aux(wabi_vm vm, wabi_obj bin, wabi_size_t from, wabi_size_t len);
 
-void
-wabi_binary_sub_aux(wabi_obj bin, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err);
 
-
-void
-wabi_binary_sub_leaf(wabi_binary_leaf_t *leaf, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size_t from, wabi_size_t len)
 {
-  wabi_binary_leaf_t *new_leaf;
-  wabi_mem_allocate(WABI_BINARY_LEAF_SIZE, res, err);
-  if(*err != WABI_ERROR_NONE) return;
+  wabi_binary_leaf new_leaf = (wabi_binary_leaf) wabi_mem_allocate(vm, WABI_BINARY_LEAF_SIZE);
+  if(vm->errno) return NULL;
 
-  new_leaf = (wabi_binary_leaf_t *) *res;
   new_leaf->length = len | WABI_TAG_BIN_LEAF;
   new_leaf->data_ptr = leaf->data_ptr + from;
+
+  return (wabi_obj) new_leaf;
 }
 
-
-void
-wabi_binary_sub_node(wabi_binary_node_t *node, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size_t from, wabi_size_t len)
 {
-  wabi_binary_node_t *new_node;
-  wabi_obj left_elem, new_left, new_right;
-  wabi_size_t pivot;
-
-  left_elem = (wabi_obj) node->left;
-  pivot = *left_elem & WABI_VALUE_MASK;
+  wabi_obj left = (wabi_obj) node->left;
+  wabi_obj right = (wabi_obj) node->right;
+  wabi_size_t pivot = wabi_binary_length_raw(left);
 
   if(pivot > from + len) {
-    wabi_binary_sub_aux(left_elem, from, len, res, err);
+    return wabi_binary_sub_aux(vm, left, from, len);
   } else if(pivot <= from) {
-    wabi_binary_sub_aux((wabi_obj) node->right, from - pivot, len, res, err);
+    return wabi_binary_sub_aux(vm, right, from - pivot, len);
   } else {
-    wabi_binary_sub_aux((wabi_obj) node->left, from, pivot - from, &new_left, err);
-    if(*err != WABI_ERROR_NONE) return;
+    wabi_binary_node new_node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
+    if(vm->errno) return NULL;
 
-    wabi_binary_sub_aux((wabi_obj) node->right, 0, len + from - pivot, &new_right, err);
-    if(*err != WABI_ERROR_NONE) return;
+    wabi_obj new_left = wabi_binary_sub_aux(vm, left, from, pivot- from);
+    if(vm->errno) return NULL;
 
-    wabi_mem_allocate(WABI_BINARY_NODE_SIZE, res, err);
-    if(*err != WABI_ERROR_NONE) return;
+    wabi_obj new_right = wabi_binary_sub_aux(vm, right, 0, len + from - pivot);
+    if(vm->errno) return NULL;
 
-    new_node = (wabi_binary_node_t *) *res;
     new_node->length = len | WABI_TAG_BIN_NODE;
     new_node->left = (wabi_word_t) new_left;
     new_node->right = (wabi_word_t) new_right;
+
+    return (wabi_obj) new_node;
   }
 }
 
-
-void
-wabi_binary_sub_aux(wabi_obj bin, wabi_size_t from, wabi_size_t len, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_sub_aux(wabi_vm vm, wabi_obj bin, wabi_size_t from, wabi_size_t len)
 {
-  switch(wabi_obj_tag(bin)) {
-  case WABI_TAG_BIN_LEAF:
-    wabi_binary_sub_leaf((wabi_binary_leaf_t *) bin, from, len, res, err);
-    break;
-  default:
-    wabi_binary_sub_node((wabi_binary_node_t *) bin, from, len, res, err);
-  }
+  return wabi_obj_is_bin_leaf(bin)
+    ? wabi_binary_sub_leaf(vm, (wabi_binary_leaf) bin, from, len)
+    : wabi_binary_sub_node(vm, (wabi_binary_node) bin, from, len);
 }
 
 
-void
-wabi_binary_sub(wabi_obj bin, wabi_obj from, wabi_obj len, wabi_obj* res, wabi_error *err)
+wabi_obj
+wabi_binary_sub(wabi_vm vm, wabi_obj bin, wabi_obj from, wabi_obj len)
 {
-  wabi_size_t bin_len_s;
-  int64_t from_s, len_s;
 
   if(! wabi_obj_is_bin(bin)) {
-    *err = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
   if(!wabi_obj_is_smallint(from)) {
-    *err = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
   if(!wabi_obj_is_smallint(len)) {
-    *err = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
 
-  bin_len_s = *bin & WABI_VALUE_MASK;
-  from_s = *from & WABI_VALUE_MASK;
-  len_s = *len & WABI_VALUE_MASK;
+  wabi_size_t bin_len = wabi_binary_length_raw(bin);
+  int64_t from_raw = *from & WABI_VALUE_MASK;
+  int64_t len_raw = *len & WABI_VALUE_MASK;
 
-  if(from_s < 0 || len_s < 0 || from_s + len_s > bin_len_s) {
-    *err = WABI_ERROR_INDEX_OUT_OF_RANGE;
+  if(from_raw < 0
+     || len_raw < 0
+     || from_raw + len_raw > bin_len) {
+    vm->errno = WABI_ERROR_INDEX_OUT_OF_RANGE;
+    return NULL;
   }
-  wabi_binary_sub_aux(bin, (wabi_size_t) from_s, (wabi_size_t) len_s, res, err);
+
+  return wabi_binary_sub_aux(vm, bin, (wabi_size_t) from_raw, (wabi_size_t) len_raw);
 }
 
 
@@ -219,29 +201,23 @@ wabi_binary_compact_node(wabi_binary_node_t *node, char *dest)
 void
 wabi_binary_compact_raw(wabi_obj bin, char *dest)
 {
-  switch(wabi_obj_tag(bin)) {
-  case WABI_TAG_BIN_LEAF:
-    wabi_binary_compact_leaf((wabi_binary_leaf_t *) bin, dest);
-    break;
-  default:
-    wabi_binary_compact_node((wabi_binary_node_t *) bin, dest);
-  }
+  return wabi_obj_is_bin_leaf(bin)
+    ? wabi_binary_compact_leaf((wabi_binary_leaf) bin, dest)
+    : wabi_binary_compact_node((wabi_binary_node) bin, dest);
 }
 
 
-void
-wabi_binary_compact(wabi_obj bin, wabi_obj *res, wabi_error *err)
+wabi_obj
+wabi_binary_compact(wabi_vm vm, wabi_obj bin)
 {
-  wabi_size_t len;
-  wabi_binary_leaf_t *leaf;
-
   if(! wabi_obj_is_bin(bin)) {
-    *err = WABI_ERROR_TYPE_MISMATCH;
-    return;
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
   }
-  len = *bin & WABI_VALUE_MASK;
-  wabi_binary_new(len, res, err);
-  if(*err != WABI_ERROR_NONE) return;
-  leaf = (wabi_binary_leaf_t *) *res;
-  wabi_binary_compact_raw(bin, (char *) leaf->data_ptr);
+  wabi_size_t len = wabi_binary_length_raw(bin);
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, len);
+  if(vm->errno) return NULL;
+
+  wabi_binary_compact_raw(bin, (char*) leaf->data_ptr);
+  return (wabi_obj) leaf;
 }
