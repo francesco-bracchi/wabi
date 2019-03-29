@@ -5,6 +5,6 @@
 #include "wabi_object.h"
 
 void
-wabi_pr(wabi_obj obj, int* errno);
+wabi_pr(wabi_obj obj);
 
 #endif

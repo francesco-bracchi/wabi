@@ -39,20 +39,17 @@ void wabi_pr_binary(wabi_obj obj)
 }
 
 void
-wabi_pr(wabi_obj obj, int* errno) {
+wabi_pr(wabi_obj obj) {
   if(wabi_obj_is_nil(obj)) {
     printf("nil");
   } else if (wabi_obj_is_pair(obj)) {
-    wabi_obj car;
-    wabi_obj cdr;
-    wabi_car(obj, &car, errno);
-    wabi_cdr(obj, &cdr, errno);
+    wabi_obj car = wabi_car_raw(obj);
+    wabi_obj cdr = wabi_cdr_raw(obj);
     printf("(");
-    wabi_pr(car, errno);
+    wabi_pr(car);
     printf(" . ");
-    wabi_pr(cdr, errno);
+    wabi_pr(cdr);
     printf(")");
-
   } else if (wabi_obj_is_smallint(obj)) {
     printf("%li", *obj & WABI_VALUE_MASK);
   } else if (wabi_obj_is_bin(obj)) {
