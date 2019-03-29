@@ -14,8 +14,8 @@ typedef struct wabi_hash_state_struct
 } wabi_hash_state_t;
 
 
-void
-wabi_hash(wabi_obj obj, wabi_obj *res, wabi_error* err);
+wabi_obj
+wabi_hash(wabi_vm vm, wabi_obj obj);
 
 
 wabi_word_t

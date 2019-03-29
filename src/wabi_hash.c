@@ -2,6 +2,7 @@
 
 #include "wabi_object.h"
 #include "wabi_err.h"
+#include "wabi_vm.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
 #include "wabi_hash.h"
@@ -95,9 +96,9 @@ wabi_hash_raw(wabi_obj obj)
 }
 
 
-void
-wabi_hash(wabi_obj obj, wabi_obj *res, wabi_error* err)
+wabi_obj
+wabi_hash(wabi_vm vm, wabi_obj obj)
 {
   wabi_word_t hash = wabi_hash_raw(obj);
-  wabi_smallint(hash & WABI_VALUE_MASK, res, err);
+  return wabi_smallint(vm, hash & WABI_VALUE_MASK);
 }
