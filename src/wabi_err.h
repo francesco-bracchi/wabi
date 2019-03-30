@@ -12,6 +12,7 @@
 #define WABI_ERROR_TYPE_MISMATCH 3
 #define WABI_ERROR_TAG_NOT_FOUND 4
 #define WABI_ERROR_INDEX_OUT_OF_RANGE 5
+#define WABI_ERROR_HASH_CONFLICT 6
 
 char* wabi_err_msg(int errno);
 
