@@ -1,6 +1,7 @@
 #define wabi_hamt_c
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include "wabi_object.h"
 #include "wabi_vm.h"
@@ -10,15 +11,12 @@
 #include "wabi_hamt.h"
 
 
-#define WABI_POPCNT(v) __builtin_popcountl(v)
-
-
 wabi_obj
 wabi_hamt_empty(wabi_vm vm)
 {
   wabi_hamt_map res = (wabi_hamt_map) wabi_mem_allocate(vm, WABI_HAMT_SIZE);
-  res->bitmap = WABI_TAG_HAMT;
-  res->table = (wabi_word_t) NULL;
+  res->bitmap = 0;
+  res->table = WABI_TAG_HAMT;
   return (wabi_obj) res;
 }
 
@@ -96,6 +94,9 @@ wabi_hamt_set_raw(wabi_vm vm, wabi_hamt_map map, wabi_word_t hash, short unsigne
   wabi_word_t index = hash >> offset && 0x3F;
   wabi_hamt_entry entry = wabi_hamt_get_index(map, index);
   if(wabi_obj_is_hamt((wabi_obj) entry)) {
+
+    printf("---------------------------------------\n");
+
     wabi_obj new_map = wabi_hamt_set_raw(vm, (wabi_hamt_map) entry, hash, offset - 6, pair);
     return (wabi_obj) wabi_hamt_set_index(vm, map, index, (wabi_hamt_entry) new_map);
   }
@@ -131,10 +132,9 @@ wabi_hamt_set(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val)
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
-
   wabi_word_t hash = wabi_hash_raw(key);
   wabi_hamt_pair pair = (wabi_hamt_pair) wabi_mem_allocate(vm, WABI_HAMT_SIZE);
-  pair->value = (wabi_word_t) WABI_VALUE_MASK;
+  pair->value = ((wabi_word_t) val) & WABI_VALUE_MASK;
   pair->key =  (wabi_word_t) key;
   return wabi_hamt_set_raw(vm, (wabi_hamt_map) map, hash, 50, pair);
 }

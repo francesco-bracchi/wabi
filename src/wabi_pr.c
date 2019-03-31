@@ -6,6 +6,7 @@
 #include "wabi_pr.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
+#include "wabi_hamt.h"
 
 void
 wabi_pr_binary(wabi_obj obj);
@@ -38,17 +39,59 @@ void wabi_pr_binary(wabi_obj obj)
   }
 }
 
+void wabi_pr_pair(wabi_obj obj) {
+  wabi_obj car, cdr;
+
+  do {
+    car = wabi_car_raw(obj);
+    cdr = wabi_cdr_raw(obj);
+
+    if (wabi_obj_is_pair(cdr)) {
+      wabi_pr(car);
+      putchar(' ');
+      obj = cdr;
+      continue;
+    }
+
+    if(wabi_obj_is_nil(cdr)) {
+      wabi_pr(car);
+      return;
+    }
+
+    wabi_pr(car);
+    printf(" . ");
+    wabi_pr(cdr);
+    return;
+  } while(wabi_obj_is_pair(obj));
+}
+
+
+void
+wabi_pr_hamt(wabi_hamt_map obj)
+{
+  wabi_hamt_entry_t *entry = (wabi_hamt_entry_t *) obj->table;
+  wabi_size_t cc = WABI_POPCNT(obj->bitmap);
+
+  for(int j = 0; j < cc; j++) {
+    if(wabi_obj_is_hamt((wabi_obj) entry)) {
+      wabi_pr_hamt((wabi_hamt_map) entry);
+    } else {
+      wabi_pr((wabi_obj) (*entry).pair.key);
+      putchar(' ');
+      wabi_pr((wabi_obj) (*entry).pair.value);
+    }
+    entry++;
+  }
+}
+
+
 void
 wabi_pr(wabi_obj obj) {
   if(wabi_obj_is_nil(obj)) {
     printf("nil");
   } else if (wabi_obj_is_pair(obj)) {
-    wabi_obj car = wabi_car_raw(obj);
-    wabi_obj cdr = wabi_cdr_raw(obj);
     printf("(");
-    wabi_pr(car);
-    printf(" . ");
-    wabi_pr(cdr);
+    wabi_pr_pair(obj);
     printf(")");
   } else if (wabi_obj_is_smallint(obj)) {
     printf("%li", *obj & WABI_VALUE_MASK);
@@ -56,5 +99,11 @@ wabi_pr(wabi_obj obj) {
     putchar('"');
     wabi_pr_binary(obj);
     putchar('"');
+  } else if (wabi_obj_is_hamt(obj)) {
+    putchar('{');
+    wabi_pr_hamt((wabi_hamt_map) obj);
+    putchar('}');
+  } else {
+    printf("unknown");
   }
 }

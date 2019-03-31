@@ -8,10 +8,12 @@
 #include "wabi_vm.h"
 #include "wabi_pair.h"
 #include "wabi_atomic.h"
-#include "wabi_mem.h"
 #include "wabi_pr.h"
 #include "wabi_binary.h"
 #include "wabi_hash.h"
+#include "wabi_hamt.h"
+#include "wabi_mem.h"
+
 
 int main(int argc, char** argv)
 {
@@ -41,7 +43,11 @@ int main(int argc, char** argv)
   wabi_obj l = wabi_binary_length(vm, b3);
   wabi_obj root = wabi_cons(vm, b3, p1);
   wabi_obj hash = 0;
+  // wabi_obj m0 = wabi_hamt_empty(vm);
+  // wabi_obj m1 = wabi_hamt_set(vm, m0, b0, n0);
+  // wabi_obj g0 = wabi_hamt_get(vm, m1, b0);
 
+  // wabi_pr(m0);
 
   vm->mem_root = root;
 
