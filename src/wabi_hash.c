@@ -8,12 +8,13 @@
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
 
+#define LEVEL 1
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
 {
-  state->a = 31415;
-  state->b = 27183;
+  state->a = 3141527183;
+  state->b = 2718331415;
   state->v_hash = 0;
 }
 
@@ -22,7 +23,7 @@ void
 wabi_hash_step(wabi_hash_state_t *state, char *data, wabi_word_t size)
 {
   for(wabi_word_t j = 0; j < size; j++) {
-    state->v_hash = state->a * state->v_hash + *(data + j);
+    state->v_hash = state->a * state->v_hash * LEVEL + *(data + j);
     state->a *= state->b;
   }
 }
