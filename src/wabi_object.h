@@ -24,7 +24,9 @@ typedef int wabi_error;
 #define WABI_TAG_BIN_LEAF   0x6000000000000000
 #define WABI_TAG_BIN_NODE   0x7000000000000000
 #define WABI_TAG_PAIR       0xF000000000000000
-#define WABI_TAG_HAMT       0xF100000000000000
+#define WABI_TAG_HAMT_MAP   0xF100000000000000
+#define WABI_TAG_HAMT_KW    0xF200000000000000
+
 #define WABI_VALUE_MASK     0x00FFFFFFFFFFFFFF
 #define WABI_TAG_MASK       0xFF00000000000000
 
@@ -48,7 +50,8 @@ typedef int wabi_error;
 #define wabi_obj_is_bin_node(obj) wabi_obj_is_type(obj, WABI_TAG_BIN_NODE)
 #define wabi_obj_is_bin(obj) ((wabi_obj_is_bin_leaf(obj)) || (wabi_obj_is_bin_node(obj)))
 #define wabi_obj_is_pair(obj) wabi_obj_is_type(obj, WABI_TAG_PAIR)
-#define wabi_obj_is_hamt(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT)
+#define wabi_obj_is_hamt_map(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_MAP)
+#define wabi_obj_is_hamt_kw(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_KW)
 
 #define wabi_obj_is_atomic(obj) (wabi_obj_tag(obj) < WABI_TAG_ATOMIC_LIMIT)
 
