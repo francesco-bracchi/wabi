@@ -78,18 +78,17 @@ wabi_pr_hamt_entry(wabi_hamt_entry entry)
 void
 wabi_pr_hamt_map(wabi_hamt_map obj)
 {
-  wabi_hamt_entry_t *entry = (wabi_hamt_entry_t *) (obj->table & WABI_VALUE_MASK);
-  wabi_size_t cc = WABI_POPCNT(obj->bitmap);
+  wabi_hamt_table table = (wabi_hamt_table) (obj->table & WABI_VALUE_MASK);
+  wabi_size_t size = WABI_POPCNT(obj->bitmap);
 
-  for(int j = 0; j < cc; j++) {
-    if(wabi_obj_is_hamt_map((wabi_obj) entry)) {
-      // printf("submap %lx\n", *((wabi_obj) entry));
-      wabi_pr_hamt_map((wabi_hamt_map) entry);
+  for(int j = 0; j < size; j++) {
+    wabi_hamt_table row = table + j;
+    if(wabi_obj_is_hamt_map((wabi_obj) row)) {
+      wabi_pr_hamt_map((wabi_hamt_map) row);
     } else {
-      wabi_pr_hamt_entry((wabi_hamt_entry) entry);
-      printf(" ");
+      wabi_pr((wabi_obj) row);
+      putchar(' ');
     }
-    entry++;
   }
 }
 
@@ -112,6 +111,10 @@ wabi_pr(wabi_obj obj) {
     putchar('{');
     wabi_pr_hamt_map((wabi_hamt_map) obj);
     putchar('}');
+  } else if (wabi_obj_is_hamt_entry(obj)) {
+    // putchar('<');
+    wabi_pr_hamt_entry((wabi_hamt_map) obj);
+    // putchar('>');
   } else {
     printf("unknown");
   }

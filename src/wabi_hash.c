@@ -15,7 +15,7 @@ wabi_hash_state_init(wabi_hash_state_t* state)
 {
   state->a = 3141527183;
   state->b = 2718331415;
-  state->v_hash = 0;
+  state->v_hash = 179;
 }
 
 
