@@ -112,9 +112,9 @@ wabi_pr(wabi_obj obj) {
     wabi_pr_hamt_map((wabi_hamt_map) obj);
     putchar('}');
   } else if (wabi_obj_is_hamt_entry(obj)) {
-    // putchar('<');
+    putchar('<');
     wabi_pr_hamt_entry((wabi_hamt_map) obj);
-    // putchar('>');
+    putchar('>');
   } else {
     printf("unknown");
   }

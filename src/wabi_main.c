@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 10000000);
+  wabi_mem_init(vm, 2000000000);
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -44,55 +44,21 @@ int main(int argc, char** argv)
   wabi_obj root = wabi_cons(vm, b3, p1);
   wabi_obj hash = 0;
   wabi_obj m0 = wabi_hamt_empty(vm);
-  /* wabi_obj m1 = wabi_hamt_set(vm, m0, b0, n0); */
-  /* wabi_obj m2 = wabi_hamt_set(vm, m1, b3, n1); */
-  // wabi_obj g0 = wabi_hamt_get(vm, m1, b0);
-
-  /* wabi_pr(m1); */
-  /* printf("\n"); */
-
-  /* wabi_pr(m2); */
-  /* printf("\n"); */
-
-  /* wabi_obj xx = wabi_hamt_get(vm, m2, b3); */
-  /* wabi_pr(xx); */
-  /* printf("\n"); */
 
 
 
-  /* wabi_obj k; */
-  /* wabi_obj v; */
-
-  /* k = wabi_smallint(vm, 43); */
-  /* v = wabi_binary_new_from_cstring(vm, "first"); */
-  /* m0 = wabi_hamt_set(vm, m0, k, v); */
-
-  /* k = wabi_smallint(vm, 62); */
-  /* v = wabi_binary_new_from_cstring(vm, "second"); */
-  /* m0 = wabi_hamt_set(vm, m0, k, v); */
-
-  /* k = wabi_smallint(vm, 19); */
-  /* v = wabi_binary_new_from_cstring(vm, "third"); */
-  /* m0 = wabi_hamt_set(vm, m0, k, v); */
-  /* wabi_pr(m0); */
-  /* printf("\n"); */
-
-
-
-
+  wabi_obj k;
+  wabi_obj v;
   char str[80];
-  for(int j = 0; j < 114; j+=1) {
+
+  for(wabi_word_t j = 0; j < 2000000; j+=1) {
     sprintf(str, "%i", j);
-    wabi_obj k = wabi_smallint(vm, j);
-    wabi_obj v = wabi_binary_new_from_cstring(vm, str);
+    k = wabi_smallint(vm, j);
+    v = wabi_binary_new_from_cstring(vm, str);
     m0 = wabi_hamt_set(vm, m0, k, v);
   }
 
-  wabi_pr(m0);
-  printf("\n");
-
-  // printf("\n LENGTH: %lu\n", wabi_hamt_length_raw(m0));
-
+  printf("LENGTH: (307) %lu\n", wabi_hamt_length_raw(m0));
 
   vm->mem_root = root;
 

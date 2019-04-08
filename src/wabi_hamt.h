@@ -55,5 +55,4 @@ wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key);
 wabi_obj
 wabi_hamt_set(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val);
 
-
 #endif
