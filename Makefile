@@ -1,6 +1,7 @@
 CC = gcc
 RM = rm
 CFLAGS  = -g -Wall -O2
+# CFLAGS  = -g -Wall
 LFLAGS =
 LIBS =
 SRCDIR 		= "src"

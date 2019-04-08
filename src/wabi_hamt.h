@@ -52,7 +52,17 @@ wabi_obj
 wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key);
 
 
+
 wabi_obj
-wabi_hamt_set(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val);
+wabi_hamt_assoc(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val);
+
+
+
+int64_t
+wabi_hamt_length_raw(wabi_hamt_map map);
+
+
+wabi_obj
+wabi_hamt_length(wabi_vm vm, wabi_obj map);
 
 #endif

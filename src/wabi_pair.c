@@ -9,6 +9,18 @@
 #include "wabi_mem.h"
 
 wabi_obj
+wabi_car_raw(wabi_obj pair)
+{
+  return (wabi_obj)(*pair & WABI_VALUE_MASK);
+}
+
+wabi_obj
+wabi_cdr_raw(wabi_obj pair)
+{
+  return (wabi_obj)(*(pair + 1) & WABI_VALUE_MASK);
+}
+
+wabi_obj
 wabi_cons(wabi_vm vm, wabi_obj car, wabi_obj cdr)
 {
   wabi_obj res = (wabi_obj) wabi_mem_allocate(vm, 2);

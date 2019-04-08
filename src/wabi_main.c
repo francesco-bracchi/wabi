@@ -51,14 +51,17 @@ int main(int argc, char** argv)
   wabi_obj v;
   char str[80];
 
-  for(wabi_word_t j = 0; j < 2000000; j+=1) {
-    sprintf(str, "%i", j);
+  for(wabi_word_t j = 0; j < 200000; j+=1) {
+    sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
-    m0 = wabi_hamt_set(vm, m0, k, v);
+    m0 = wabi_hamt_assoc(vm, m0, k, v);
   }
 
-  printf("LENGTH: (307) %lu\n", wabi_hamt_length_raw(m0));
+  wabi_obj lm0 = wabi_hamt_length(vm, m0);
+  printf("LENGTH: ");
+  wabi_pr(lm0);
+  printf("\n");
 
   vm->mem_root = root;
 

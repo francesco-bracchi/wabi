@@ -59,6 +59,13 @@ wabi_binary_new_from_cstring(wabi_vm vm, char* cstring)
 }
 
 
+wabi_size_t
+wabi_binary_length_raw(wabi_obj bin)
+{
+  return (*bin & WABI_VALUE_MASK);
+}
+
+
 wabi_obj
 wabi_binary_length(wabi_vm vm, wabi_obj bin)
 {

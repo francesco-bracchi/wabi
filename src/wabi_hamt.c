@@ -10,11 +10,14 @@
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
 #include "wabi_hamt.h"
+#include "wabi_eq.h"
 
 const wabi_word_t one = 1;
 
 #define MAP_BITMAP(map) ((map)->bitmap)
 #define MAP_TABLE(map) ((wabi_hamt_table) ((map)->table & WABI_VALUE_MASK))
+#define ENTRY_KEY(entry) ((entry)->key)
+#define ENTRY_VALUE(entry) ((entry)->value & WABI_VALUE_MASK)
 #define BITMAP_OFFSET(bitmap, index) WABI_POPCNT((bitmap) << (64 - (index)) & 0xFFFFFFFFFFFFFFFE)
 #define BITMAP_FOUND(bitmap, index) (((bitmap) >> (index)) & 1)
 #define BITMAP_SIZE(bitmap) WABI_POPCNT(bitmap)
@@ -177,7 +180,7 @@ wabi_hamt_empty(wabi_vm vm) {
 
 
 wabi_obj
-wabi_hamt_set(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val)
+wabi_hamt_assoc(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val)
 {
   if(wabi_obj_is_nil(map)) {
     map = wabi_hamt_empty(vm);
@@ -197,12 +200,12 @@ wabi_hamt_set(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val)
 }
 
 
-wabi_word_t
+int64_t
 wabi_hamt_length_raw(wabi_hamt_map map)
 {
   wabi_hamt_table table = MAP_TABLE(map);
   wabi_size_t size = WABI_POPCNT(MAP_BITMAP(map));
-  wabi_size_t total = 0;
+  int64_t total = 0;
 
   for(wabi_size_t j = 0; j < size; j++) {
     wabi_hamt_table row = table + j;
@@ -213,4 +216,38 @@ wabi_hamt_length_raw(wabi_hamt_map map)
     }
   }
   return total;
+}
+
+
+wabi_obj
+wabi_hamt_length(wabi_vm vm, wabi_obj map) {
+  if(wabi_obj_is_nil(map)) {
+    map = wabi_hamt_empty(vm);
+    if(vm->errno) return NULL;
+  }
+  if(!wabi_obj_is_hamt_map(map)) {
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
+  }
+  return wabi_smallint(vm, wabi_hamt_length_raw((wabi_hamt_map) map));
+}
+
+
+wabi_obj
+wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key)
+{
+  if(wabi_obj_is_nil(map)) {
+    map = wabi_hamt_empty(vm);
+    if(vm->errno) return NULL;
+  }
+  if(!wabi_obj_is_hamt_map(map)) {
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
+  }
+  wabi_word_t hash = wabi_hash_raw(key);
+  wabi_hamt_entry entry = wabi_hamt_get_entry((wabi_hamt_map) map, 50, hash);
+  if(entry && wabi_eq_raw((wabi_obj) ENTRY_KEY(entry), key)) {
+    return (wabi_obj) ENTRY_VALUE(entry);
+  }
+  return wabi_nil(vm);
 }
