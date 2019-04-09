@@ -1,3 +1,7 @@
+/**
+ * Clojure is still faster.
+ */
+
 #define wabi_hamt_c
 
 #include <stddef.h>

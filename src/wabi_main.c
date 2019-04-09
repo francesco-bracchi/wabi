@@ -13,14 +13,14 @@
 #include "wabi_hash.h"
 #include "wabi_hamt.h"
 #include "wabi_mem.h"
-
+#include "time.h"
 
 int main(int argc, char** argv)
 {
   printf(0);
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 200000000);
+  wabi_mem_init(vm, 800000000);
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -45,18 +45,27 @@ int main(int argc, char** argv)
   wabi_obj hash = 0;
   wabi_obj m0 = wabi_hamt_empty(vm);
 
+  clock_t start, end;
+  double cpu_time_used;
+
 
 
   wabi_obj k;
   wabi_obj v;
   char str[80];
 
-  for(wabi_word_t j = 0; j < 20; j+=1) {
+  start = clock();
+  for(wabi_word_t j = 0; j < 1200000; j+=1) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
     m0 = wabi_hamt_assoc(vm, m0, k, v);
   }
+
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+  printf("TIME USED %f\n", cpu_time_used);
 
   wabi_obj lm0 = wabi_hamt_length(vm, m0);
   printf("LENGTH: ");
@@ -65,7 +74,7 @@ int main(int argc, char** argv)
 
   vm->mem_root = m0;
 
-  wabi_pr(vm->mem_root);
+  // wabi_pr(vm->mem_root);
   printf("\n");
 
 
@@ -75,11 +84,20 @@ int main(int argc, char** argv)
   printf("\n");
 
   printf("used before collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
-  wabi_mem_collect(vm);
-  printf("used  after collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
-  wabi_pr(vm->mem_root);
-  printf("\n");
 
+
+  start = clock();
+  wabi_mem_collect(vm);
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+
+
+
+  printf("used  after collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
+  printf("TIME USED %f\n", cpu_time_used);
+  // wabi_pr(vm->mem_root);
+  printf("\n");
 
   hash = wabi_hash(vm, vm->mem_root);
   printf("HASH: ");
