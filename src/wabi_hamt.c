@@ -14,15 +14,6 @@
 
 const wabi_word_t one = 1;
 
-#define MAP_BITMAP(map) ((map)->bitmap)
-#define MAP_TABLE(map) ((wabi_hamt_table) ((map)->table & WABI_VALUE_MASK))
-#define ENTRY_KEY(entry) ((entry)->key)
-#define ENTRY_VALUE(entry) ((entry)->value & WABI_VALUE_MASK)
-#define BITMAP_OFFSET(bitmap, index) WABI_POPCNT((bitmap) << (64 - (index)) & 0xFFFFFFFFFFFFFFFE)
-#define BITMAP_FOUND(bitmap, index) (((bitmap) >> (index)) & 1)
-#define BITMAP_SIZE(bitmap) WABI_POPCNT(bitmap)
-#define HASH_INDEX(hash, h_pos) (((hash) >> h_pos) & 0x3F)
-
 
 wabi_hamt_table
 wabi_hamt_get_table(wabi_hamt_map map, wabi_hamt_index index)
@@ -174,7 +165,7 @@ wabi_hamt_empty(wabi_vm vm) {
   wabi_hamt_map map = (wabi_hamt_map) wabi_mem_allocate(vm, WABI_HAMT_SIZE);
   if(vm->errno) return NULL;
   map->bitmap = 0;
-  map->table = (wabi_word_t) (map + 1) | WABI_TAG_HAMT_MAP;
+  map->table = WABI_TAG_HAMT_MAP;
   return (wabi_obj) map;
 }
 

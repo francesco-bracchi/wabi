@@ -12,14 +12,18 @@
 #include "wabi_vm.h"
 #include "wabi_err.h"
 #include "wabi_binary.h"
+#include "wabi_pair.h"
+#include "wabi_hamt.h"
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
+
 
 wabi_word_t *
 wabi_allocate_space(wabi_word_t size)
 {
   return (wabi_word_t *) malloc(WABI_WORD_SIZE * size);
 }
+
 
 void
 wabi_mem_init(wabi_vm vm, wabi_size_t size)
@@ -40,6 +44,7 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = NULL;
 }
+
 
 void
 wabi_mem_copy_binary(wabi_vm vm, wabi_obj src)
@@ -67,8 +72,8 @@ wabi_mem_copy_binary(wabi_vm vm, wabi_obj src)
 }
 
 
-wabi_word_t*
-wabi_mem_copy(wabi_vm vm, wabi_word_t *src)
+wabi_word_t *
+wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
 {
   wabi_word_t tag = wabi_obj_tag(src);
   if(tag == WABI_TAG_FORWARD) {
@@ -81,9 +86,10 @@ wabi_mem_copy(wabi_vm vm, wabi_word_t *src)
     vm->mem_alloc++;
   } else switch(tag) {
     case WABI_TAG_PAIR:
-      *res = *src;
-      *(res + 1) = *(src + 1);
-      vm->mem_alloc += 2;
+    case WABI_TAG_HAMT_MAP:
+    case WABI_TAG_HAMT_ENTRY:
+      memcpy(res, src, 2 * WABI_WORD_SIZE);
+      vm->mem_alloc +=2;
       break;
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
@@ -94,11 +100,51 @@ wabi_mem_copy(wabi_vm vm, wabi_word_t *src)
   return res;
 }
 
+
+void
+wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
+{
+  pair->car = (wabi_word_t) wabi_mem_copy_obj(vm, pair->car) | WABI_TAG_PAIR;
+  pair->cdr = (wabi_word_t) wabi_mem_copy_obj(vm, pair->cdr);
+  vm->mem_scan += 2;
+}
+
+
+wabi_hamt_table
+wabi_mem_copy_hamt_table(wabi_vm vm, wabi_hamt_table table, wabi_word_t size)
+{
+  wabi_word_t delta = size * WABI_HAMT_SIZE;
+  wabi_hamt_table res = (wabi_hamt_table) vm->mem_alloc;
+  memcpy(res, table, delta * WABI_WORD_SIZE);
+  vm->mem_alloc += delta;
+  return res;
+}
+
+
+void
+wabi_mem_collect_hamt_map(wabi_vm vm, wabi_hamt_map map)
+{
+  if(map->bitmap) {
+    wabi_size_t size = BITMAP_SIZE(MAP_BITMAP(map));
+    map->table = (wabi_word_t) wabi_mem_copy_hamt_table(vm, MAP_TABLE(map), size) | WABI_TAG_HAMT_MAP;
+  }
+  vm->mem_scan += WABI_HAMT_SIZE;
+}
+
+
+void
+wabi_mem_collect_hamt_entry(wabi_vm vm, wabi_hamt_entry entry)
+{
+  entry->value = WABI_TAG_HAMT_ENTRY | (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) (entry->value & WABI_VALUE_MASK));
+  entry->key = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) entry->key);
+  vm->mem_scan += WABI_HAMT_SIZE;
+}
+
+
 void
 wabi_mem_collect_step(wabi_vm vm)
 {
-  wabi_word_t tag, *car, *cdr;
-
+  wabi_word_t tag;
   tag = wabi_obj_tag(vm->mem_scan);
 
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
@@ -107,17 +153,19 @@ wabi_mem_collect_step(wabi_vm vm)
   else {
     switch(tag) {
     case WABI_TAG_PAIR:
-      car = wabi_mem_copy(vm, (wabi_word_t *) (*vm->mem_scan & WABI_VALUE_MASK));
-      cdr = wabi_mem_copy(vm, (wabi_word_t *) *(vm->mem_scan + 1));
-      *vm->mem_scan = WABI_TAG_PAIR | (wabi_word_t) car;
-      *(vm->mem_scan + 1) = (wabi_word_t) cdr;
-      vm->mem_scan += 2;
+      wabi_mem_collect_pair(vm, (wabi_pair) vm->mem_scan);
       break;
     case WABI_TAG_BIN_BLOB:
       vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
       break;
     case WABI_TAG_BIN_LEAF:
       vm->mem_scan += 3;
+      break;
+    case WABI_TAG_HAMT_MAP:;
+      wabi_mem_collect_hamt_map(vm, (wabi_hamt_map) vm->mem_scan);
+      break;
+    case WABI_TAG_HAMT_ENTRY:
+      wabi_mem_collect_hamt_entry(vm, (wabi_hamt_entry) vm->mem_scan);
       break;
     }
   }
@@ -141,10 +189,11 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = vm->mem_from_space;
 
-  vm->mem_root = wabi_mem_copy(vm, vm->mem_root);
+  vm->mem_root = wabi_mem_copy_obj(vm, vm->mem_root);
 
-  while(vm->mem_scan < vm->mem_alloc)
+  while(vm->mem_scan < vm->mem_alloc) {
     wabi_mem_collect_step(vm);
+  }
 
   free(wabi_mem_to_space);
 }

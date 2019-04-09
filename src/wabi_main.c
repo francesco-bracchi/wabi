@@ -17,10 +17,10 @@
 
 int main(int argc, char** argv)
 {
-
+  printf(0);
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 2000000000);
+  wabi_mem_init(vm, 200000000);
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   wabi_obj v;
   char str[80];
 
-  for(wabi_word_t j = 0; j < 200000; j+=1) {
+  for(wabi_word_t j = 0; j < 20; j+=1) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
   wabi_pr(lm0);
   printf("\n");
 
-  vm->mem_root = root;
+  vm->mem_root = m0;
 
   wabi_pr(vm->mem_root);
   printf("\n");
@@ -74,9 +74,9 @@ int main(int argc, char** argv)
   wabi_pr(hash);
   printf("\n");
 
-  printf("used before collection %li\n", wabi_mem_used(vm));
+  printf("used before collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
   wabi_mem_collect(vm);
-  printf("used after collection %li\n", wabi_mem_used(vm));
+  printf("used  after collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
   wabi_pr(vm->mem_root);
   printf("\n");
 
@@ -85,6 +85,4 @@ int main(int argc, char** argv)
   printf("HASH: ");
   wabi_pr(hash);
   printf("\n");
-
-
 }

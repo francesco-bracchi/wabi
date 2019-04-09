@@ -43,6 +43,15 @@ typedef int wabi_hamt_index;
 #define WABI_HAMT_SIZE 2
 
 #define WABI_POPCNT(v) __builtin_popcountl(v)
+#define MAP_BITMAP(map) ((map)->bitmap)
+#define MAP_TABLE(map) ((wabi_hamt_table) ((map)->table & WABI_VALUE_MASK))
+#define ENTRY_KEY(entry) ((entry)->key & WABI_VALUE_MASK)
+#define ENTRY_VALUE(entry) ((entry)->value & WABI_VALUE_MASK)
+#define BITMAP_OFFSET(bitmap, index) WABI_POPCNT((bitmap) << (64 - (index)) & 0xFFFFFFFFFFFFFFFE)
+#define BITMAP_FOUND(bitmap, index) (((bitmap) >> (index)) & 1)
+#define BITMAP_SIZE(bitmap) WABI_POPCNT(bitmap)
+#define HASH_INDEX(hash, h_pos) (((hash) >> h_pos) & 0x3F)
+
 
 wabi_obj
 wabi_hamt_empty(wabi_vm vm);
