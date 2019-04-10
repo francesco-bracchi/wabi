@@ -229,6 +229,18 @@ wabi_hamt_length(wabi_vm vm, wabi_obj map) {
 
 
 wabi_obj
+wabi_hamt_get_raw(wabi_obj map, wabi_obj key)
+{
+  wabi_word_t hash = wabi_hash_raw(key);
+  wabi_hamt_entry entry = wabi_hamt_get_entry((wabi_hamt_map) map, 50, hash);
+  if(entry && wabi_eq_raw((wabi_obj) ENTRY_KEY(entry), key)) {
+    return (wabi_obj) ENTRY_VALUE(entry);
+  }
+  return NULL;
+}
+
+
+wabi_obj
 wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key)
 {
   if(wabi_obj_is_nil(map)) {
@@ -239,10 +251,7 @@ wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key)
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
-  wabi_word_t hash = wabi_hash_raw(key);
-  wabi_hamt_entry entry = wabi_hamt_get_entry((wabi_hamt_map) map, 50, hash);
-  if(entry && wabi_eq_raw((wabi_obj) ENTRY_KEY(entry), key)) {
-    return (wabi_obj) ENTRY_VALUE(entry);
-  }
-  return wabi_nil(vm);
+  wabi_obj res = wabi_hamt_get_raw(map, key);
+  return res || wabi_nil(vm);
 }
+

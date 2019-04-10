@@ -6,7 +6,6 @@
 #include "wabi_vm.h"
 #include "wabi_hash.h"
 
-
 typedef struct wabi_hamt_entry_struct
 {
   wabi_word_t value;
@@ -69,6 +68,10 @@ wabi_hamt_assoc(wabi_vm vm, wabi_obj map, wabi_obj key, wabi_obj val);
 
 int64_t
 wabi_hamt_length_raw(wabi_hamt_map map);
+
+
+wabi_obj
+wabi_hamt_get_raw(wabi_obj map, wabi_obj key);
 
 
 wabi_obj

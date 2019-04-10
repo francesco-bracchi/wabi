@@ -15,16 +15,19 @@ typedef int wabi_error;
 
 #define WABI_WORD_SIZE sizeof(wabi_word_t)
 
+// todo: compact all the constant values (ign, true, false, nil)
+// as the same tag (is it feasible? affects the falsey thingie?
+
 #define WABI_TAG_NIL        0x0000000000000000
 #define WABI_TAG_BOOL       0x1000000000000000
 #define WABI_TAG_SMALLINT   0x2000000000000000
-#define WABI_TAG_SYMBOL     0x3000000000000000
 // #define WABI_TAG_KEYWORD   0x4000000000000000
 #define WABI_TAG_IGNORE     0x5000000000000000
 #define WABI_TAG_FORWARD    0x6000000000000000
 #define WABI_TAG_BIN_BLOB   0x7000000000000000
 #define WABI_TAG_BIN_LEAF   0x8000000000000000
 #define WABI_TAG_BIN_NODE   0x9000000000000000
+#define WABI_TAG_SYMBOL     0xA000000000000000
 #define WABI_TAG_PAIR       0xF000000000000000
 #define WABI_TAG_HAMT_MAP   0xF100000000000000
 #define WABI_TAG_HAMT_ENTRY 0xF200000000000000

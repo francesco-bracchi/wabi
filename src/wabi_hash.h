@@ -4,6 +4,7 @@
 
 #include "wabi_object.h"
 #include "wabi_err.h"
+#include "wabi_vm.h"
 
 
 typedef struct wabi_hash_state_struct

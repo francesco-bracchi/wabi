@@ -43,6 +43,7 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
   vm->mem_limit = vm->mem_from_space + vm->mem_size;
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = NULL;
+  vm->symbol_table = vm_hamt_empty(vm);
 }
 
 
@@ -85,6 +86,9 @@ wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
     *res = *src;
     vm->mem_alloc++;
   } else switch(tag) {
+    case WABI_TAG_SYMBOL:
+      printf("TODO implement copying symbols (can be interned)\n");
+      break;
     case WABI_TAG_PAIR:
     case WABI_TAG_HAMT_MAP:
     case WABI_TAG_HAMT_ENTRY:
