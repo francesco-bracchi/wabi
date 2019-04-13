@@ -72,7 +72,7 @@ wabi_hash_map(wabi_hash_state_t *state, wabi_hamt_map map)
   wabi_hamt_table table = MAP_TABLE(map);
   wabi_hamt_table limit = table + BITMAP_SIZE(MAP_BITMAP(map));
   while(table < limit) {
-    wabi_hash_obj(state, table);
+    wabi_hash_obj(state, (wabi_obj) table);
     table++;
   }
 }
@@ -112,6 +112,10 @@ wabi_hash_obj(wabi_hash_state_t *state, wabi_obj obj)
   case WABI_TAG_HAMT_ENTRY:
     wabi_hash_step(state, "E", 1);
     wabi_hash_entry(state, (wabi_hamt_entry) obj);
+    return;
+  case WABI_TAG_SYMBOL:
+    wabi_hash_step(state, "S", 1);
+    wabi_hash_binary(state, (wabi_obj) (*obj & WABI_VALUE_MASK));
     return;
   case WABI_TAG_FORWARD:
     wabi_hash_obj(state, (wabi_obj) wabi_obj_value(obj));

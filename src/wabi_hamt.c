@@ -247,11 +247,17 @@ wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key)
     map = wabi_hamt_empty(vm);
     if(vm->errno) return NULL;
   }
+  if(wabi_obj_is_forward(map)) {
+    map = (wabi_obj)(*map & WABI_VALUE_MASK);
+  }
+  if(wabi_obj_is_forward(key)) {
+    key = (wabi_obj)(*key & WABI_VALUE_MASK);
+  }
   if(!wabi_obj_is_hamt_map(map)) {
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
   wabi_obj res = wabi_hamt_get_raw(map, key);
-  return res || wabi_nil(vm);
-}
 
+  return res ? res : wabi_nil(vm);
+}

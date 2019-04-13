@@ -8,6 +8,7 @@
 #include "wabi_binary.h"
 #include "wabi_hamt.h"
 
+
 void
 wabi_pr_binary(wabi_obj obj);
 
@@ -113,7 +114,9 @@ wabi_pr(wabi_obj obj) {
     putchar('}');
   } else if (wabi_obj_is_hamt_entry(obj)) {
     wabi_pr_hamt_entry((wabi_hamt_entry) obj);
+  } else if (wabi_obj_is_symbol(obj)) {
+    wabi_pr_binary((wabi_obj) (*obj & WABI_VALUE_MASK));
   } else {
-    printf("unknown");
+    printf("unknown %lx", *obj);
   }
 }

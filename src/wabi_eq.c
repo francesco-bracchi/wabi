@@ -42,14 +42,20 @@ wabi_eq_raw(wabi_obj a, wabi_obj b)
     return wabi_eq_raw(a, (wabi_obj) wabi_obj_value(b));
   }
 
-  // types are fifferent
+  // types are different
   if(tag_a != tag_b) return 0;
+
+  // symbols
+  if(tag_a == WABI_TAG_SYMBOL) {
+    return *a == *b
+      || wabi_eq_raw((wabi_obj)(*a & WABI_VALUE_MASK),
+                     (wabi_obj)(*b & WABI_VALUE_MASK));
+  }
 
   // for types that fits in a word, test that they are the same
   if(tag_a <= WABI_TAG_ATOMIC_LIMIT) {
     return *a == *b;
   }
-
   // test for hash
   if(wabi_hash_raw(a) != wabi_hash_raw(b)) return 0;
 

@@ -30,7 +30,7 @@ $(MAIN): $(OBJECTS)
 clean:
 	-$(RM) $(OBJECTS) $(MAIN)
 
-run: clean $(MAIN)
+run: $(MAIN)
 	./$(MAIN)
 
 .PHONY: all clean run

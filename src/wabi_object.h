@@ -57,6 +57,7 @@ typedef int wabi_error;
 #define wabi_obj_is_pair(obj) wabi_obj_is_type(obj, WABI_TAG_PAIR)
 #define wabi_obj_is_hamt_map(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_MAP)
 #define wabi_obj_is_hamt_entry(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_ENTRY)
+#define wabi_obj_is_symbol(obj) wabi_obj_is_type(obj, WABI_TAG_SYMBOL)
 
 #define wabi_obj_is_atomic(obj) (wabi_obj_tag(obj) < WABI_TAG_ATOMIC_LIMIT)
 

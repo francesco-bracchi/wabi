@@ -77,4 +77,5 @@ wabi_hamt_get_raw(wabi_obj map, wabi_obj key);
 wabi_obj
 wabi_hamt_length(wabi_vm vm, wabi_obj map);
 
+
 #endif

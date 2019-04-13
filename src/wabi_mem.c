@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "wabi_object.h"
 #include "wabi_mem.h"
@@ -43,12 +44,12 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
   vm->mem_limit = vm->mem_from_space + vm->mem_size;
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = NULL;
-  vm->symbol_table = vm_hamt_empty(vm);
+  vm->symbol_table = wabi_hamt_empty(vm);
 }
 
 
 void
-wabi_mem_copy_binary(wabi_vm vm, wabi_obj src)
+wabi_mem_compact_binary(wabi_vm vm, wabi_obj src)
 {
   wabi_size_t len, word_size;
 
@@ -82,35 +83,25 @@ wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
   }
   wabi_word_t* res = vm->mem_alloc;
 
-  if(tag <= WABI_TAG_ATOMIC_LIMIT) {
+  if(tag <= WABI_TAG_ATOMIC_LIMIT || tag == WABI_TAG_SYMBOL) {
     *res = *src;
     vm->mem_alloc++;
   } else switch(tag) {
-    case WABI_TAG_SYMBOL:
-      printf("TODO implement copying symbols (can be interned)\n");
-      break;
     case WABI_TAG_PAIR:
     case WABI_TAG_HAMT_MAP:
     case WABI_TAG_HAMT_ENTRY:
       memcpy(res, src, 2 * WABI_WORD_SIZE);
-      vm->mem_alloc +=2;
+      vm->mem_alloc+=2;
       break;
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
-      wabi_mem_copy_binary(vm, src);
+      wabi_mem_compact_binary(vm, src);
       break;
+    default:
+      return NULL;
     }
   *src = WABI_TAG_FORWARD | ((wabi_word_t) *res);
   return res;
-}
-
-
-void
-wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
-{
-  pair->car = (wabi_word_t) wabi_mem_copy_obj(vm, pair->car) | WABI_TAG_PAIR;
-  pair->cdr = (wabi_word_t) wabi_mem_copy_obj(vm, pair->cdr);
-  vm->mem_scan += 2;
 }
 
 
@@ -122,6 +113,15 @@ wabi_mem_copy_hamt_table(wabi_vm vm, wabi_hamt_table table, wabi_word_t size)
   memcpy(res, table, delta * WABI_WORD_SIZE);
   vm->mem_alloc += delta;
   return res;
+}
+
+
+void
+wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
+{
+  pair->car = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) (pair->car | WABI_VALUE_MASK)) | WABI_TAG_PAIR;
+  pair->cdr = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) pair->cdr);
+  vm->mem_scan += 2;
 }
 
 
@@ -142,6 +142,15 @@ wabi_mem_collect_hamt_entry(wabi_vm vm, wabi_hamt_entry entry)
   entry->value = WABI_TAG_HAMT_ENTRY | (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) (entry->value & WABI_VALUE_MASK));
   entry->key = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) entry->key);
   vm->mem_scan += WABI_HAMT_SIZE;
+}
+
+
+inline void
+wabi_mem_collect_symbol(wabi_vm vm, wabi_obj sym)
+{
+  wabi_obj new_bin = wabi_mem_copy_obj(vm, (wabi_obj)(*sym & WABI_VALUE_MASK));
+  *sym = (wabi_word_t) new_bin | WABI_TAG_SYMBOL;
+  vm->mem_scan++;
 }
 
 
@@ -171,16 +180,26 @@ wabi_mem_collect_step(wabi_vm vm)
     case WABI_TAG_HAMT_ENTRY:
       wabi_mem_collect_hamt_entry(vm, (wabi_hamt_entry) vm->mem_scan);
       break;
+    case WABI_TAG_SYMBOL:
+      wabi_mem_collect_symbol(vm, vm->mem_scan);
+      break;
     }
   }
 }
 
 void
+wabi_mem_collect_symbol_table(wabi_vm vm, wabi_hamt_map to_symbol_table)
+{
+
+}
+
+
+void
 wabi_mem_collect(wabi_vm vm)
 {
   wabi_word_t *wabi_mem_to_space = vm->mem_from_space;
+  wabi_hamt_map to_symbol_table = (wabi_hamt_map) vm->symbol_table;
   vm->mem_from_space = wabi_allocate_space(vm->mem_size);
-
   if(vm->mem_from_space == NULL) {
     vm->errno = WABI_ERROR_NOMEM;
     return;
@@ -193,14 +212,17 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = vm->mem_from_space;
 
+  vm->symbol_table = wabi_hamt_empty(vm);
+
   vm->mem_root = wabi_mem_copy_obj(vm, vm->mem_root);
 
   while(vm->mem_scan < vm->mem_alloc) {
     wabi_mem_collect_step(vm);
   }
-
+  wabi_mem_collect_symbol_table(vm, to_symbol_table);
   free(wabi_mem_to_space);
 }
+
 
 wabi_word_t*
 wabi_mem_allocate(wabi_vm vm, wabi_size_t size)
@@ -217,12 +239,14 @@ wabi_mem_allocate(wabi_vm vm, wabi_size_t size)
   return res;
 }
 
+
 wabi_word_t
 wabi_mem_used(wabi_vm vm)
 {
   // if not running gc!
   return (wabi_word_t)(vm->mem_alloc - vm->mem_from_space);
 }
+
 
 wabi_word_t
 wabi_mem_total(wabi_vm vm)
