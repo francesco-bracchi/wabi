@@ -9,3 +9,7 @@
 
 1. Use a full index table for submaps bigger than, say 32 elements (to
    be evaluated)
+
+1. cursors for maps (and eventually sequences)
+
+1. split the collection of symbol table in atomic steps.

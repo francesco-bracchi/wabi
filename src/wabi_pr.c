@@ -116,6 +116,8 @@ wabi_pr(wabi_obj obj) {
     wabi_pr_hamt_entry((wabi_hamt_entry) obj);
   } else if (wabi_obj_is_symbol(obj)) {
     wabi_pr_binary((wabi_obj) (*obj & WABI_VALUE_MASK));
+  } else if (wabi_obj_is_forward(obj)) {
+    wabi_pr((wabi_obj) (*obj & WABI_VALUE_MASK));
   } else {
     printf("unknown %lx", *obj);
   }

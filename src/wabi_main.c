@@ -70,6 +70,7 @@ int main(int argc, char** argv)
 
   wabi_obj s3 = wabi_intern(vm, b3);
   wabi_obj s4 = wabi_symbol(vm, b0);
+  wabi_obj s5 = wabi_intern(vm, b1);
   m0 = wabi_hamt_assoc(vm, m0, s3, wabi_hamt_empty(vm));
 
   wabi_obj lm0 = wabi_hamt_length(vm, m0);
