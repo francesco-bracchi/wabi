@@ -22,7 +22,5 @@
    represented as array maps, scanned linearly thus skipping hash, and
    popcnt phase.
 
-1. Rehash for HAMT
-
-1. bug for the for loop in the wabi_main_c file if the limit for the j
-   variable is 109111;
+1. leaves of hamt maps, if the table depth is bigger than the hash,
+   although almost impossible, must be handled as array maps.

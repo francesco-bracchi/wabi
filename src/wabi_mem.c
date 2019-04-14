@@ -159,7 +159,6 @@ wabi_mem_collect_step(wabi_vm vm)
 {
   wabi_word_t tag;
   tag = wabi_obj_tag(vm->mem_scan);
-
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
     vm->mem_scan++;
   }

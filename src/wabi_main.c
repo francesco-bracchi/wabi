@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 2000000000UL);
+  wabi_mem_init(vm, 10 * 1024 * 1024); // 640 MB
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -48,14 +48,12 @@ int main(int argc, char** argv)
   clock_t start, end;
   double cpu_time_used;
 
-
-
   wabi_obj k;
   wabi_obj v;
   char str[80];
 
   start = clock();
-  for(wabi_word_t j = 0; j < 2000000UL; j+=1) {
+  for(wabi_word_t j = 0; j < 20000UL; j+=1) {
     // for(wabi_word_t j = 0; j < 500000; j+=1) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
