@@ -16,11 +16,9 @@
 #include "wabi_hamt.h"
 #include "wabi_eq.h"
 
-const wabi_word_t one = 1;
-
 
 wabi_hamt_table
-wabi_hamt_get_table(wabi_hamt_map map, wabi_hamt_index index)
+wabi_hamt_table_get(wabi_hamt_map map, wabi_hamt_index index)
 {
   wabi_word_t bitmap = MAP_BITMAP(map);
   wabi_hamt_table table = MAP_TABLE(map);
@@ -47,7 +45,7 @@ wabi_hamt_table_add(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index index, wabi_h
   *(new_table + offset) = (wabi_hamt_table_t) *val;
   memcpy(new_table + offset + 1, table + offset, WABI_WORD_SIZE * WABI_HAMT_SIZE * (size - offset));
 
-  new_map->bitmap = bitmap | (one << index);
+  new_map->bitmap = bitmap | (1UL << index);
   new_map->table = (wabi_word_t) new_table | WABI_TAG_HAMT_MAP;
   return new_map;
 }
@@ -73,15 +71,35 @@ wabi_hamt_table_update(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index index, wab
 }
 
 
+wabi_hamt_map
+wabi_hamt_table_remove(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index index)
+{
+  wabi_hamt_table table = MAP_TABLE(map);
+  wabi_word_t bitmap = map->bitmap;
+  wabi_word_t size = (wabi_word_t) BITMAP_SIZE(bitmap);
+  wabi_hamt_index offset = BITMAP_OFFSET(map->bitmap, index);
+  wabi_hamt_map new_map = (wabi_hamt_map) wabi_mem_allocate(vm, size * WABI_HAMT_SIZE);
+  if(vm->errno) return NULL;
+
+  wabi_hamt_table new_table = (wabi_hamt_table) (new_map + 1);
+  memcpy(new_table, table, WABI_WORD_SIZE * WABI_HAMT_SIZE * offset);
+  memcpy(new_table + offset, table + offset + 1, WABI_WORD_SIZE * WABI_HAMT_SIZE * (size - offset - 1L));
+
+  new_map->bitmap = map->bitmap ^ (1UL << index);
+  new_map->table = (wabi_word_t) new_table | WABI_TAG_HAMT_MAP;
+  return new_map;
+}
+
+
 wabi_hamt_entry
-wabi_hamt_get_entry(wabi_hamt_map map, wabi_hamt_index h_pos, wabi_word_t hash)
+wabi_hamt_entry_get(wabi_hamt_map map, wabi_hamt_index h_pos, wabi_word_t hash)
 {
   wabi_word_t index;
   wabi_hamt_table row;
 
   do {
     index = HASH_INDEX(hash, h_pos);
-    row = wabi_hamt_get_table(map, index);
+    row = wabi_hamt_table_get(map, index);
     if(! row) {
       return NULL;
     }
@@ -114,7 +132,7 @@ wabi_hamt_merge(wabi_vm vm,
     if(vm->errno) return NULL;
 
     *table = (wabi_hamt_table_t) *submap;
-    map->bitmap = (one << index) | (one << index0);
+    map->bitmap = (1UL << index) | (1UL << index0);
     map->table = (wabi_word_t) table | WABI_TAG_HAMT_MAP;
     return map;
   }
@@ -128,7 +146,7 @@ wabi_hamt_merge(wabi_vm vm,
     *table = (wabi_hamt_table_t) *entry;
     *(table + 1) = (wabi_hamt_table_t) *entry0;
 
-    map->bitmap = (one << index) | (one << index0);
+    map->bitmap = (1UL << index) | (1UL << index0);
     map->table = (wabi_word_t) table | WABI_TAG_HAMT_MAP;
     return map;
   }
@@ -136,7 +154,7 @@ wabi_hamt_merge(wabi_vm vm,
     *table = (wabi_hamt_table_t) *entry0;
     *(table + 1) = (wabi_hamt_table_t) *entry;
 
-    map->bitmap = (one << index) | (one << index0);
+    map->bitmap = (1UL << index) | (1UL << index0);
     map->table = (wabi_word_t) table | WABI_TAG_HAMT_MAP;
     return map;
   }
@@ -147,8 +165,7 @@ wabi_hamt_map
 wabi_hamt_set_entry(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index h_pos, wabi_word_t hash, wabi_hamt_entry entry)
 {
   wabi_hamt_index index = HASH_INDEX(hash, h_pos);
-  wabi_hamt_table row = wabi_hamt_get_table(map, index);
-
+  wabi_hamt_table row = wabi_hamt_table_get(map, index);
   if(row) {
     if(wabi_obj_is_hamt_map((wabi_obj) row)) {
       wabi_hamt_map submap =  wabi_hamt_set_entry(vm, (wabi_hamt_map) row, h_pos - 6, hash, entry);
@@ -161,6 +178,24 @@ wabi_hamt_set_entry(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index h_pos, wabi_w
     return wabi_hamt_table_update(vm, map, index, (wabi_hamt_table) submap);
   }
   return wabi_hamt_table_add(vm, map, index, (wabi_hamt_table) entry);
+}
+
+
+wabi_hamt_map
+wabi_hamt_dissoc_entry(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index h_pos, wabi_word_t hash)
+{
+  wabi_hamt_index index = HASH_INDEX(hash, h_pos);
+  wabi_hamt_table row = wabi_hamt_table_get(map, index);
+
+  if(row) {
+    if(wabi_obj_is_hamt_entry((wabi_obj) row)) {
+      wabi_hamt_map res = wabi_hamt_table_remove(vm, map, index);
+      return res;
+    }
+    wabi_hamt_map submap =  wabi_hamt_dissoc_entry(vm, (wabi_hamt_map) row, h_pos - 6, hash);
+    return wabi_hamt_table_update(vm, map, index, (wabi_hamt_table) submap);
+  }
+  return map;
 }
 
 
@@ -217,8 +252,7 @@ wabi_hamt_length_raw(wabi_hamt_map map)
 wabi_obj
 wabi_hamt_length(wabi_vm vm, wabi_obj map) {
   if(wabi_obj_is_nil(map)) {
-    map = wabi_hamt_empty(vm);
-    if(vm->errno) return NULL;
+    return wabi_smallint(vm, 0);
   }
   if(!wabi_obj_is_hamt_map(map)) {
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
@@ -232,7 +266,7 @@ wabi_obj
 wabi_hamt_get_raw(wabi_obj map, wabi_obj key)
 {
   wabi_word_t hash = wabi_hash_raw(key);
-  wabi_hamt_entry entry = wabi_hamt_get_entry((wabi_hamt_map) map, 50, hash);
+  wabi_hamt_entry entry = wabi_hamt_entry_get((wabi_hamt_map) map, 50, hash);
   if(entry && wabi_eq_raw((wabi_obj) ENTRY_KEY(entry), key)) {
     return (wabi_obj) ENTRY_VALUE(entry);
   }
@@ -244,20 +278,28 @@ wabi_obj
 wabi_hamt_get(wabi_vm vm, wabi_obj map, wabi_obj key)
 {
   if(wabi_obj_is_nil(map)) {
-    map = wabi_hamt_empty(vm);
-    if(vm->errno) return NULL;
+    return map;
   }
-  if(wabi_obj_is_forward(map)) {
-    map = (wabi_obj)(*map & WABI_VALUE_MASK);
+  if(wabi_obj_is_hamt_map(map)) {
+    wabi_obj res = wabi_hamt_get_raw(map, key);
+    return res ? res : wabi_nil(vm);
   }
-  if(wabi_obj_is_forward(key)) {
-    key = (wabi_obj)(*key & WABI_VALUE_MASK);
-  }
-  if(!wabi_obj_is_hamt_map(map)) {
-    vm->errno = WABI_ERROR_TYPE_MISMATCH;
-    return NULL;
-  }
-  wabi_obj res = wabi_hamt_get_raw(map, key);
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
+  return NULL;
+}
 
-  return res ? res : wabi_nil(vm);
+
+wabi_obj
+wabi_hamt_dissoc(wabi_vm vm, wabi_obj map, wabi_obj key)
+{
+  if(wabi_obj_is_nil(map)) {
+    return map;
+  }
+  if(wabi_obj_is_hamt_map(map)) {
+    wabi_word_t hash = wabi_hash_raw(key);
+    return (wabi_obj) wabi_hamt_dissoc_entry(vm, (wabi_hamt_map) map, (wabi_hamt_index) 50, hash);
+
+  }
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
+  return NULL;
 }

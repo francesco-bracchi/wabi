@@ -12,6 +12,7 @@
 void
 wabi_pr_binary(wabi_obj obj);
 
+
 void
 wabi_pr_bin_leaf(wabi_binary_leaf_t *leaf)
 {
@@ -23,12 +24,14 @@ wabi_pr_bin_leaf(wabi_binary_leaf_t *leaf)
     putchar(*c);
 }
 
+
 void
 wabi_pr_bin_node(wabi_binary_node_t *node)
 {
   wabi_pr_binary((wabi_obj) node->left);
   wabi_pr_binary((wabi_obj) node->right);
 }
+
 
 void wabi_pr_binary(wabi_obj obj)
 {
@@ -39,6 +42,7 @@ void wabi_pr_binary(wabi_obj obj)
     wabi_pr_bin_node((wabi_binary_node_t *) obj);
   }
 }
+
 
 void wabi_pr_pair(wabi_obj obj) {
   wabi_obj car, cdr;

@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   char str[80];
 
   start = clock();
-  for(wabi_word_t j = 0; j < 20; j+=1) {
+  for(wabi_word_t j = 0; j < 135002UL; j+=1) {
     // for(wabi_word_t j = 0; j < 500000; j+=1) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
@@ -85,7 +85,7 @@ int main(int argc, char** argv)
   printf("HASH: ");
   wabi_pr(hash);
   printf("\n");
-  wabi_pr(vm->mem_root);
+  // wabi_pr(vm->mem_root);
   printf("\n");
   printf("symbol table:\n");
   wabi_pr(vm->symbol_table);
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
   printf("used  after collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
   printf("TIME USED %f\n", cpu_time_used);
 
-  wabi_pr(vm->mem_root);
+  // wabi_pr(vm->mem_root);
   printf("\n");
   printf("symbol table:\n");
   wabi_pr(vm->symbol_table);
