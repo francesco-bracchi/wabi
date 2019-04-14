@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 2500000000);
+  wabi_mem_init(vm, 2000000000UL);
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   char str[80];
 
   start = clock();
-  for(wabi_word_t j = 0; j < 135002UL; j+=1) {
+  for(wabi_word_t j = 0; j < 2000000UL; j+=1) {
     // for(wabi_word_t j = 0; j < 500000; j+=1) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
@@ -71,7 +71,12 @@ int main(int argc, char** argv)
   wabi_obj s3 = wabi_intern(vm, b3);
   wabi_obj s4 = wabi_symbol(vm, b0);
   wabi_obj s5 = wabi_intern(vm, b1);
+
   m0 = wabi_hamt_assoc(vm, m0, s3, wabi_hamt_empty(vm));
+  // printf("M0\n");
+  // wabi_pr(m0);
+  // printf("\n");
+  m0 = wabi_hamt_dissoc(vm, m0, wabi_smallint(vm, 2));
 
   wabi_obj lm0 = wabi_hamt_length(vm, m0);
   printf("LENGTH: ");
@@ -89,8 +94,7 @@ int main(int argc, char** argv)
   printf("\n");
   printf("symbol table:\n");
   wabi_pr(vm->symbol_table);
-  printf("\n");
-  printf("used before collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
+  printf("\nused before collection %p %li\n", vm->mem_root, wabi_mem_used(vm));
 
   start = clock();
   wabi_mem_collect(vm);

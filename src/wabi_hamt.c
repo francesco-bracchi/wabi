@@ -141,7 +141,6 @@ wabi_hamt_merge(wabi_vm vm,
 
   wabi_hamt_table table = (wabi_hamt_table) (map + 1);
 
-  // if(index < index0) {
   if(index < index0) {
     *table = (wabi_hamt_table_t) *entry;
     *(table + 1) = (wabi_hamt_table_t) *entry0;
@@ -298,7 +297,6 @@ wabi_hamt_dissoc(wabi_vm vm, wabi_obj map, wabi_obj key)
   if(wabi_obj_is_hamt_map(map)) {
     wabi_word_t hash = wabi_hash_raw(key);
     return (wabi_obj) wabi_hamt_dissoc_entry(vm, (wabi_hamt_map) map, (wabi_hamt_index) 50, hash);
-
   }
   vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
