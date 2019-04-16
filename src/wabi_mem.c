@@ -249,8 +249,8 @@ wabi_mem_collect(wabi_vm vm)
 wabi_word_t*
 wabi_mem_allocate(wabi_vm vm, wabi_size_t size)
 {
-  if(vm->mem_alloc + size >= vm->mem_limit)
-    wabi_mem_collect(vm);
+  /* if(vm->mem_alloc + size >= vm->mem_limit) */
+  /*   wabi_mem_collect(vm); */
 
   if(vm->mem_alloc + size >= vm->mem_limit) {
     vm->errno = WABI_ERROR_NOMEM;

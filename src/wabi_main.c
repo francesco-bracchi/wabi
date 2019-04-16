@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 10 * 1024 * 1024); // 640 MB
+  wabi_mem_init(vm, 30 * 1024 * 1024);
 
   if(vm->errno) {
     printf("failed to initialize memory %i, %s\n", vm->errno, wabi_err_msg(vm->errno));
@@ -44,22 +44,42 @@ int main(int argc, char** argv)
   wabi_obj root = wabi_cons(vm, b3, p1);
   wabi_obj hash = 0;
   wabi_obj m0 = wabi_hamt_empty(vm);
+  wabi_obj lm0;
 
   clock_t start, end;
   double cpu_time_used;
 
   wabi_obj k;
   wabi_obj v;
+
   char str[80];
 
+  wabi_word_t foo = 42UL;
+
   start = clock();
-  for(wabi_word_t j = 0; j < 20000UL; j+=1) {
-    // for(wabi_word_t j = 0; j < 500000; j+=1) {
+  for(wabi_word_t j = 0; j < foo; j++) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
     m0 = wabi_hamt_assoc(vm, m0, k, v);
   }
+
+  lm0 = wabi_hamt_length(vm, m0);
+  printf("LENGTH: ");
+  wabi_pr(lm0);
+  printf("\n");
+
+  for(wabi_word_t j = 0; j < foo - 1; j++) {
+    sprintf(str, "%lu", j);
+    k = wabi_smallint(vm, j);
+    m0 = wabi_hamt_dissoc(vm, m0, k);
+  }
+
+  lm0 = wabi_hamt_length(vm, m0);
+  printf("LENGTH: ");
+  wabi_pr(lm0);
+  printf("\n");
+  // wabi_pr(m0);
 
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -75,12 +95,6 @@ int main(int argc, char** argv)
   // wabi_pr(m0);
   // printf("\n");
   m0 = wabi_hamt_dissoc(vm, m0, wabi_smallint(vm, 2));
-
-  wabi_obj lm0 = wabi_hamt_length(vm, m0);
-  printf("LENGTH: ");
-  wabi_pr(lm0);
-  printf("\n");
-
 
   vm->mem_root = m0;
 

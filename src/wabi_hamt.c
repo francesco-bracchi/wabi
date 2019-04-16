@@ -194,6 +194,7 @@ wabi_hamt_dissoc_entry(wabi_vm vm, wabi_hamt_map map, wabi_hamt_index h_pos, wab
     wabi_hamt_map submap =  wabi_hamt_dissoc_entry(vm, (wabi_hamt_map) row, h_pos - 6, hash);
     return wabi_hamt_table_update(vm, map, index, (wabi_hamt_table) submap);
   }
+  printf("NOT FOUND %i %p\n", row);
   return map;
 }
 
