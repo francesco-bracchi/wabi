@@ -3,10 +3,11 @@
 #include <stdio.h>
 
 #include "wabi_object.h"
+#include "wabi_atomic.h"
 #include "wabi_pr.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
-#include "wabi_hamt.h"
+#include "wabi_map.h"
 
 
 void
@@ -72,7 +73,7 @@ void wabi_pr_pair(wabi_obj obj) {
 
 
 void
-wabi_pr_hamt_entry(wabi_hamt_entry entry)
+wabi_pr_map_entry(wabi_map_entry entry)
 {
   wabi_pr((wabi_obj) entry->key);
   putchar(' ');
@@ -81,48 +82,80 @@ wabi_pr_hamt_entry(wabi_hamt_entry entry)
 
 
 void
-wabi_pr_hamt_map(wabi_hamt_map obj)
+wabi_pr_map_array(wabi_map_array map)
 {
-  wabi_hamt_table table = (wabi_hamt_table) (obj->table & WABI_VALUE_MASK);
-  wabi_size_t size = WABI_POPCNT(obj->bitmap);
-
+  wabi_map_table table = (wabi_map_table) WABI_MAP_ARRAY_SIZE(map);
+  wabi_word_t size = WABI_MAP_ARRAY_TABLE(map);
   for(int j = 0; j < size; j++) {
-    wabi_hamt_table row = table + j;
-    if(wabi_obj_is_hamt_map((wabi_obj) row)) {
-      wabi_pr_hamt_map((wabi_hamt_map) row);
-    } else {
-      wabi_pr((wabi_obj) row);
-      putchar(' ');
-    }
+    wabi_map_entry row = (wabi_map_entry)(table + j);
+    wabi_pr_map_entry(row);
+    putchar(' ');
   }
 }
 
 
 void
+wabi_pr_map(wabi_map_table map);
+
+void
+wabi_pr_map_hash(wabi_map_hash map)
+{
+  wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
+  wabi_map_table table = (wabi_map_table) WABI_MAP_HASH_TABLE(map);
+  wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
+  for(int j = 0; j < size; j++)
+    wabi_pr_map(table + size);
+}
+
+void
+wabi_pr_map(wabi_map_table map)
+{
+  switch(wabi_obj_tag((wabi_obj) map)) {
+  case WABI_TAG_MAP_ARRAY:
+    wabi_pr_map_array((wabi_map_array) map);
+    return;
+  case WABI_TAG_MAP_HASH:
+    wabi_pr_map_hash((wabi_map_hash) map);
+    return;
+  case WABI_TAG_MAP_ENTRY:
+    wabi_pr_map_entry((wabi_map_entry) map);
+    return;
+  }
+}
+
+void
 wabi_pr(wabi_obj obj) {
-  if(wabi_obj_is_nil(obj)) {
-    printf("nil");
-  } else if (wabi_obj_is_pair(obj)) {
+  switch(wabi_obj_tag(obj)) {
+  case WABI_TAG_NIL:
+     printf("nil");
+     break;
+  case WABI_TAG_BOOL:
+    printf(*obj == WABI_VALUE_TRUE ? "true" : "false");
+    break;
+  case WABI_TAG_IGNORE:
+    printf("#ignore");
+    break;
+  case WABI_TAG_SMALLINT:
+    printf("%li", *obj & WABI_VALUE_MASK);
+    break;
+  case WABI_TAG_PAIR:
     printf("(");
     wabi_pr_pair(obj);
     printf(")");
-  } else if (wabi_obj_is_smallint(obj)) {
-    printf("%li", *obj & WABI_VALUE_MASK);
-  } else if (wabi_obj_is_bin(obj)) {
+    break;
+  case WABI_TAG_BIN_LEAF:
+  case WABI_TAG_BIN_NODE:
     putchar('"');
     wabi_pr_binary(obj);
     putchar('"');
-  } else if (wabi_obj_is_hamt_map(obj)) {
+    break;
+  case WABI_TAG_MAP_HASH:
+  case WABI_TAG_MAP_ARRAY:
     putchar('{');
-    wabi_pr_hamt_map((wabi_hamt_map) obj);
+    wabi_pr_map((wabi_map_table) obj);
     putchar('}');
-  } else if (wabi_obj_is_hamt_entry(obj)) {
-    wabi_pr_hamt_entry((wabi_hamt_entry) obj);
-  } else if (wabi_obj_is_symbol(obj)) {
-    wabi_pr_binary((wabi_obj) (*obj & WABI_VALUE_MASK));
-  } else if (wabi_obj_is_forward(obj)) {
-    wabi_pr((wabi_obj) (*obj & WABI_VALUE_MASK));
-  } else {
+    break;
+  default:
     printf("unknown %lx", *obj);
   }
 }

@@ -47,9 +47,7 @@ wabi_eq_raw(wabi_obj a, wabi_obj b)
 
   // symbols
   if(tag_a == WABI_TAG_SYMBOL) {
-    return *a == *b
-      || wabi_eq_raw((wabi_obj)(*a & WABI_VALUE_MASK),
-                     (wabi_obj)(*b & WABI_VALUE_MASK));
+    return *a == *b;
   }
 
   // for types that fits in a word, test that they are the same

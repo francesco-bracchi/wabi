@@ -21,16 +21,16 @@ typedef int wabi_error;
 #define WABI_TAG_NIL        0x0000000000000000
 #define WABI_TAG_BOOL       0x1000000000000000
 #define WABI_TAG_SMALLINT   0x2000000000000000
-// #define WABI_TAG_KEYWORD   0x4000000000000000
-#define WABI_TAG_IGNORE     0x5000000000000000
-#define WABI_TAG_FORWARD    0x6000000000000000
-#define WABI_TAG_BIN_BLOB   0x7000000000000000
-#define WABI_TAG_BIN_LEAF   0x8000000000000000
-#define WABI_TAG_BIN_NODE   0x9000000000000000
-#define WABI_TAG_SYMBOL     0xA000000000000000
-#define WABI_TAG_PAIR       0xF000000000000000
-#define WABI_TAG_HAMT_MAP   0xF100000000000000
-#define WABI_TAG_HAMT_ENTRY 0xF200000000000000
+#define WABI_TAG_IGNORE     0x2100000000000000
+#define WABI_TAG_FORWARD    0x3000000000000000
+#define WABI_TAG_BIN_BLOB   0x4000000000000000
+#define WABI_TAG_BIN_LEAF   0x5000000000000000
+#define WABI_TAG_BIN_NODE   0x6000000000000000
+#define WABI_TAG_SYMBOL     0x7000000000000000
+#define WABI_TAG_PAIR       0x8000000000000000
+#define WABI_TAG_MAP_ARRAY  0x9000000000000000
+#define WABI_TAG_MAP_ENTRY  0x9100000000000000
+#define WABI_TAG_MAP_HASH   0x9200000000000000
 
 #define WABI_VALUE_MASK     0x00FFFFFFFFFFFFFF
 #define WABI_TAG_MASK       0xFF00000000000000
@@ -55,8 +55,12 @@ typedef int wabi_error;
 #define wabi_obj_is_bin_node(obj) wabi_obj_is_type(obj, WABI_TAG_BIN_NODE)
 #define wabi_obj_is_bin(obj) ((wabi_obj_is_bin_leaf(obj)) || (wabi_obj_is_bin_node(obj)))
 #define wabi_obj_is_pair(obj) wabi_obj_is_type(obj, WABI_TAG_PAIR)
-#define wabi_obj_is_hamt_map(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_MAP)
-#define wabi_obj_is_hamt_entry(obj) wabi_obj_is_type(obj, WABI_TAG_HAMT_ENTRY)
+
+#define wabi_obj_is_map_array(obj) wabi_obj_is_type(obj, WABI_TAG_MAP_ARRAY)
+#define wabi_obj_is_map_hash(obj) wabi_obj_is_type(obj, WABI_TAG_MAP_HASH)
+#define wabi_obj_is_map_entry(obj) wabi_obj_is_type(obj, WABI_TAG_MAP_ENTRY)
+
+#define wabi_obj_is_map(obj) ((wabi_obj_is_map_array(obj)) || (wabi_obj_is_map_hash(obj)))
 #define wabi_obj_is_symbol(obj) wabi_obj_is_type(obj, WABI_TAG_SYMBOL)
 
 #define wabi_obj_is_atomic(obj) (wabi_obj_tag(obj) < WABI_TAG_ATOMIC_LIMIT)

@@ -34,7 +34,7 @@ wabi_boolean(wabi_vm vm, int val)
 {
   wabi_obj res = (wabi_obj) wabi_mem_allocate(vm, WABI_BOOLEAN_SIZE);
   if(vm->errno) return NULL;
-
+xo
   *res = val ? WABI_VALUE_TRUE : WABI_VALUE_FALSE;
   return res;
 }

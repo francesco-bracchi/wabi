@@ -11,7 +11,7 @@
 #include "wabi_pr.h"
 #include "wabi_binary.h"
 #include "wabi_hash.h"
-#include "wabi_hamt.h"
+#include "wabi_map.h"
 #include "wabi_mem.h"
 #include "wabi_symbol.h"
 #include "time.h"
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   wabi_obj l = wabi_binary_length(vm, b3);
   wabi_obj root = wabi_cons(vm, b3, p1);
   wabi_obj hash = 0;
-  wabi_obj m0 = wabi_hamt_empty(vm);
+  wabi_obj m0 = wabi_map_empty(vm);
   wabi_obj lm0;
 
   clock_t start, end;
@@ -54,32 +54,32 @@ int main(int argc, char** argv)
 
   char str[80];
 
-  wabi_word_t foo = 42UL;
+  wabi_word_t foo = 43UL;
 
   start = clock();
   for(wabi_word_t j = 0; j < foo; j++) {
     sprintf(str, "%lu", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
-    m0 = wabi_hamt_assoc(vm, m0, k, v);
+    m0 = wabi_map_assoc(vm, m0, k, v);
   }
 
-  lm0 = wabi_hamt_length(vm, m0);
-  printf("LENGTH: ");
-  wabi_pr(lm0);
-  printf("\n");
+  /* lm0 = wabi_map_length(vm, m0); */
+  /* printf("LENGTH: "); */
+  /* wabi_pr(lm0); */
+  /* printf("\n"); */
 
-  for(wabi_word_t j = 0; j < foo - 1; j++) {
-    sprintf(str, "%lu", j);
-    k = wabi_smallint(vm, j);
-    m0 = wabi_hamt_dissoc(vm, m0, k);
-  }
+  /* for(wabi_word_t j = 0; j < foo - 1; j++) { */
+  /*   sprintf(str, "%lu", j); */
+  /*   k = wabi_smallint(vm, j); */
+  /*   m0 = wabi_map_dissoc(vm, m0, k); */
+  /* } */
 
-  lm0 = wabi_hamt_length(vm, m0);
-  printf("LENGTH: ");
-  wabi_pr(lm0);
-  printf("\n");
-  // wabi_pr(m0);
+  /* lm0 = wabi_map_length(vm, m0); */
+  /* printf("LENGTH: "); */
+  /* wabi_pr(lm0); */
+  /* printf("\n"); */
+  /* // wabi_pr(m0); */
 
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -90,11 +90,11 @@ int main(int argc, char** argv)
   wabi_obj s4 = wabi_symbol(vm, b0);
   wabi_obj s5 = wabi_intern(vm, b1);
 
-  m0 = wabi_hamt_assoc(vm, m0, s3, wabi_hamt_empty(vm));
+  m0 = wabi_map_assoc(vm, m0, s3, wabi_map_empty(vm));
   // printf("M0\n");
   // wabi_pr(m0);
   // printf("\n");
-  m0 = wabi_hamt_dissoc(vm, m0, wabi_smallint(vm, 2));
+  // m0 = wabi_map_dissoc(vm, m0, wabi_smallint(vm, 2));
 
   vm->mem_root = m0;
 

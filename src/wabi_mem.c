@@ -14,7 +14,7 @@
 #include "wabi_err.h"
 #include "wabi_binary.h"
 #include "wabi_pair.h"
-#include "wabi_hamt.h"
+#include "wabi_hash.h"
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -44,7 +44,7 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
   vm->mem_limit = vm->mem_from_space + vm->mem_size;
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = NULL;
-  vm->symbol_table = wabi_hamt_empty(vm);
+  vm->symbol_table = wabi_map_empty(vm);
 }
 
 
@@ -88,8 +88,9 @@ wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
     vm->mem_alloc++;
   } else switch(tag) {
     case WABI_TAG_PAIR:
-    case WABI_TAG_HAMT_MAP:
-    case WABI_TAG_HAMT_ENTRY:
+    case WABI_TAG_MAP_ARRAY:
+    case WABI_TAG_MAP_HASH:
+    case WABI_TAG_MAP_ENTRY:
       memcpy(res, src, 2 * WABI_WORD_SIZE);
       vm->mem_alloc+=2;
       break;
@@ -105,11 +106,11 @@ wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
 }
 
 
-wabi_hamt_table
-wabi_mem_copy_hamt_table(wabi_vm vm, wabi_hamt_table table, wabi_word_t size)
+wabi_map_table
+wabi_mem_copy_map_table(wabi_vm vm, wabi_map_table table, wabi_word_t size)
 {
-  wabi_word_t delta = size * WABI_HAMT_SIZE;
-  wabi_hamt_table res = (wabi_hamt_table) vm->mem_alloc;
+  wabi_word_t delta = size * WABI_MAP_SIZE;
+  wabi_map_table res = (wabi_map_table) vm->mem_alloc;
   memcpy(res, table, delta * WABI_WORD_SIZE);
   vm->mem_alloc += delta;
   return res;
@@ -126,7 +127,7 @@ wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
 
 
 void
-wabi_mem_collect_hamt_map(wabi_vm vm, wabi_hamt_map map)
+wabi_mem_collect_map_array(wabi_vm vm, wabi_hamt_map map)
 {
   if(map->bitmap) {
     wabi_size_t size = BITMAP_SIZE(MAP_BITMAP(map));

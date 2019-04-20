@@ -5,10 +5,10 @@
 #include "wabi_vm.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
-#include "wabi_hamt.h"
+#include "wabi_map.h"
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
-
+#include "stdio.h"
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
@@ -67,22 +67,29 @@ wabi_hash_binary(wabi_hash_state_t *state, wabi_obj bin)
 
 
 void
-wabi_hash_map(wabi_hash_state_t *state, wabi_hamt_map map)
+wabi_hash_map(wabi_hash_state_t *state, wabi_map_table map)
 {
-  wabi_hamt_table table = MAP_TABLE(map);
-  wabi_hamt_table limit = table + BITMAP_SIZE(MAP_BITMAP(map));
-  while(table < limit) {
-    wabi_hash_obj(state, (wabi_obj) table);
-    table++;
+  if(wabi_obj_is_map_array((wabi_obj) map)) {
+    wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
+    wabi_map_table table = (wabi_map_table) WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
+    for(wabi_word_t offset = 0; offset < size; offset++)
+      wabi_hash_obj(state, (wabi_obj) (table + offset));
+  }
+  if(wabi_obj_is_map_hash((wabi_obj) map)) {
+    wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
+    wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
+    wabi_map_table table = (wabi_map_table) WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+    for(wabi_word_t offset = 0; offset < size; offset++)
+      wabi_hash_obj(state, (wabi_obj) (table + offset));
   }
 }
 
 
 void
-wabi_hash_entry(wabi_hash_state_t *state, wabi_hamt_entry entry)
+wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
 {
-  wabi_hash_obj(state, (wabi_obj) ENTRY_KEY(entry));
-  wabi_hash_obj(state, (wabi_obj) ENTRY_VALUE(entry));
+  wabi_hash_obj(state, (wabi_obj) WABI_MAP_ENTRY_KEY(entry));
+  wabi_hash_obj(state, (wabi_obj) WABI_MAP_ENTRY_VALUE(entry));
 }
 
 
@@ -105,13 +112,10 @@ wabi_hash_obj(wabi_hash_state_t *state, wabi_obj obj)
     wabi_hash_step(state, "B", 1);
     wabi_hash_binary(state, obj);
     return;
-  case WABI_TAG_HAMT_MAP:
+  case WABI_TAG_MAP_ARRAY:
+  case WABI_TAG_MAP_HASH:
     wabi_hash_step(state, "M", 1);
-    wabi_hash_map(state, (wabi_hamt_map) obj);
-    return;
-  case WABI_TAG_HAMT_ENTRY:
-    wabi_hash_step(state, "E", 1);
-    wabi_hash_entry(state, (wabi_hamt_entry) obj);
+    wabi_hash_map(state, (wabi_map_table) obj);
     return;
   case WABI_TAG_SYMBOL:
     wabi_hash_step(state, "S", 1);
