@@ -3,7 +3,7 @@
 #define wabi_atomic_h
 
 #include <stdint.h>
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_err.h"
 #include "wabi_vm.h"
 
@@ -15,12 +15,12 @@
 #define WABI_VALUE_FALSE         0x1000000000000000
 #define WABI_VALUE_TRUE          0x1000000000000001
 
-wabi_obj
+wabi_val
 wabi_smallint(wabi_vm vm, int64_t val);
 
-wabi_obj
+wabi_val
 wabi_nil(wabi_vm vm);
 
-wabi_obj
+wabi_val
 wabi_boolean(wabi_vm vm, int val);
 #endif

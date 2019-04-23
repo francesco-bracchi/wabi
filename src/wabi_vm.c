@@ -2,7 +2,7 @@
 
 #include "wabi_vm.h"
 #include "wabi_mem.h"
-#include "wabi_object.h"
+#include "wabi_value.h"
 
 
 void wabi_vm_init(wabi_vm_t* vm, wabi_size_t size)

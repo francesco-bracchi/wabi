@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_mem.h"
 #include "wabi_hash.h"
@@ -37,6 +37,7 @@ wabi_map_array_assoc(wabi_vm vm,
                      wabi_map_entry entry,
                      wabi_word_t hash,
                      int hash_offset);
+
 
 wabi_map_table
 wabi_map_table_assoc(wabi_vm vm,
@@ -60,7 +61,7 @@ wabi_map_array_promote(wabi_vm vm,
   wabi_map_table limit = table + WABI_MAP_ARRAY_SIZE(map);
   wabi_map_table row = table;
   while(row < limit) {
-    wabi_obj key = (wabi_obj) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
+    wabi_val key = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     wabi_word_t hash = wabi_hash_raw(key);
     new_map = wabi_map_hash_assoc(vm, new_map, (wabi_map_entry) row, hash, hash_offset);
     if(vm->errno) return NULL;
@@ -77,7 +78,7 @@ wabi_map_array_assoc(wabi_vm vm,
                      wabi_word_t hash,
                      int hash_offset)
 {
-  wabi_obj key = (wabi_obj) WABI_MAP_ENTRY_KEY(entry);
+  wabi_val key = (wabi_val) WABI_MAP_ENTRY_KEY(entry);
   wabi_map_table table = (wabi_map_table) WABI_MAP_ARRAY_TABLE(map);
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
   wabi_map_table row = table;
@@ -85,7 +86,7 @@ wabi_map_array_assoc(wabi_vm vm,
 
   // key lookup
   while(row < limit) {
-    wabi_obj key0 = (wabi_obj) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
+    wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     if(wabi_eq_raw(key, key0)) {
       // if found replace the entry
       wabi_word_t pos = row - table;
@@ -165,7 +166,7 @@ wabi_map_hash_assoc(wabi_vm vm,
 }
 
 
-wabi_obj
+wabi_val
 wabi_map_empty(wabi_vm vm)
 {
   wabi_map_array map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE);
@@ -173,7 +174,7 @@ wabi_map_empty(wabi_vm vm)
 
   map->size = 0UL;
   map->table = WABI_TAG_MAP_ARRAY;
-  return (wabi_obj) map;
+  return (wabi_val) map;
 }
 
 
@@ -184,7 +185,7 @@ wabi_map_table_assoc(wabi_vm vm,
                      wabi_word_t hash,
                      int hash_offset)
 {
-  switch(wabi_obj_tag((wabi_obj) map)) {
+  switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ARRAY:
     return (wabi_map_table) wabi_map_array_assoc(vm, (wabi_map_array) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_HASH:
@@ -196,19 +197,19 @@ wabi_map_table_assoc(wabi_vm vm,
 }
 
 
-wabi_obj
+wabi_val
 wabi_map_assoc(wabi_vm vm,
-               wabi_obj map,
-               wabi_obj key,
-               wabi_obj value)
+               wabi_val map,
+               wabi_val key,
+               wabi_val value)
 {
   wabi_word_t hash = wabi_hash_raw(key);
   wabi_map_entry entry = (wabi_map_entry) wabi_mem_allocate(vm, WABI_MAP_SIZE);
   if(vm->errno) return NULL;
 
-  if(wabi_obj_is_nil(map)) {
+  if(wabi_val_is_nil(map)) {
     map = wabi_map_empty(vm);
     if(vm->errno) return NULL;
   }
-  return (wabi_obj) wabi_map_table_assoc(vm, (wabi_map_table) map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+  return (wabi_val) wabi_map_table_assoc(vm, (wabi_map_table) map, entry, hash, WABI_MAP_INITIAL_OFFSET);
 }

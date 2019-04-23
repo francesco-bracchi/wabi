@@ -2,7 +2,7 @@
 
 #define wabi_hash_h
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_err.h"
 #include "wabi_vm.h"
 
@@ -15,11 +15,11 @@ typedef struct wabi_hash_state_struct
 } wabi_hash_state_t;
 
 
-wabi_obj
-wabi_hash(wabi_vm vm, wabi_obj obj);
+wabi_val
+wabi_hash(wabi_vm vm, wabi_val val);
 
 
 wabi_word_t
-wabi_hash_raw(wabi_obj obj);
+wabi_hash_raw(wabi_val val);
 
 #endif

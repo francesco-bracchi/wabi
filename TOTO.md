@@ -24,3 +24,6 @@
 
 1. leaves of hamt maps, if the table depth is bigger than the hash,
    although almost impossible, must be handled as array maps.
+
+
+1. refactor wabi_obj to wabi_val, no reference to objects!

@@ -2,9 +2,9 @@
 
 #define wabi_pr_h
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 
 void
-wabi_pr(wabi_obj obj);
+wabi_pr(wabi_val val);
 
 #endif

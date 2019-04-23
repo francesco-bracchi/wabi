@@ -8,13 +8,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_mem.h"
 #include "wabi_vm.h"
 #include "wabi_err.h"
 #include "wabi_binary.h"
 #include "wabi_pair.h"
 #include "wabi_hash.h"
+#include "wabi_map.h"
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -49,12 +50,12 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
 
 
 void
-wabi_mem_compact_binary(wabi_vm vm, wabi_obj src)
+wabi_mem_compact_binary(wabi_vm vm, wabi_val src)
 {
   wabi_size_t len, word_size;
 
   wabi_binary_leaf_t *new_leaf;
-  wabi_obj new_blob;
+  wabi_val new_blob;
   char *data;
 
   len = *src & WABI_VALUE_MASK;
@@ -75,9 +76,9 @@ wabi_mem_compact_binary(wabi_vm vm, wabi_obj src)
 
 
 wabi_word_t *
-wabi_mem_copy_obj(wabi_vm vm, wabi_word_t *src)
+wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
 {
-  wabi_word_t tag = wabi_obj_tag(src);
+  wabi_word_t tag = wabi_val_tag(src);
   if(tag == WABI_TAG_FORWARD) {
     return (wabi_word_t *) (*src & WABI_VALUE_MASK);
   }
@@ -120,36 +121,36 @@ wabi_mem_copy_map_table(wabi_vm vm, wabi_map_table table, wabi_word_t size)
 void
 wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
 {
-  pair->car = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) (pair->car | WABI_VALUE_MASK)) | WABI_TAG_PAIR;
-  pair->cdr = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) pair->cdr);
+  pair->car = (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) (pair->car | WABI_VALUE_MASK)) | WABI_TAG_PAIR;
+  pair->cdr = (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) pair->cdr);
   vm->mem_scan += 2;
 }
 
 
-void
-wabi_mem_collect_map_array(wabi_vm vm, wabi_hamt_map map)
-{
-  if(map->bitmap) {
-    wabi_size_t size = BITMAP_SIZE(MAP_BITMAP(map));
-    map->table = (wabi_word_t) wabi_mem_copy_hamt_table(vm, MAP_TABLE(map), size) | WABI_TAG_HAMT_MAP;
-  }
-  vm->mem_scan += WABI_HAMT_SIZE;
-}
+/* void */
+/* wabi_mem_collect_map_array(wabi_vm vm, wabi_hamt_map map) */
+/* { */
+/*   if(map->bitmap) { */
+/*     wabi_size_t size = BITMAP_SIZE(MAP_BITMAP(map)); */
+/*     map->table = (wabi_word_t) wabi_mem_copy_hamt_table(vm, MAP_TABLE(map), size) | WABI_TAG_HAMT_MAP; */
+/*   } */
+/*   vm->mem_scan += WABI_HAMT_SIZE; */
+/* } */
 
 
-void
-wabi_mem_collect_hamt_entry(wabi_vm vm, wabi_hamt_entry entry)
-{
-  entry->value = WABI_TAG_HAMT_ENTRY | (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) (entry->value & WABI_VALUE_MASK));
-  entry->key = (wabi_word_t) wabi_mem_copy_obj(vm, (wabi_obj) entry->key);
-  vm->mem_scan += WABI_HAMT_SIZE;
-}
+/* void */
+/* wabi_mem_collect_hamt_entry(wabi_vm vm, wabi_hamt_entry entry) */
+/* { */
+/*   entry->value = WABI_TAG_HAMT_ENTRY | (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) (entry->value & WABI_VALUE_MASK)); */
+/*   entry->key = (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) entry->key); */
+/*   vm->mem_scan += WABI_HAMT_SIZE; */
+/* } */
 
 
 inline void
-wabi_mem_collect_symbol(wabi_vm vm, wabi_obj sym)
+wabi_mem_collect_symbol(wabi_vm vm, wabi_val sym)
 {
-  wabi_obj new_bin = wabi_mem_copy_obj(vm, (wabi_obj)(*sym & WABI_VALUE_MASK));
+  wabi_val new_bin = wabi_mem_copy_val(vm, (wabi_val)(*sym & WABI_VALUE_MASK));
   *sym = (wabi_word_t) new_bin | WABI_TAG_SYMBOL;
   vm->mem_scan++;
 }
@@ -159,7 +160,7 @@ void
 wabi_mem_collect_step(wabi_vm vm)
 {
   wabi_word_t tag;
-  tag = wabi_obj_tag(vm->mem_scan);
+  tag = wabi_val_tag(vm->mem_scan);
   if(tag <= WABI_TAG_ATOMIC_LIMIT) {
     vm->mem_scan++;
   }
@@ -191,11 +192,11 @@ wabi_mem_collect_step(wabi_vm vm)
 inline void
 wabi_mem_collect_symbol_table_entry(wabi_vm vm, wabi_hamt_entry entry)
 {
-  wabi_obj key = ENTRY_KEY(entry);
-  if(wabi_obj_is_forward(key)) {
-    wabi_obj value = ENTRY_VALUE(entry);
-    key = (wabi_obj) (*key & WABI_VALUE_MASK);
-    value = (wabi_obj) (*value & WABI_VALUE_MASK);
+  wabi_val key = ENTRY_KEY(entry);
+  if(wabi_val_is_forward(key)) {
+    wabi_val value = ENTRY_VALUE(entry);
+    key = (wabi_val) (*key & WABI_VALUE_MASK);
+    value = (wabi_val) (*value & WABI_VALUE_MASK);
     vm->symbol_table = wabi_hamt_assoc(vm, vm->symbol_table, key, value);
   }
 }
@@ -208,7 +209,7 @@ wabi_mem_collect_symbol_table(wabi_vm vm, wabi_hamt_map to_symbol_table)
 
   for(int j = 0; j < size; j++) {
     wabi_hamt_table row = table + j;
-    if(wabi_obj_is_hamt_map((wabi_obj) row)) {
+    if(wabi_val_is_hamt_map((wabi_val) row)) {
       wabi_mem_collect_symbol_table(vm, (wabi_hamt_map) row);
     } else {
       wabi_mem_collect_symbol_table_entry(vm, (wabi_hamt_entry) row);
@@ -237,7 +238,7 @@ wabi_mem_collect(wabi_vm vm)
 
   vm->symbol_table = wabi_hamt_empty(vm);
 
-  vm->mem_root = wabi_mem_copy_obj(vm, vm->mem_root);
+  vm->mem_root = wabi_mem_copy_val(vm, vm->mem_root);
 
   while(vm->mem_scan < vm->mem_alloc) {
     wabi_mem_collect_step(vm);

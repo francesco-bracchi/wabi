@@ -2,9 +2,10 @@
 
 #define wabi_map_h
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_hash.h"
+#include "wabi_cmp.h"
 
 typedef struct wabi_map_array_struct
 {
@@ -62,14 +63,16 @@ typedef int wabi_map_index;
 #define WABI_MAP_ENTRY_KEY(entry) ((entry)->key)
 #define WABI_MAP_ENTRY_VALUE(entry) ((entry)->value & WABI_VALUE_MASK)
 
-wabi_obj
+wabi_val
 wabi_map_assoc(wabi_vm vm,
-               wabi_obj map,
-               wabi_obj key,
-               wabi_obj value);
+               wabi_val map,
+               wabi_val key,
+               wabi_val value);
 
-
-wabi_obj
+wabi_val
 wabi_map_empty(wabi_vm vm);
+
+wabi_map_iter_t
+wabi_map_iterator(wabi_val map);
 
 #endif

@@ -5,7 +5,7 @@
 #ifndef wabi_mem_h
 #define wabi_mem_h
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_vm.h"
 
 

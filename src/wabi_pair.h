@@ -2,7 +2,7 @@
 
 #define wabi_pair_h
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_vm.h"
 
 #define WABI_PAIR_SIZE 2
@@ -15,19 +15,19 @@ typedef struct wabi_pair_struct
 
 typedef wabi_pair_t* wabi_pair;
 
-wabi_obj
-wabi_cons(wabi_vm vm, wabi_obj car, wabi_obj cdr);
+wabi_val
+wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr);
 
-wabi_obj
-wabi_car(wabi_vm vm, wabi_obj pair);
+wabi_val
+wabi_car(wabi_vm vm, wabi_val pair);
 
-wabi_obj
-wabi_cdr(wabi_vm vm, wabi_obj pair);
+wabi_val
+wabi_cdr(wabi_vm vm, wabi_val pair);
 
-wabi_obj
-wabi_car_raw(wabi_obj pair);
+wabi_val
+wabi_car_raw(wabi_val pair);
 
-wabi_obj
-wabi_cdr_raw(wabi_obj pair);
+wabi_val
+wabi_cdr_raw(wabi_val pair);
 
 #endif

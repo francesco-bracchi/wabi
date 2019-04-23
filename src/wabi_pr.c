@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_atomic.h"
 #include "wabi_pr.h"
 #include "wabi_pair.h"
@@ -11,7 +11,7 @@
 
 
 void
-wabi_pr_binary(wabi_obj obj);
+wabi_pr_binary(wabi_val val);
 
 
 void
@@ -29,37 +29,37 @@ wabi_pr_bin_leaf(wabi_binary_leaf_t *leaf)
 void
 wabi_pr_bin_node(wabi_binary_node_t *node)
 {
-  wabi_pr_binary((wabi_obj) node->left);
-  wabi_pr_binary((wabi_obj) node->right);
+  wabi_pr_binary((wabi_val) node->left);
+  wabi_pr_binary((wabi_val) node->right);
 }
 
 
-void wabi_pr_binary(wabi_obj obj)
+void wabi_pr_binary(wabi_val val)
 {
-  if(wabi_obj_is_bin_leaf(obj)) {
-    wabi_pr_bin_leaf((wabi_binary_leaf_t *) obj);
+  if(wabi_val_is_bin_leaf(val)) {
+    wabi_pr_bin_leaf((wabi_binary_leaf_t *) val);
   }
-  else if(wabi_obj_is_bin_node(obj)) {
-    wabi_pr_bin_node((wabi_binary_node_t *) obj);
+  else if(wabi_val_is_bin_node(val)) {
+    wabi_pr_bin_node((wabi_binary_node_t *) val);
   }
 }
 
 
-void wabi_pr_pair(wabi_obj obj) {
-  wabi_obj car, cdr;
+void wabi_pr_pair(wabi_val val) {
+  wabi_val car, cdr;
 
   do {
-    car = wabi_car_raw(obj);
-    cdr = wabi_cdr_raw(obj);
+    car = wabi_car_raw(val);
+    cdr = wabi_cdr_raw(val);
 
-    if (wabi_obj_is_pair(cdr)) {
+    if (wabi_val_is_pair(cdr)) {
       wabi_pr(car);
       putchar(' ');
-      obj = cdr;
+      val = cdr;
       continue;
     }
 
-    if(wabi_obj_is_nil(cdr)) {
+    if(wabi_val_is_nil(cdr)) {
       wabi_pr(car);
       return;
     }
@@ -68,16 +68,16 @@ void wabi_pr_pair(wabi_obj obj) {
     printf(" . ");
     wabi_pr(cdr);
     return;
-  } while(wabi_obj_is_pair(obj));
+  } while(wabi_val_is_pair(val));
 }
 
 
 void
 wabi_pr_map_entry(wabi_map_entry entry)
 {
-  wabi_pr((wabi_obj) entry->key);
+  wabi_pr((wabi_val) entry->key);
   putchar(' ');
-  wabi_pr((wabi_obj) (entry->value & WABI_VALUE_MASK));
+  wabi_pr((wabi_val) (entry->value & WABI_VALUE_MASK));
 }
 
 
@@ -110,7 +110,7 @@ wabi_pr_map_hash(wabi_map_hash map)
 void
 wabi_pr_map(wabi_map_table map)
 {
-  switch(wabi_obj_tag((wabi_obj) map)) {
+  switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ARRAY:
     wabi_pr_map_array((wabi_map_array) map);
     return;
@@ -124,38 +124,38 @@ wabi_pr_map(wabi_map_table map)
 }
 
 void
-wabi_pr(wabi_obj obj) {
-  switch(wabi_obj_tag(obj)) {
+wabi_pr(wabi_val val) {
+  switch(wabi_val_tag(val)) {
   case WABI_TAG_NIL:
      printf("nil");
      break;
   case WABI_TAG_BOOL:
-    printf(*obj == WABI_VALUE_TRUE ? "true" : "false");
+    printf(*val == WABI_VALUE_TRUE ? "true" : "false");
     break;
   case WABI_TAG_IGNORE:
     printf("#ignore");
     break;
   case WABI_TAG_SMALLINT:
-    printf("%li", *obj & WABI_VALUE_MASK);
+    printf("%li", *val & WABI_VALUE_MASK);
     break;
   case WABI_TAG_PAIR:
     printf("(");
-    wabi_pr_pair(obj);
+    wabi_pr_pair(val);
     printf(")");
     break;
   case WABI_TAG_BIN_LEAF:
   case WABI_TAG_BIN_NODE:
     putchar('"');
-    wabi_pr_binary(obj);
+    wabi_pr_binary(val);
     putchar('"');
     break;
   case WABI_TAG_MAP_HASH:
   case WABI_TAG_MAP_ARRAY:
     putchar('{');
-    wabi_pr_map((wabi_map_table) obj);
+    wabi_pr_map((wabi_map_table) val);
     putchar('}');
     break;
   default:
-    printf("unknown %lx", *obj);
+    printf("unknown %lx", *val);
   }
 }

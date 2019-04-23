@@ -1,14 +1,13 @@
-# ifndef wabi_symbol_h
+#ifndef wabi_symbol_h
 
-# define wabi_symbol_h
+#define wabi_symbol_h
 
-# include "wabi_object.h"
-# include "wabi_vm.h"
+#include "wabi_value.h"
+#include "wabi_vm.h"
 
-wabi_obj
-wabi_symbol(wabi_vm vm, wabi_obj str);
+#define WABI_SYMBOL_BINARY(s) (s & WABI_VALUE_MASK)
 
-wabi_obj
-wabi_intern(wabi_vm vm, wabi_obj str);
+wabi_val
+wabi_intern(wabi_vm vm, wabi_val str);
 
 #endif

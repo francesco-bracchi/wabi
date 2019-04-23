@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "wabi_err.h"
-#include "wabi_object.h"
+#include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_pair.h"
 #include "wabi_atomic.h"
@@ -27,30 +27,30 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  wabi_obj x = wabi_smallint(vm, 10);
-  wabi_obj nil = wabi_nil(vm);
-  wabi_obj n0 = wabi_smallint(vm, 100);
-  wabi_obj n1 = wabi_smallint(vm, 200);
-  wabi_obj p0 = wabi_cons(vm, n0, nil);
-  wabi_obj p1 = wabi_cons(vm, n1, p0);
-  wabi_obj p2 = wabi_cons(vm, n1, p1);
-  wabi_obj fr = wabi_smallint(vm, 2);
-  wabi_obj ln = wabi_smallint(vm, 5);
-  wabi_obj b0 = wabi_binary_new_from_cstring(vm, "abcde");
-  wabi_obj b1 = wabi_binary_new_from_cstring(vm, "0123456789");
-  wabi_obj b2 = wabi_binary_concat(vm, b0, b1);
-  wabi_obj b3 = wabi_binary_sub(vm, b2, fr, ln);
-  wabi_obj l = wabi_binary_length(vm, b3);
-  wabi_obj root = wabi_cons(vm, b3, p1);
-  wabi_obj hash = 0;
-  wabi_obj m0 = wabi_map_empty(vm);
-  wabi_obj lm0;
+  wabi_val x = wabi_smallint(vm, 10);
+  wabi_val nil = wabi_nil(vm);
+  wabi_val n0 = wabi_smallint(vm, 100);
+  wabi_val n1 = wabi_smallint(vm, 200);
+  wabi_val p0 = wabi_cons(vm, n0, nil);
+  wabi_val p1 = wabi_cons(vm, n1, p0);
+  wabi_val p2 = wabi_cons(vm, n1, p1);
+  wabi_val fr = wabi_smallint(vm, 2);
+  wabi_val ln = wabi_smallint(vm, 5);
+  wabi_val b0 = wabi_binary_new_from_cstring(vm, "abcde");
+  wabi_val b1 = wabi_binary_new_from_cstring(vm, "0123456789");
+  wabi_val b2 = wabi_binary_concat(vm, b0, b1);
+  wabi_val b3 = wabi_binary_sub(vm, b2, fr, ln);
+  wabi_val l = wabi_binary_length(vm, b3);
+  wabi_val root = wabi_cons(vm, b3, p1);
+  wabi_val hash = 0;
+  wabi_val m0 = wabi_map_empty(vm);
+  wabi_val lm0;
 
   clock_t start, end;
   double cpu_time_used;
 
-  wabi_obj k;
-  wabi_obj v;
+  wabi_val k;
+  wabi_val v;
 
   char str[80];
 
@@ -86,9 +86,9 @@ int main(int argc, char** argv)
 
   printf("TIME USED %f\n", cpu_time_used);
 
-  wabi_obj s3 = wabi_intern(vm, b3);
-  wabi_obj s4 = wabi_symbol(vm, b0);
-  wabi_obj s5 = wabi_intern(vm, b1);
+  wabi_val s3 = wabi_intern(vm, b3);
+  wabi_val s4 = wabi_symbol(vm, b0);
+  wabi_val s5 = wabi_intern(vm, b1);
 
   m0 = wabi_map_assoc(vm, m0, s3, wabi_map_empty(vm));
   // printf("M0\n");
