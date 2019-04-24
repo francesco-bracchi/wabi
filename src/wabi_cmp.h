@@ -2,8 +2,10 @@
 
 #define wabi_cmp_h
 
+#include "wabi_value.h"
+
 int
-wabi_cmp_raw(wabi_val a, wabi_val b);
+wabi_cmp_raw(wabi_val left, wabi_val right);
 
 int
 wabi_eq_raw(wabi_val left, wabi_val right);
@@ -12,6 +14,6 @@ wabi_val
 wabi_eq(wabi_vm vm, wabi_val left, wabi_val right);
 
 wabi_val
-wabi_cmp(wabi_vm vm, wabi_val a, wabi_val b);
+wabi_cmp(wabi_vm vm, wabi_val left, wabi_val right);
 
 #endif

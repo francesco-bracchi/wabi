@@ -62,7 +62,7 @@ wabi_binary_new_from_cstring(wabi_vm vm, char* cstring)
 wabi_size_t
 wabi_binary_length_raw(wabi_binary bin)
 {
-  return (*bin & WABI_VALUE_MASK);
+  return WABI_BINARY_LENGTH(bin);
 }
 
 
@@ -72,36 +72,48 @@ wabi_binary_length(wabi_vm vm, wabi_val bin)
   switch(wabi_val_tag(bin)) {
   case WABI_TAG_BIN_LEAF:
   case WABI_TAG_BIN_NODE:
-    return wabi_smallint(vm, wabi_binary_length_raw(bin));
+    return wabi_smallint(vm, WABI_BINARY_LENGTH((wabi_binary) bin));
   default:
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
 }
 
+wabi_binary
+wabi_binary_concat_raw(wabi_vm vm, wabi_binary left, wabi_binary right)
+{
+  wabi_binary_node node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
+  if(vm->errno) return NULL;
+
+  wabi_size_t length = WABI_BINARY_LENGTH(left) + WABI_BINARY_LENGTH(right);
+  node->length = length | WABI_TAG_BIN_NODE;
+  node->left = (wabi_word_t) left;
+  node->right = (wabi_word_t) right;
+  return (wabi_binary) node;
+}
+
+
 wabi_val
 wabi_binary_concat(wabi_vm vm, wabi_val left, wabi_val right)
 {
-  if((wabi_val_is_bin(left)) && (wabi_val_is_bin(right))) {
-    wabi_binary_node node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
-    if(vm->errno) return NULL;
-
-    wabi_size_t length = wabi_binary_length_raw(left) + wabi_binary_length_raw(right);
-    node->length = length | WABI_TAG_BIN_NODE;
-    node->left = (wabi_word_t) left;
-    node->right = (wabi_word_t) right;
-    return (wabi_val) node;
+  if(wabi_val_is_forward(left)) {
+    left = (wabi_val) (*left & WABI_VALUE_MASK);
   }
-
+  if(wabi_val_is_forward(right)) {
+    right = (wabi_val) (*right & WABI_VALUE_MASK);
+  }
+  if(wabi_val_is_bin(left) && wabi_val_is_bin(right)) {
+    return (wabi_val) wabi_binary_concat_raw(vm, (wabi_binary) left, (wabi_binary) right);
+  }
   vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
 }
 
-wabi_val
-wabi_binary_sub_aux(wabi_vm vm, wabi_val bin, wabi_size_t from, wabi_size_t len);
+static wabi_binary
+wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size_t from, wabi_size_t len);
 
 
-wabi_val
+static wabi_binary
 wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size_t from, wabi_size_t len)
 {
   wabi_binary_leaf new_leaf = (wabi_binary_leaf) wabi_mem_allocate(vm, WABI_BINARY_LEAF_SIZE);
@@ -110,15 +122,15 @@ wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size_t from, wabi_s
   new_leaf->length = len | WABI_TAG_BIN_LEAF;
   new_leaf->data_ptr = leaf->data_ptr + from;
 
-  return (wabi_val) new_leaf;
+  return (wabi_binary) new_leaf;
 }
 
-wabi_val
+static wabi_binary
 wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size_t from, wabi_size_t len)
 {
-  wabi_val left = (wabi_val) node->left;
-  wabi_val right = (wabi_val) node->right;
-  wabi_size_t pivot = wabi_binary_length_raw(left);
+  wabi_binary left = (wabi_binary) node->left;
+  wabi_binary right = (wabi_binary) node->right;
+  wabi_size_t pivot = WABI_BINARY_LENGTH(left);
 
   if(pivot > from + len) {
     return wabi_binary_sub_aux(vm, left, from, len);
@@ -128,24 +140,24 @@ wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size_t from, wabi_s
     wabi_binary_node new_node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
     if(vm->errno) return NULL;
 
-    wabi_val new_left = wabi_binary_sub_aux(vm, left, from, pivot- from);
+    wabi_binary new_left = wabi_binary_sub_aux(vm, left, from, pivot - from);
     if(vm->errno) return NULL;
 
-    wabi_val new_right = wabi_binary_sub_aux(vm, right, 0, len + from - pivot);
+    wabi_binary new_right = wabi_binary_sub_aux(vm, right, 0, len + from - pivot);
     if(vm->errno) return NULL;
 
     new_node->length = len | WABI_TAG_BIN_NODE;
     new_node->left = (wabi_word_t) new_left;
     new_node->right = (wabi_word_t) new_right;
 
-    return (wabi_val) new_node;
+    return (wabi_binary) new_node;
   }
 }
 
-wabi_val
-wabi_binary_sub_aux(wabi_vm vm, wabi_val bin, wabi_size_t from, wabi_size_t len)
+static wabi_binary
+wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size_t from, wabi_size_t len)
 {
-  return wabi_val_is_bin_leaf(bin)
+  return wabi_val_is_bin_leaf((wabi_val) bin)
     ? wabi_binary_sub_leaf(vm, (wabi_binary_leaf) bin, from, len)
     : wabi_binary_sub_node(vm, (wabi_binary_node) bin, from, len);
 }
@@ -155,6 +167,15 @@ wabi_val
 wabi_binary_sub(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
 {
 
+  if(wabi_val_is_forward(bin)) {
+    bin = (wabi_val) (*bin & WABI_VALUE_MASK);
+  }
+  if(wabi_val_is_forward(from)) {
+    from = (wabi_val) (*from & WABI_VALUE_MASK);
+  }
+  if(wabi_val_is_forward(len)) {
+    len = (wabi_val) (*len & WABI_VALUE_MASK);
+  }
   if(! wabi_val_is_bin(bin)) {
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
@@ -168,7 +189,7 @@ wabi_binary_sub(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
     return NULL;
   }
 
-  wabi_size_t bin_len = wabi_binary_length_raw(bin);
+  wabi_size_t bin_len = WABI_BINARY_LENGTH((wabi_binary) bin);
   int64_t from_raw = *from & WABI_VALUE_MASK;
   int64_t len_raw = *len & WABI_VALUE_MASK;
 
@@ -179,7 +200,7 @@ wabi_binary_sub(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
     return NULL;
   }
 
-  return wabi_binary_sub_aux(vm, bin, (wabi_size_t) from_raw, (wabi_size_t) len_raw);
+  return (wabi_val) wabi_binary_sub_aux(vm, (wabi_binary) bin, (wabi_size_t) from_raw, (wabi_size_t) len_raw);
 }
 
 
@@ -217,11 +238,11 @@ wabi_binary_compact_raw(wabi_val bin, char *dest)
 wabi_val
 wabi_binary_compact(wabi_vm vm, wabi_val bin)
 {
-  if(! wabi_val_is_bin(bin)) {
+  if(!wabi_val_is_bin(bin)) {
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
-  wabi_size_t len = wabi_binary_length_raw(bin);
+  wabi_size_t len = WABI_BINARY_LENGTH((wabi_binary) bin);
   wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, len);
   if(vm->errno) return NULL;
 

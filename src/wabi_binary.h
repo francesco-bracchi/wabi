@@ -7,7 +7,7 @@
 #include "wabi_vm.h"
 
 typedef struct wabi_binary_leaf_struct
-{x
+{
   wabi_word_t length;
   wabi_word_t data_ptr;
 } wabi_binary_leaf_t;
@@ -37,9 +37,9 @@ typedef wabi_binary_t* wabi_binary;
 #define WABI_BINARY_NODE_SIZE 3
 
 #define WABI_BINARY_LENGTH(bin) ((bin)->length & WABI_VALUE_MASK)
-#define WABI_BINARY_NODE_LEFT(bin) ((bin)->left)
-#define WABI_BINARY_NODE_RIGHT(bin) ((bin)->right)
-
+#define WABI_BINARY_NODE_LEFT(bin) ((wabi_binary) ((bin)->left))
+#define WABI_BINARY_NODE_RIGHT(bin) ((wabi_binary) ((bin)->right))
+#define WABI_BINARY_DATA_PTR(bin) ((char*) ((bin)->data_ptr))
 
 wabi_size_t
 wabi_binary_word_size(wabi_size_t size);

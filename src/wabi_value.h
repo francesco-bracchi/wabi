@@ -46,10 +46,13 @@ typedef int wabi_error;
 #define wabi_word_type(word) ((word) & WABI_TYPE_MASK)
 #define wabi_word_value(word) ((word) & WABI_VALUE_MASK)
 #define wabi_word_is_tagged(word, tag) (wabi_word_tag(word) == tag)
+#define wabi_word_is_type(word, type) (wabi_word_type(word) == type)
 
 #define wabi_val_tag(val) wabi_word_tag(*val)
+#define wabi_val_type(val) wabi_word_type(*val)
 #define wabi_val_value(val) wabi_word_value(*val)
 #define wabi_val_is_tagged(val, tag) wabi_word_is_tagged(*val, tag)
+#define wabi_val_is_type(val, type) wabi_word_is_type(*val, type)
 
 #define wabi_val_is_nil(val) wabi_val_is_tagged(val, WABI_TAG_NIL)
 #define wabi_val_is_bool(val) wabi_val_is_tagged(val, WABI_TAG_BOOL)
@@ -61,7 +64,7 @@ typedef int wabi_error;
 #define wabi_val_is_bin_blob(val) wabi_val_is_tagged(val, WABI_TAG_BIN_BLOB)
 #define wabi_val_is_bin_leaf(val) wabi_val_is_tagged(val, WABI_TAG_BIN_LEAF)
 #define wabi_val_is_bin_node(val) wabi_val_is_tagged(val, WABI_TAG_BIN_NODE)
-#define wabi_val_is_bin(val) (wabi_val_is_type(WABI_TYPE_BIN));
+#define wabi_val_is_bin(val) wabi_val_is_type(val, WABI_TYPE_BIN)
 
 #define wabi_val_is_pair(val) wabi_val_is_tagged(val, WABI_TAG_PAIR)
 

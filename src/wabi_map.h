@@ -42,6 +42,14 @@ typedef wabi_map_table_t* wabi_map_table;
 
 typedef int wabi_map_index;
 
+typedef union wabi_map_union {
+  wabi_map_array_t array;
+  wabi_map_array_t hash;
+} wabi_map_t;
+
+typedef wabi_map_t* wabi_map;
+
+
 #define WABI_MAP_SIZE 2
 #define WABI_MAP_ARRAY_LIMIT 32
 #define WABI_MAP_INITIAL_OFFSET 50
@@ -71,8 +79,5 @@ wabi_map_assoc(wabi_vm vm,
 
 wabi_val
 wabi_map_empty(wabi_vm vm);
-
-wabi_map_iter_t
-wabi_map_iterator(wabi_val map);
 
 #endif

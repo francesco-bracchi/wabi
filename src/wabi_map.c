@@ -20,7 +20,7 @@
 #include "wabi_mem.h"
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
-#include "wabi_eq.h"
+#include "wabi_cmp.h"
 #include "wabi_map.h"
 
 wabi_map_hash
@@ -212,4 +212,12 @@ wabi_map_assoc(wabi_vm vm,
     if(vm->errno) return NULL;
   }
   return (wabi_val) wabi_map_table_assoc(vm, (wabi_map_table) map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+}
+
+
+wabi_val
+wabi_map_get(wabi_vm vm,
+             wabi_val map,
+             wabi_val key)
+{
 }

@@ -12,6 +12,8 @@
 #include <stdlib.h>
 
 
+#define ASSERT(e) if(!(e)){printf("assertion failed: a <= b"); return 1}
+
 int
 test_wabi_binary_compare_different_string_same_length(wabi_vm vm)
 {

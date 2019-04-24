@@ -127,25 +127,6 @@ wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
 }
 
 
-/* void */
-/* wabi_mem_collect_map_array(wabi_vm vm, wabi_hamt_map map) */
-/* { */
-/*   if(map->bitmap) { */
-/*     wabi_size_t size = BITMAP_SIZE(MAP_BITMAP(map)); */
-/*     map->table = (wabi_word_t) wabi_mem_copy_hamt_table(vm, MAP_TABLE(map), size) | WABI_TAG_HAMT_MAP; */
-/*   } */
-/*   vm->mem_scan += WABI_HAMT_SIZE; */
-/* } */
-
-
-/* void */
-/* wabi_mem_collect_hamt_entry(wabi_vm vm, wabi_hamt_entry entry) */
-/* { */
-/*   entry->value = WABI_TAG_HAMT_ENTRY | (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) (entry->value & WABI_VALUE_MASK)); */
-/*   entry->key = (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) entry->key); */
-/*   vm->mem_scan += WABI_HAMT_SIZE; */
-/* } */
-
 
 inline void
 wabi_mem_collect_symbol(wabi_vm vm, wabi_val sym)
@@ -175,12 +156,6 @@ wabi_mem_collect_step(wabi_vm vm)
     case WABI_TAG_BIN_LEAF:
       vm->mem_scan += 3;
       break;
-    case WABI_TAG_HAMT_MAP:;
-      wabi_mem_collect_hamt_map(vm, (wabi_hamt_map) vm->mem_scan);
-      break;
-    case WABI_TAG_HAMT_ENTRY:
-      wabi_mem_collect_hamt_entry(vm, (wabi_hamt_entry) vm->mem_scan);
-      break;
     case WABI_TAG_SYMBOL:
       wabi_mem_collect_symbol(vm, vm->mem_scan);
       break;
@@ -189,40 +164,40 @@ wabi_mem_collect_step(wabi_vm vm)
 }
 
 
-inline void
-wabi_mem_collect_symbol_table_entry(wabi_vm vm, wabi_hamt_entry entry)
-{
-  wabi_val key = ENTRY_KEY(entry);
-  if(wabi_val_is_forward(key)) {
-    wabi_val value = ENTRY_VALUE(entry);
-    key = (wabi_val) (*key & WABI_VALUE_MASK);
-    value = (wabi_val) (*value & WABI_VALUE_MASK);
-    vm->symbol_table = wabi_hamt_assoc(vm, vm->symbol_table, key, value);
-  }
-}
+/* inline void */
+/* wabi_mem_collect_symbol_table_entry(wabi_vm vm, wabi_hamt_entry entry) */
+/* { */
+/*   wabi_val key = ENTRY_KEY(entry); */
+/*   if(wabi_val_is_forward(key)) { */
+/*     wabi_val value = ENTRY_VALUE(entry); */
+/*     key = (wabi_val) (*key & WABI_VALUE_MASK); */
+/*     value = (wabi_val) (*value & WABI_VALUE_MASK); */
+/*     vm->symbol_table = wabi_hamt_assoc(vm, vm->symbol_table, key, value); */
+/*   } */
+/* } */
 
-void
-wabi_mem_collect_symbol_table(wabi_vm vm, wabi_hamt_map to_symbol_table)
-{
-  wabi_hamt_table table = (wabi_hamt_table) (to_symbol_table->table & WABI_VALUE_MASK);
-  wabi_size_t size = WABI_POPCNT(to_symbol_table->bitmap);
+/* void */
+/* wabi_mem_collect_symbol_table(wabi_vm vm, wabi_hamt_map to_symbol_table) */
+/* { */
+/*   wabi_hamt_table table = (wabi_hamt_table) (to_symbol_table->table & WABI_VALUE_MASK); */
+/*   wabi_size_t size = WABI_POPCNT(to_symbol_table->bitmap); */
 
-  for(int j = 0; j < size; j++) {
-    wabi_hamt_table row = table + j;
-    if(wabi_val_is_hamt_map((wabi_val) row)) {
-      wabi_mem_collect_symbol_table(vm, (wabi_hamt_map) row);
-    } else {
-      wabi_mem_collect_symbol_table_entry(vm, (wabi_hamt_entry) row);
-    }
-  }
-}
+/*   for(int j = 0; j < size; j++) { */
+/*     wabi_hamt_table row = table + j; */
+/*     if(wabi_val_is_hamt_map((wabi_val) row)) { */
+/*       wabi_mem_collect_symbol_table(vm, (wabi_hamt_map) row); */
+/*     } else { */
+/*       wabi_mem_collect_symbol_table_entry(vm, (wabi_hamt_entry) row); */
+/*     } */
+/*   } */
+/* } */
 
 
 void
 wabi_mem_collect(wabi_vm vm)
 {
   wabi_word_t *wabi_mem_to_space = vm->mem_from_space;
-  wabi_hamt_map to_symbol_table = (wabi_hamt_map) vm->symbol_table;
+  // wabi_map to_symbol_table = (wabi_map) vm->symbol_table;
   vm->mem_from_space = wabi_allocate_space(vm->mem_size);
   if(vm->mem_from_space == NULL) {
     vm->errno = WABI_ERROR_NOMEM;
@@ -236,14 +211,14 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = vm->mem_from_space;
 
-  vm->symbol_table = wabi_hamt_empty(vm);
+  vm->symbol_table = (wabi_word_t*) wabi_map_empty(vm);
 
   vm->mem_root = wabi_mem_copy_val(vm, vm->mem_root);
 
   while(vm->mem_scan < vm->mem_alloc) {
     wabi_mem_collect_step(vm);
   }
-  wabi_mem_collect_symbol_table(vm, to_symbol_table);
+  // wabi_mem_collect_symbol_table(vm, to_symbol_table);
   free(wabi_mem_to_space);
 }
 

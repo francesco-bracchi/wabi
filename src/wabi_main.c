@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   printf("TIME USED %f\n", cpu_time_used);
 
   wabi_val s3 = wabi_intern(vm, b3);
-  wabi_val s4 = wabi_symbol(vm, b0);
+  wabi_val s4 = wabi_intern(vm, b0);
   wabi_val s5 = wabi_intern(vm, b1);
 
   m0 = wabi_map_assoc(vm, m0, s3, wabi_map_empty(vm));
