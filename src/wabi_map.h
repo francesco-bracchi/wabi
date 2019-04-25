@@ -31,23 +31,16 @@ typedef struct wabi_map_hash_struct
 
 typedef wabi_map_hash_t* wabi_map_hash;
 
-typedef union wabi_map_table_struct
+typedef union wabi_map_struct
 {
   wabi_map_array_t array;
   wabi_map_entry_t entry;
   wabi_map_hash_t  hash;
-} wabi_map_table_t;
-
-typedef wabi_map_table_t* wabi_map_table;
-
-typedef int wabi_map_index;
-
-typedef union wabi_map_union {
-  wabi_map_array_t array;
-  wabi_map_array_t hash;
 } wabi_map_t;
 
 typedef wabi_map_t* wabi_map;
+
+typedef int wabi_map_index;
 
 
 #define WABI_MAP_SIZE 2
@@ -60,7 +53,7 @@ typedef wabi_map_t* wabi_map;
 #define WABI_MAP_ARRAY_SIZE(map) ((map)->size)
 #define WABI_MAP_ARRAY_TABLE(map) ((map)->table & WABI_VALUE_MASK)
 
-#define WABI_MAP_HASH_TABLE(map) ((map)->table & WABI_VALUE_MASK)
+#define WABI_MAP_HASH_TABLE(map) ((wabi_map) ((map)->table & WABI_VALUE_MASK))
 #define WABI_MAP_HASH_BITMAP(map) ((map)->bitmap)
 #define WABI_MAP_HASH_INDEX(hash, h_pos) (((hash) >> h_pos) & 0x3F)
 
@@ -68,8 +61,8 @@ typedef wabi_map_t* wabi_map;
 #define WABI_MAP_BITMAP_COUNT(bitmap) WABI_POPCNT(bitmap)
 #define WABI_MAP_BITMAP_CONTAINS(bitmap, index) (((bitmap) >> (index)) & 1LU)
 
-#define WABI_MAP_ENTRY_KEY(entry) ((entry)->key)
-#define WABI_MAP_ENTRY_VALUE(entry) ((entry)->value & WABI_VALUE_MASK)
+#define WABI_MAP_ENTRY_KEY(entry) ((wabi_val) ((entry)->key))
+#define WABI_MAP_ENTRY_VALUE(entry) ((wabi_val) ((entry)->value & WABI_VALUE_MASK))
 
 wabi_val
 wabi_map_assoc(wabi_vm vm,
@@ -77,7 +70,24 @@ wabi_map_assoc(wabi_vm vm,
                wabi_val key,
                wabi_val value);
 
+wabi_map
+wabi_map_assoc_raw(wabi_vm vm,
+                   wabi_map map,
+                   wabi_val key,
+                   wabi_val value);
+
 wabi_val
 wabi_map_empty(wabi_vm vm);
+
+
+wabi_val
+wabi_map_get_raw(wabi_map map,
+                 wabi_val key);
+
+
+wabi_val
+wabi_map_get(wabi_vm vm,
+             wabi_val map,
+             wabi_val key);
 
 #endif

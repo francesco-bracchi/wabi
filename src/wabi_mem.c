@@ -107,12 +107,12 @@ wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
 }
 
 
-wabi_map_table
-wabi_mem_copy_map_table(wabi_vm vm, wabi_map_table table, wabi_word_t size)
+wabi_map
+wabi_mem_copy_map(wabi_vm vm, wabi_map map, wabi_word_t size)
 {
   wabi_word_t delta = size * WABI_MAP_SIZE;
-  wabi_map_table res = (wabi_map_table) vm->mem_alloc;
-  memcpy(res, table, delta * WABI_WORD_SIZE);
+  wabi_map res = (wabi_map) vm->mem_alloc;
+  memcpy(res, map, delta * WABI_WORD_SIZE);
   vm->mem_alloc += delta;
   return res;
 }

@@ -96,12 +96,6 @@ wabi_binary_concat_raw(wabi_vm vm, wabi_binary left, wabi_binary right)
 wabi_val
 wabi_binary_concat(wabi_vm vm, wabi_val left, wabi_val right)
 {
-  if(wabi_val_is_forward(left)) {
-    left = (wabi_val) (*left & WABI_VALUE_MASK);
-  }
-  if(wabi_val_is_forward(right)) {
-    right = (wabi_val) (*right & WABI_VALUE_MASK);
-  }
   if(wabi_val_is_bin(left) && wabi_val_is_bin(right)) {
     return (wabi_val) wabi_binary_concat_raw(vm, (wabi_binary) left, (wabi_binary) right);
   }
@@ -166,16 +160,6 @@ wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size_t from, wabi_size_t l
 wabi_val
 wabi_binary_sub(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
 {
-
-  if(wabi_val_is_forward(bin)) {
-    bin = (wabi_val) (*bin & WABI_VALUE_MASK);
-  }
-  if(wabi_val_is_forward(from)) {
-    from = (wabi_val) (*from & WABI_VALUE_MASK);
-  }
-  if(wabi_val_is_forward(len)) {
-    len = (wabi_val) (*len & WABI_VALUE_MASK);
-  }
   if(! wabi_val_is_bin(bin)) {
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;

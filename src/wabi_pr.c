@@ -82,10 +82,14 @@ wabi_pr_map_entry(wabi_map_entry entry)
 
 
 void
+wabi_pr_map(wabi_map map);
+
+
+void
 wabi_pr_map_array(wabi_map_array map)
 {
-  wabi_map_table table = (wabi_map_table) WABI_MAP_ARRAY_SIZE(map);
-  wabi_word_t size = WABI_MAP_ARRAY_TABLE(map);
+  wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
+  wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
   for(int j = 0; j < size; j++) {
     wabi_map_entry row = (wabi_map_entry)(table + j);
     wabi_pr_map_entry(row);
@@ -95,20 +99,17 @@ wabi_pr_map_array(wabi_map_array map)
 
 
 void
-wabi_pr_map(wabi_map_table map);
-
-void
 wabi_pr_map_hash(wabi_map_hash map)
 {
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
-  wabi_map_table table = (wabi_map_table) WABI_MAP_HASH_TABLE(map);
+  wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
   for(int j = 0; j < size; j++)
     wabi_pr_map(table + size);
 }
 
 void
-wabi_pr_map(wabi_map_table map)
+wabi_pr_map(wabi_map map)
 {
   switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ARRAY:
@@ -125,7 +126,7 @@ wabi_pr_map(wabi_map_table map)
 
 void
 wabi_pr(wabi_val val) {
-  switch(wabi_val_tag(val)) {
+  switch(wabi_val_type(val)) {
   case WABI_TAG_NIL:
      printf("nil");
      break;
@@ -138,21 +139,19 @@ wabi_pr(wabi_val val) {
   case WABI_TAG_SMALLINT:
     printf("%li", *val & WABI_VALUE_MASK);
     break;
-  case WABI_TAG_PAIR:
+  case WABI_TYPE_PAIR:
     printf("(");
     wabi_pr_pair(val);
     printf(")");
     break;
-  case WABI_TAG_BIN_LEAF:
-  case WABI_TAG_BIN_NODE:
+  case WABI_TYPE_BIN:
     putchar('"');
     wabi_pr_binary(val);
     putchar('"');
     break;
-  case WABI_TAG_MAP_HASH:
-  case WABI_TAG_MAP_ARRAY:
+  case WABI_TYPE_MAP:
     putchar('{');
-    wabi_pr_map((wabi_map_table) val);
+    wabi_pr_map((wabi_map) val);
     putchar('}');
     break;
   default:

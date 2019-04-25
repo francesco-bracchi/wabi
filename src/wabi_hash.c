@@ -67,18 +67,18 @@ wabi_hash_binary(wabi_hash_state_t *state, wabi_val bin)
 
 
 void
-wabi_hash_map(wabi_hash_state_t *state, wabi_map_table map)
+wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
 {
   if(wabi_val_is_map_array((wabi_val) map)) {
     wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
-    wabi_map_table table = (wabi_map_table) WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
+    wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
     for(wabi_word_t offset = 0; offset < size; offset++)
       wabi_hash_val(state, (wabi_val) (table + offset));
   }
   if(wabi_val_is_map_hash((wabi_val) map)) {
     wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
     wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
-    wabi_map_table table = (wabi_map_table) WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+    wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE((wabi_map_hash) map);
     for(wabi_word_t offset = 0; offset < size; offset++)
       wabi_hash_val(state, (wabi_val) (table + offset));
   }
@@ -96,33 +96,29 @@ wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
 void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
-  wabi_word_t tag = wabi_val_tag(val);
-  if(tag <= WABI_TAG_ATOMIC_LIMIT) {
+  wabi_word_t type = wabi_val_type(val);
+  if(type <= WABI_TAG_ATOMIC_LIMIT) {
     wabi_hash_step(state, (char *) val, 4);
     return;
   }
-  switch(tag) {
-  case WABI_TAG_PAIR:
+  switch(type) {
+
+  case WABI_TYPE_PAIR:
     wabi_hash_step(state, "P", 1);
     wabi_hash_val(state, (wabi_val) (*val & WABI_VALUE_MASK));
     wabi_hash_val(state, (wabi_val) (*(val + 1) & WABI_VALUE_MASK));
     return;
-  case WABI_TAG_BIN_LEAF:
-  case WABI_TAG_BIN_NODE:
+  case WABI_TYPE_BIN:
     wabi_hash_step(state, "B", 1);
     wabi_hash_binary(state, val);
     return;
-  case WABI_TAG_MAP_ARRAY:
-  case WABI_TAG_MAP_HASH:
+  case WABI_TYPE_MAP:
     wabi_hash_step(state, "M", 1);
-    wabi_hash_map(state, (wabi_map_table) val);
+    wabi_hash_map(state, (wabi_map) val);
     return;
-  case WABI_TAG_SYMBOL:
+  case WABI_TYPE_SYMBOL:
     wabi_hash_step(state, "S", 1);
     wabi_hash_binary(state, (wabi_val) (*val & WABI_VALUE_MASK));
-    return;
-  case WABI_TAG_FORWARD:
-    wabi_hash_val(state, (wabi_val) wabi_val_value(val));
     return;
   }
 }

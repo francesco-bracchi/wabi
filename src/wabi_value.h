@@ -71,13 +71,8 @@ typedef int wabi_error;
 #define wabi_val_is_map_array(val) wabi_val_is_tagged(val, WABI_TAG_MAP_ARRAY)
 #define wabi_val_is_map_hash(val) wabi_val_is_tagged(val, WABI_TAG_MAP_HASH)
 #define wabi_val_is_map_entry(val) wabi_val_is_tagged(val, WABI_TAG_MAP_ENTRY)
-#define wabi_val_is_map(val) ((wabi_val_is_type(WABI_TYPE_MAP));
+#define wabi_val_is_map(val) wabi_val_is_type(val, WABI_TYPE_MAP)
 
 #define wabi_val_is_symbol(val) wabi_val_is_tagged(val, WABI_TAG_SYMBOL)
-
-/* #define WABI_VAL_FORWARDED(val) ((wabi_val_is_forward(val)) ? (wabi_obj) (wabi_word_value(val)) : val) */
-
-wabi_size_t
-wabi_val_size(wabi_val val);
 
 #endif

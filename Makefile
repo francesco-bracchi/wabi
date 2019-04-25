@@ -2,35 +2,30 @@ CC = gcc
 RM = rm
 # CFLAGS  = -g -Wall
 LFLAGS =
-LIBS =
 SRCDIR 		= "src"
 TESTDIR 	= "test"
 SOURCES		= $(shell ls ${SRCDIR}/*.c)
 OBJECTS		= $(SOURCES:.c=.o)
-INCLUDES        = -I $(SRCDIR) -I $(TESTDIR)
-MAIN            = wabi
+INCLUDES        =
+LIBS            =
+MAIN_TEST       = wabi_test
 
 TESTS	        = $(shell ls ${TESTDIR}/*.c)
 TEST_OBJECTS	= $(TESTS:.c=.o)
-TEST            = test/run
 
-CFLAGS  = -g -Wall -O2 $(INCLUDES)
+CFLAGS  = -g -Wall -foptimize-sibling-calls -O2 $(INCLUDES) $(LIBS)
 VERSION = "0.0.1"
 
+all: $(MAIN_TEST)
+	@echo "$(MAIN_TEST) Created."
 
-all: $(MAIN)
-	@echo "$(MAIN) Created."
-
-$(MAIN): $(OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJECTS) $(LFLAGS) $(LIBS)
-
-%(TEST): $(OBJECTS) $(TEST_OBJECTS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJECTS) $(TEST_OBJECTS) $(LFLAGS) $(LIBS)
+$(MAIN_TEST): $(OBJECTS) $(TEST_OBJECTS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN_TEST) $(OBJECTS) $(TEST_OBJECTS) $(LFLAGS) $(LIBS)
 
 clean:
-	-$(RM) $(OBJECTS) $(TEST_OBJECTS) $(MAIN)
+	-$(RM) $(OBJECTS) $(TEST_OBJECTS) $(MAIN) $(MAIN_TEST)
 
-run: $(MAIN)
-	./$(MAIN)
+test: $(MAIN_TEST)
+	./$(MAIN_TEST)
 
-.PHONY: all clean run
+.PHONY: all clean run test

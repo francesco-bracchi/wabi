@@ -19,7 +19,7 @@ wabi_intern(wabi_vm vm, wabi_val bin)
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
-  wabi_val interned = wabi_map_get_raw(vm->symbol_table, bin);
+  wabi_val interned = wabi_map_get_raw((wabi_map) vm->symbol_table, bin);
   if(interned) {
     return interned;
   }
