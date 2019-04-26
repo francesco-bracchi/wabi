@@ -31,7 +31,7 @@ typedef struct wabi_map_hash_struct
 
 typedef wabi_map_hash_t* wabi_map_hash;
 
-typedef union wabi_map_struct
+typedef union wabi_map_union
 {
   wabi_map_array_t array;
   wabi_map_entry_t entry;
@@ -41,7 +41,6 @@ typedef union wabi_map_struct
 typedef wabi_map_t* wabi_map;
 
 typedef int wabi_map_index;
-
 
 #define WABI_MAP_SIZE 2
 #define WABI_MAP_ARRAY_LIMIT 32
@@ -89,5 +88,6 @@ wabi_val
 wabi_map_get(wabi_vm vm,
              wabi_val map,
              wabi_val key);
+
 
 #endif

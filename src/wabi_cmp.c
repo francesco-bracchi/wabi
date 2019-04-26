@@ -7,6 +7,7 @@
 #include "wabi_atomic.h"
 #include "wabi_pair.h"
 #include "wabi_symbol.h"
+#include "wabi_map.h"
 #include "wabi_cmp.h"
 
 #include "wabi_pr.h"
@@ -48,6 +49,7 @@ wabi_cmp_bin(wabi_binary left,
     }
     wabi_word_t left_len0 = pivot - from_left;
     if(len_left <= left_len0) {
+      // is this ever visited?
       return wabi_cmp_bin(left_left, from_left, len_left, right, from_right, len_right);
     }
     if(len_right <= left_len0) {
@@ -67,23 +69,37 @@ wabi_cmp_bin(wabi_binary left,
 
 
 static inline int
+wabi_cmp_map_rec(wabi_map left, wabi_map right)
+{
+  return 10;
+}
+
+
+static inline int
 wabi_cmp_binary(wabi_binary left, wabi_binary right) {
   return wabi_cmp_bin(left, 0, WABI_BINARY_LENGTH(left), right, 0, WABI_BINARY_LENGTH(right));
 }
 
 
 static inline int
-wabi_cmp_symbol(wabi_symbol a, wabi_symbol b) {
-  return wabi_cmp_binary(WABI_SYMBOL_BINARY(a),
-                         WABI_SYMBOL_BINARY(b));
+wabi_cmp_symbol(wabi_symbol left, wabi_symbol right) {
+  return wabi_cmp_binary(WABI_SYMBOL_BINARY(left),
+                         WABI_SYMBOL_BINARY(right));
 }
 
 
 static inline int
-wabi_cmp_pair(wabi_pair a, wabi_pair b) {
-  return
-    wabi_cmp_raw(WABI_PAIR_CAR(a), WABI_PAIR_CAR(b)) ||
-    wabi_cmp_raw(WABI_PAIR_CDR(a), WABI_PAIR_CDR(b));
+wabi_cmp_pair(wabi_pair left, wabi_pair right) {
+  int cmp0 = wabi_cmp_raw(WABI_PAIR_CAR(left), WABI_PAIR_CAR(right));
+  if(cmp0) return cmp0;
+  return wabi_cmp_raw(WABI_PAIR_CDR(left), WABI_PAIR_CDR(right));
+}
+
+
+static inline int
+wabi_cmp_map(wabi_map left, wabi_map right)
+{
+  return wabi_cmp_map_rec(left, right);
 }
 
 

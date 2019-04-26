@@ -73,7 +73,7 @@ wabi_map_array_promote(wabi_vm vm,
   return new_map;
 }
 
-
+// todo split in a couple of subroutines
 wabi_map
 wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
@@ -90,8 +90,12 @@ wabi_map_array_assoc_rec(wabi_vm vm,
   // key lookup, TODO: insert ordered
   while(row < limit) {
     wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
-    if(wabi_eq_raw(key, key0)) {
-      // if found replace the entry
+    int cmp = wabi_cmp_raw(key, key0);
+    if(cmp > 0) {
+      row++;
+      continue;
+    } else if(cmp == 0) {
+      // key found => replace
       wabi_word_t pos = row - table;
       wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 1));
       if(vm->errno) return NULL;
@@ -104,21 +108,23 @@ wabi_map_array_assoc_rec(wabi_vm vm,
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
       return (wabi_map) new_map;
     }
-    row++;
+    break;
   }
-  // if not found and the hash is not completely exahausted
+  // if not found and the hash is exhausted and the array map is bigger than the limit
   if(hash_offset > 0 && size >= WABI_MAP_ARRAY_LIMIT) {
     wabi_map_hash hash_map = wabi_map_array_promote(vm, map, hash_offset);
     if(vm->errno) return NULL;
     return wabi_map_hash_assoc_rec(vm, hash_map, entry, hash, hash_offset);
   }
-  // if not found and hash is exhausted
+  // if not found and hash is exhausted, or the array map has more free entries
   wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 2));
   if(vm->errno) return NULL;
 
   wabi_map new_table = (wabi_map) (new_map + 1);
-  memcpy(new_table, table, WABI_MAP_BYTE_SIZE * size);
-  *(new_table + size) = (wabi_map_t) *entry;
+  wabi_word_t pos = row - table;
+  memcpy(new_table, table, WABI_MAP_BYTE_SIZE * pos);
+  *(new_table + pos) = (wabi_map_t) *entry;
+  memcpy(new_table + pos + 1, table + pos, WABI_MAP_BYTE_SIZE * (size - pos));
 
   new_map->size = size + 1;
   new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
@@ -279,13 +285,17 @@ wabi_map_array_get_rec(wabi_map_array map,
   wabi_map_entry child = (wabi_map_entry) table;
   wabi_map_entry limit = (wabi_map_entry) table + size;
 
-  // todo: consider that the table is ordered ;)
   while(child < limit) {
     wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY(child);
-    if(wabi_eq_raw(key, key0)) {
+    int cmp = wabi_cmp_raw(key, key0);
+    if(cmp > 0) {
+      child++;
+      continue;
+    } else if(cmp == 0) {
       return (wabi_val) WABI_MAP_ENTRY_VALUE(child);
+    } else {
+      return NULL;
     }
-    child++;
   }
   return NULL;
 }
@@ -330,7 +340,6 @@ wabi_map_get(wabi_vm vm,
   vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
 }
-
 
 /**
  * EMPTY MAP
