@@ -13,6 +13,10 @@ void
 wabi_mem_init(wabi_vm vm, wabi_size_t size);
 
 
+void
+wabi_mem_free(wabi_vm vm);
+
+
 wabi_word_t*
 wabi_mem_allocate(wabi_vm vm, wabi_size_t size);
 

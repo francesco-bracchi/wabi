@@ -69,13 +69,6 @@ wabi_cmp_bin(wabi_binary left,
 
 
 static inline int
-wabi_cmp_map_rec(wabi_map left, wabi_map right)
-{
-  return 10;
-}
-
-
-static inline int
 wabi_cmp_binary(wabi_binary left, wabi_binary right) {
   return wabi_cmp_bin(left, 0, WABI_BINARY_LENGTH(left), right, 0, WABI_BINARY_LENGTH(right));
 }
@@ -99,7 +92,34 @@ wabi_cmp_pair(wabi_pair left, wabi_pair right) {
 static inline int
 wabi_cmp_map(wabi_map left, wabi_map right)
 {
-  return wabi_cmp_map_rec(left, right);
+  wabi_map_iter_t left_iter, right_iter;
+  wabi_map_entry left_entry, right_entry;
+  int cmp;
+  wabi_map_iterator_init(&left_iter, left);
+  wabi_map_iterator_init(&right_iter, right);
+
+  do {
+    left_entry = wabi_map_iterator_current(&left_iter);
+    right_entry = wabi_map_iterator_current(&right_iter);
+
+    if(!left_entry && !right_entry) {
+      return 0;
+    }
+    else if(!right_entry) {
+      return 1;
+    }
+    else if(!left_entry) {
+      return -1;
+    }
+    else {
+      cmp = wabi_cmp_raw(WABI_MAP_ENTRY_KEY(left_entry),
+                         WABI_MAP_ENTRY_KEY(right_entry));
+      if(cmp) return cmp;
+      cmp =  wabi_cmp_raw(WABI_MAP_ENTRY_VALUE(left_entry),
+                          WABI_MAP_ENTRY_VALUE(right_entry));
+      if(cmp) return cmp;
+    }
+  } while(1);
 }
 
 
@@ -111,21 +131,21 @@ wabi_cmp_raw(wabi_val a, wabi_val b)
 
   // types are different => type order
   wabi_word_t type = wabi_val_type(a);
-  wabi_word_t type_diff = wabi_val_type(b) - type;
+  wabi_word_t type_diff = type - wabi_val_type(b);
   if(type_diff) {
     return type_diff;
   }
   // types are the same, compare atomic values
   if(type <= WABI_TAG_ATOMIC_LIMIT) {
-    return *b - *a;
+    return *a - *b;
   }
   switch(type) {
   case WABI_TYPE_BIN:
     return wabi_cmp_binary((wabi_binary) a, (wabi_binary) b);
   case WABI_TYPE_PAIR:
     return wabi_cmp_pair((wabi_pair) a, (wabi_pair) b);
-  /* case WABI_TYPE_MAP: */
-  /*   return wab_cmp_map((wabi_map) a, (wabi_map) b); */
+  case WABI_TYPE_MAP:
+    return wabi_cmp_map((wabi_map) a, (wabi_map) b);
   case WABI_TYPE_SYMBOL:
     return wabi_cmp_symbol(a, b);
   default:

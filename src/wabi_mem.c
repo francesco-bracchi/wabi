@@ -48,6 +48,12 @@ wabi_mem_init(wabi_vm vm, wabi_size_t size)
   vm->symbol_table = wabi_map_empty(vm);
 }
 
+void
+wabi_mem_free(wabi_vm vm)
+{
+  free(vm->mem_from_space);
+}
+
 
 void
 wabi_mem_compact_binary(wabi_vm vm, wabi_val src)
@@ -162,36 +168,6 @@ wabi_mem_collect_step(wabi_vm vm)
     }
   }
 }
-
-
-/* inline void */
-/* wabi_mem_collect_symbol_table_entry(wabi_vm vm, wabi_hamt_entry entry) */
-/* { */
-/*   wabi_val key = ENTRY_KEY(entry); */
-/*   if(wabi_val_is_forward(key)) { */
-/*     wabi_val value = ENTRY_VALUE(entry); */
-/*     key = (wabi_val) (*key & WABI_VALUE_MASK); */
-/*     value = (wabi_val) (*value & WABI_VALUE_MASK); */
-/*     vm->symbol_table = wabi_hamt_assoc(vm, vm->symbol_table, key, value); */
-/*   } */
-/* } */
-
-/* void */
-/* wabi_mem_collect_symbol_table(wabi_vm vm, wabi_hamt_map to_symbol_table) */
-/* { */
-/*   wabi_hamt_table table = (wabi_hamt_table) (to_symbol_table->table & WABI_VALUE_MASK); */
-/*   wabi_size_t size = WABI_POPCNT(to_symbol_table->bitmap); */
-
-/*   for(int j = 0; j < size; j++) { */
-/*     wabi_hamt_table row = table + j; */
-/*     if(wabi_val_is_hamt_map((wabi_val) row)) { */
-/*       wabi_mem_collect_symbol_table(vm, (wabi_hamt_map) row); */
-/*     } else { */
-/*       wabi_mem_collect_symbol_table_entry(vm, (wabi_hamt_entry) row); */
-/*     } */
-/*   } */
-/* } */
-
 
 void
 wabi_mem_collect(wabi_vm vm)

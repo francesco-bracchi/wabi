@@ -90,7 +90,7 @@ wabi_cmp_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 10 * 1024 * 1024); // 10MB
+  wabi_mem_init(vm, 10 * 1024 * 1024); // 2MB
 
   test_wabi_binary_compare_different_string_same_length(vm);
   test_wabi_binary_compare_different_string_same_prefix(vm);
@@ -99,4 +99,7 @@ wabi_cmp_test()
   test_wabi_binary_compare_left_is_node(vm);
   test_wabi_binary_compare_right_is_node(vm);
   test_wabi_binary_compare_node_various_overlappings(vm);
+
+  wabi_mem_free(vm);
+  free(vm);
 }

@@ -86,7 +86,6 @@ wabi_map_array_assoc_rec(wabi_vm vm,
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
   wabi_map row = table;
   wabi_map limit = table + size;
-
   // key lookup, TODO: insert ordered
   while(row < limit) {
     wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
@@ -122,6 +121,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
 
   wabi_map new_table = (wabi_map) (new_map + 1);
   wabi_word_t pos = row - table;
+
   memcpy(new_table, table, WABI_MAP_BYTE_SIZE * pos);
   *(new_table + pos) = (wabi_map_t) *entry;
   memcpy(new_table + pos + 1, table + pos, WABI_MAP_BYTE_SIZE * (size - pos));
@@ -202,6 +202,8 @@ wabi_map_assoc_raw(wabi_vm vm,
 {
   wabi_word_t hash = wabi_hash_raw(key);
   wabi_map_entry entry = (wabi_map_entry) wabi_mem_allocate(vm, WABI_MAP_SIZE);
+  entry->key = (wabi_word_t) key;
+  entry->value = (wabi_word_t) value | WABI_TAG_MAP_ENTRY;
   if(vm->errno) return NULL;
 
   return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
@@ -341,6 +343,113 @@ wabi_map_get(wabi_vm vm,
   return NULL;
 }
 
+
+/**
+ * Iterating through the map
+ */
+
+static inline void
+wabi_map_iterator_grow(wabi_map_iter iter)
+{
+  wabi_map_iter_frame frame;
+  wabi_map map, table;
+  wabi_word_t size;
+
+  if(iter->top < 0) return;
+
+  do {
+    frame = iter->stack + iter->top;
+    map = frame->map;
+    switch(wabi_val_tag((wabi_val) map)) {
+    case WABI_TAG_MAP_ENTRY:
+      printf("entry\n");
+      return;
+    case WABI_TAG_MAP_ARRAY:
+      size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
+      if(!size) {
+        printf("empty map\n");
+        iter->top = -1;
+        return;
+      }
+      iter->top++;
+      frame++;
+      frame->map = WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
+      frame->pos = 0;
+      break;
+    case WABI_TAG_MAP_HASH:  // default:
+      printf("map hash\n");
+      table = WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+      iter->top++;
+      frame++;
+      frame->map = table;
+      frame->pos = 0;
+      break;
+    default:
+      printf("WTF\n");
+      return;
+    }
+  }
+  while(iter->top < WABI_MAP_ITER_STACK_SIZE);
+}
+
+
+static inline int
+wabi_map_iterator_frame_full(wabi_map_iter_frame frame) {
+  wabi_word_t size, bitmap;
+  wabi_map map = frame->map;
+  switch(wabi_val_tag((wabi_val) map)) {
+  case WABI_TAG_MAP_ENTRY:
+    return 1;
+  case WABI_TAG_MAP_ARRAY:
+    size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
+    return frame->pos + 1 >= size;
+  case WABI_TAG_MAP_HASH:
+    bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
+    size = WABI_MAP_BITMAP_COUNT(bitmap);
+    return frame->pos + 1 >= size;
+  }
+  return 0;
+}
+
+
+static void
+wabi_map_iterator_shrink(wabi_map_iter iter)
+{
+  while(wabi_map_iterator_frame_full(iter->stack + iter->top)) {
+    iter->top--;
+    if(iter->top < 0) return;
+  }
+  (iter->stack + iter->top)->pos++;
+}
+
+
+void
+wabi_map_iterator_init(wabi_map_iter iter,
+                       wabi_map map)
+{
+  wabi_map_iter_frame frame = iter->stack;
+  iter->top = 0;
+  frame->map = map;
+  frame->pos = 0;
+  wabi_map_iterator_grow(iter);
+}
+
+
+wabi_map_entry
+wabi_map_iterator_current(wabi_map_iter iter) {
+  if(iter->top < 0) return NULL;
+  wabi_map_iter_frame frame = iter->stack + iter->top;
+  return (wabi_map_entry) frame->map;
+}
+
+
+void
+wabi_map_iterator_next(wabi_map_iter iter) {
+  wabi_map_iterator_shrink(iter);
+  wabi_map_iterator_grow(iter);
+}
+
+
 /**
  * EMPTY MAP
  */
@@ -354,4 +463,43 @@ wabi_map_empty(wabi_vm vm)
   map->size = 0UL;
   map->table = WABI_TAG_MAP_ARRAY;
   return (wabi_val) map;
+}
+
+
+/**
+ * Length
+ */
+
+wabi_word_t
+wabi_map_length_raw(wabi_map map) {
+  wabi_map table, limit;
+  wabi_word_t size, bitmap;
+
+  switch(wabi_val_tag((wabi_val) map)) {
+  case WABI_TAG_MAP_ARRAY:
+    return WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
+  case WABI_TAG_MAP_HASH:
+    table = WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+    bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
+    limit = table + WABI_MAP_BITMAP_COUNT(bitmap);
+    size = 0;
+    while(table < limit) {
+      size += wabi_map_length_raw(table);
+      table++;
+    }
+    return size;
+  }
+  return 0;
+}
+
+
+wabi_val
+wabi_map_length(wabi_vm vm, wabi_val map)
+{
+  if(!wabi_val_is_map(map)) {
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
+  }
+  wabi_word_t len = wabi_map_length_raw((wabi_map) map);
+  return wabi_smallint(vm, len);
 }

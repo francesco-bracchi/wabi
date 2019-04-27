@@ -6,6 +6,7 @@
 long int total, failures;
 clock_t start, end;
 
+
 void
 wabi_assert_init()
 {
@@ -16,15 +17,15 @@ wabi_assert_init()
 
 
 void
-wabi_assert_store(const char* str, int res)
+wabi_assert_store(const char* str, int line, int res)
 {
   total++;
   if(res) {
-    printf("\x1b[32mSucceded:\x1b[0m %s\n", str);
+    printf("\x1b[32mSucceded:\x1b[0m %s:%i\n", str, line);
     return;
   }
   failures++;
-  printf("\x1b[31mFailed:\x1b[0m %s\n", str);
+  printf("\x1b[31mFailed:  \x1b[0m %s:%i\n", str, line);
 }
 
 
