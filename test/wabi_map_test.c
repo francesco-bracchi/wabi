@@ -125,6 +125,27 @@ wabi_map_test_order_do_not_affect_result(wabi_vm vm)
 
 
 void
+wabi_map_test_dissoc(wabi_vm vm)
+{
+
+  wabi_val m, k, v;
+  m  = wabi_map_empty(vm);
+  k = wabi_smallint(vm, 1);
+  v = wabi_binary_new_from_cstring(vm, "one");
+  m = wabi_map_assoc(vm, m, k, v);
+  m = wabi_map_dissoc(vm, m, k);
+
+  ASSERT(wabi_eq_raw(m, wabi_map_empty(vm)));
+}
+
+
+// dissoc length < 20
+// dissoc length == 20;
+// dissoc length > 20;
+// dissoc length > 64;
+// test that all paths are covered
+
+void
 wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -136,6 +157,8 @@ wabi_map_test()
   wabi_map_test_iter(vm);
   wabi_map_test_iter_on_hashes(vm);
   wabi_map_test_order_do_not_affect_result(vm);
+
+  wabi_map_test_dissoc(vm);
 
   wabi_mem_free(vm);
   free(vm);

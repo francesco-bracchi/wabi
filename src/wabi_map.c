@@ -260,6 +260,195 @@ wabi_map_assoc(wabi_vm vm,
 
 
 /**
+ * DISSOC operation
+ */
+
+static wabi_map
+wabi_map_dissoc_rec(wabi_vm vm, wabi_map map, wabi_val key, wabi_word_t hash, int hash_offset);
+
+
+static inline wabi_map
+wabi_map_entry_dissoc_rec(wabi_vm vm,
+                      wabi_map_entry entry,
+                      wabi_val key,
+                      wabi_word_t hash,
+                      int hash_offset)
+{
+  return wabi_eq_raw(WABI_MAP_ENTRY_KEY(entry), key) ? NULL : (wabi_map) entry;
+}
+
+static inline wabi_map
+wabi_map_array_dissoc_rec(wabi_vm vm,
+                      wabi_map_array map,
+                      wabi_val key,
+                      wabi_word_t hash,
+                      int hash_offset)
+{
+  wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
+  wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
+  wabi_map row = table;
+  wabi_map limit = table + size;
+  while(row < limit) {
+    wabi_val key0 = WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
+    int cmp = wabi_cmp_raw(key, key0);
+    if(cmp > 0) {
+      row++;
+      continue;
+    } else if(cmp == 0) {
+      // key found
+      wabi_word_t pos = row - table;
+      wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * size);
+      if(vm->errno) return NULL;
+
+      wabi_map new_table = (wabi_map) (new_map + 1);
+      memcpy(new_table, table, WABI_MAP_BYTE_SIZE * pos);
+      memcpy(new_table + pos + 1, table + pos , WABI_MAP_BYTE_SIZE * (size - pos));
+
+      new_map->size = size - 1;
+      new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
+      return (wabi_map) new_map;
+    }
+    else {
+      // not found;
+      return (wabi_map) map;
+    }
+  }
+  // not found;
+  return (wabi_map) map;
+}
+
+static inline wabi_map
+wabi_map_hash_demote(wabi_vm vm,
+                     wabi_map_hash map)
+{
+  wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
+  wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
+  wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
+  wabi_map limit = (wabi_map) (table + size);
+  wabi_map row = table;
+  wabi_word_t len = 0;
+  while(row < limit) {
+    switch(wabi_val_tag((wabi_val) row)) {
+    case WABI_TAG_MAP_ENTRY:
+      len++;
+      if(len >= WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
+      break;
+    case WABI_TAG_MAP_ARRAY:
+      len+= WABI_MAP_ARRAY_SIZE((wabi_map_array) row);
+      if(len >= WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
+      break;
+    default:
+      return (wabi_map) map;
+    }
+    row++;
+  }
+  wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * (1 + len));
+  if(vm->errno) return NULL;
+  wabi_map new_table = (wabi_map) (new_map + 1);
+  wabi_map_iter_t iter;
+  wabi_map_entry entry;
+  row = new_table;
+  wabi_map_iterator_init(&iter, (wabi_map) map);
+  while((entry = wabi_map_iterator_current(&iter))) {
+    *row = (wabi_map_t) *entry;
+    wabi_map_iterator_next(&iter);
+    row++;
+  }
+  new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
+  new_map->size = len;
+  return (wabi_map) new_map;
+}
+
+static inline wabi_map
+wabi_map_hash_dissoc_rec(wabi_vm vm,
+                         wabi_map_hash map,
+                         wabi_val key,
+                         wabi_word_t hash,
+                         int hash_offset)
+{
+
+  wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
+  wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
+  wabi_word_t index = WABI_MAP_HASH_INDEX(hash, hash_offset);
+  wabi_word_t offset = WABI_MAP_BITMAP_OFFSET(bitmap, index);
+  wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
+
+  if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
+    wabi_map_hash new_map;
+    wabi_map row = table + offset;
+    wabi_map sub_map = wabi_map_dissoc_rec(vm, row, key, hash, hash - 6);
+    if(!sub_map) {
+      new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * size);
+      if(vm->errno) return NULL;
+      wabi_map new_table = (wabi_map) (new_map + 1);
+      memcpy(table, new_table, offset * WABI_MAP_SIZE);
+      memcpy(table + offset + 1, new_table + offset, (size - offset - 1) * WABI_MAP_SIZE);
+      new_map->bitmap = bitmap ^ (1UL << offset);
+      new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
+    }
+    else {
+      new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * size + 1);
+      if(vm->errno) return NULL;
+      wabi_map new_table = (wabi_map) (new_map + 1);
+      memcpy(table, new_table, size * WABI_MAP_SIZE);
+      *row = (wabi_map_t) *new_map;
+      new_map->bitmap = bitmap;
+      new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
+    }
+    if(size <= WABI_MAP_ARRAY_LIMIT) {
+      return wabi_map_hash_demote(vm, (wabi_map_hash) new_map);
+    }
+    return (wabi_map) new_map;
+  }
+  return (wabi_map) map;
+}
+
+
+
+static wabi_map
+wabi_map_dissoc_rec(wabi_vm vm, wabi_map map, wabi_val key, wabi_word_t hash, int hash_offset)
+{
+  switch(wabi_val_tag((wabi_val) map)) {
+  case WABI_TAG_MAP_ENTRY:
+    return wabi_map_entry_dissoc_rec(vm, (wabi_map_entry) map, key, hash, hash_offset);
+  case WABI_TAG_MAP_ARRAY:
+    return wabi_map_array_dissoc_rec(vm, (wabi_map_array) map, key, hash, hash_offset);
+  case WABI_TAG_MAP_HASH:
+    return wabi_map_hash_dissoc_rec(vm, (wabi_map_hash) map, key, hash, hash_offset);
+  default:
+    vm->errno = WABI_ERROR_TYPE_MISMATCH;
+    return NULL;
+  }
+}
+
+
+wabi_map
+wabi_map_dissoc_raw(wabi_vm vm,
+                    wabi_map map,
+                    wabi_val key)
+{
+  wabi_word_t hash = wabi_hash_raw(key);
+  return wabi_map_dissoc_rec(vm, map, key, hash, WABI_MAP_INITIAL_OFFSET);
+}
+
+
+
+wabi_val
+wabi_map_dissoc(wabi_vm vm,
+                wabi_val map,
+                wabi_val key)
+{
+  if(wabi_val_is_nil(map)) {
+    return wabi_map_empty(vm);
+  }
+  if(wabi_val_is_map(map)) {
+    return (wabi_val) wabi_map_dissoc_raw(vm, (wabi_map) map, key);
+  }
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
+  return NULL;
+}
+
+/**
  * GET Operation
  */
 
@@ -376,7 +565,7 @@ wabi_map_get(wabi_vm vm,
 
 
 /**
- * Iterating through the map
+ * Iterator
  */
 
 static inline void

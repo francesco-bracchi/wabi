@@ -90,6 +90,16 @@ wabi_map_assoc_raw(wabi_vm vm,
                    wabi_val key,
                    wabi_val value);
 
+wabi_map
+wabi_map_dissoc_raw(wabi_vm vm,
+                    wabi_map map,
+                    wabi_val key);
+
+wabi_val
+wabi_map_dissoc(wabi_vm vm,
+                wabi_val map,
+                wabi_val key);
+
 wabi_val
 wabi_map_empty(wabi_vm vm);
 
