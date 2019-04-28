@@ -104,8 +104,10 @@ wabi_pr_map_hash(wabi_map_hash map)
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
   wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
-  for(int j = 0; j < size; j++)
-    wabi_pr_map(table + size);
+  for(int j = 0; j < size; j++) {
+    wabi_pr_map(table + j);
+    putchar(' ');
+  }
 }
 
 
@@ -121,6 +123,9 @@ wabi_pr_map(wabi_map map)
     return;
   case WABI_TAG_MAP_ENTRY:
     wabi_pr_map_entry((wabi_map_entry) map);
+    return;
+  default:
+    // printf("fox %lx\n", *((wabi_word_t*) map));
     return;
   }
 }

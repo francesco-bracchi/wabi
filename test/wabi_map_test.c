@@ -73,6 +73,31 @@ wabi_map_test_iter(wabi_vm vm)
   ASSERT(entry == NULL);
 }
 
+void
+wabi_map_test_iter_on_hashes(wabi_vm vm)
+{
+  char str[100];
+  wabi_val m, k, v;
+  wabi_map_iter_t iter;
+  wabi_map_entry entry;
+  int len = 360;
+
+  m  = wabi_map_empty(vm);
+  for(int j = 0; j < len; j++) {
+    sprintf(str, "N%i", j);
+    k = wabi_smallint(vm, j);
+    v = wabi_binary_new_from_cstring(vm, str);
+    m = wabi_map_assoc(vm, m, k, v);
+  }
+  wabi_map_iterator_init(&iter, (wabi_map) m);
+  int cnt = 0;
+  while((entry = wabi_map_iterator_current(&iter))) {
+    cnt++;
+    wabi_map_iterator_next(&iter);
+  }
+  ASSERT(cnt == len);
+}
+
 
 void
 wabi_map_test_order_do_not_affect_result(wabi_vm vm)
@@ -109,7 +134,8 @@ wabi_map_test()
   wabi_map_test_assoc_empty(vm);
   wabi_map_test_assoc_one(vm);
   wabi_map_test_iter(vm);
-  /// wabi_map_test_order_do_not_affect_result(vm);
+  wabi_map_test_iter_on_hashes(vm);
+  wabi_map_test_order_do_not_affect_result(vm);
 
   wabi_mem_free(vm);
   free(vm);

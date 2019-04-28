@@ -119,6 +119,8 @@ wabi_cmp_map(wabi_map left, wabi_map right)
                           WABI_MAP_ENTRY_VALUE(right_entry));
       if(cmp) return cmp;
     }
+    wabi_map_iterator_next(&left_iter);
+    wabi_map_iterator_next(&right_iter);
   } while(1);
 }
 

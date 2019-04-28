@@ -58,7 +58,7 @@ wabi_map_array_promote(wabi_vm vm,
   wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE);
   if(vm->errno) return NULL;
   new_map->bitmap = 0UL;
-  new_map->table = 0UL;
+  new_map->table = WABI_TAG_MAP_HASH;
 
   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
   wabi_map limit = table + WABI_MAP_ARRAY_SIZE(map);
@@ -70,6 +70,8 @@ wabi_map_array_promote(wabi_vm vm,
     if(vm->errno) return NULL;
     row++;
   }
+  // wabi_pr(new_map);
+  // printf("\n");
   return new_map;
 }
 
@@ -152,6 +154,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
     if(vm->errno) return NULL;
 
     wabi_map sub_map = wabi_map_assoc_rec(vm, row, entry, hash, hash_offset - 6);
+
     if(vm->errno) return NULL;
 
     wabi_map new_table = (wabi_map) (new_map + 1);
@@ -164,14 +167,40 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
   wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 2));
   if(vm->errno) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
-
+  // printf("offset: %lu size: %lu\n", offset, size);
   memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
   *(new_table + offset) = (wabi_map_t) *entry;
   memcpy(new_table + offset + 1, table + offset, WABI_MAP_BYTE_SIZE * (size - offset));
 
-  new_map->bitmap = bitmap & (1UL << index);
+  new_map->bitmap = bitmap | (1UL << index);
   new_map->table = ((wabi_word_t) new_table) | WABI_TAG_MAP_HASH;
   return (wabi_map) new_map;
+}
+
+
+static inline wabi_map
+wabi_map_entry_assoc_rec(wabi_vm vm,
+                         wabi_map_entry entry0,
+                         wabi_map_entry entry,
+                         wabi_word_t hash,
+                         int hash_offset)
+{
+  int cmp = wabi_cmp_raw(WABI_MAP_ENTRY_KEY(entry0), WABI_MAP_ENTRY_KEY(entry));
+  if(! cmp) return (wabi_map) entry;
+
+  wabi_map_array map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * 3);
+  if(vm->errno) return NULL;
+  wabi_map table = (wabi_map) (map + 1);
+  if(cmp > 0) {
+    *table = (wabi_map_t) *entry0;
+    *(table + 1) = (wabi_map_t) *entry;
+  } else {
+    *table = (wabi_map_t) *entry;
+    *(table + 1) = (wabi_map_t) *entry0;
+  }
+  map->table = (wabi_word_t) table | WABI_TAG_MAP_ARRAY;
+  map->size = 2UL;
+  return (wabi_map) map;
 }
 
 
@@ -187,6 +216,8 @@ wabi_map_assoc_rec(wabi_vm vm,
     return (wabi_map) wabi_map_array_assoc_rec(vm, (wabi_map_array) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_HASH:
     return (wabi_map) wabi_map_hash_assoc_rec(vm, (wabi_map_hash) map, entry, hash, hash_offset);
+  case WABI_TAG_MAP_ENTRY:
+    return (wabi_map) wabi_map_entry_assoc_rec(vm, (wabi_map_entry) map, entry, hash, hash_offset);
   default:
     vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
@@ -353,7 +384,8 @@ wabi_map_iterator_grow(wabi_map_iter iter)
 {
   wabi_map_iter_frame frame;
   wabi_map map, table;
-  wabi_word_t size;
+  wabi_word_t bitmap, size;
+  int pos;
 
   if(iter->top < 0) return;
 
@@ -362,30 +394,34 @@ wabi_map_iterator_grow(wabi_map_iter iter)
     map = frame->map;
     switch(wabi_val_tag((wabi_val) map)) {
     case WABI_TAG_MAP_ENTRY:
-      printf("entry\n");
       return;
     case WABI_TAG_MAP_ARRAY:
       size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
-      if(!size) {
-        printf("empty map\n");
+      if (frame->pos >= size) {
         iter->top = -1;
         return;
       }
+      pos = frame->pos;
       iter->top++;
       frame++;
-      frame->map = WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
+      frame->map = WABI_MAP_ARRAY_TABLE((wabi_map_array) map) + pos;
       frame->pos = 0;
       break;
     case WABI_TAG_MAP_HASH:  // default:
-      printf("map hash\n");
-      table = WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+      bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
+      size = WABI_MAP_BITMAP_COUNT(bitmap);
+      if (frame->pos >= size) {
+        iter->top = -1;
+        return;
+      }
+      pos = frame->pos;
+      table = WABI_MAP_HASH_TABLE((wabi_map_hash) map) + pos;
       iter->top++;
       frame++;
       frame->map = table;
       frame->pos = 0;
       break;
     default:
-      printf("WTF\n");
       return;
     }
   }
@@ -488,6 +524,8 @@ wabi_map_length_raw(wabi_map map) {
       table++;
     }
     return size;
+  case WABI_TAG_MAP_ENTRY:
+    return 1;
   }
   return 0;
 }
