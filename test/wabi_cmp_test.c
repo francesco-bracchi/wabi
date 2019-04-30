@@ -86,6 +86,14 @@ test_wabi_binary_compare_node_various_overlappings(wabi_vm vm)
 }
 
 void
+test_wabi_smallint_compare(wabi_vm vm)
+{
+  wabi_val l = wabi_smallint(vm, 626);
+  wabi_val r = wabi_smallint(vm, 627);
+  ASSERT(wabi_cmp_raw(l, r) < 0);
+}
+
+void
 wabi_cmp_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -99,7 +107,7 @@ wabi_cmp_test()
   test_wabi_binary_compare_left_is_node(vm);
   test_wabi_binary_compare_right_is_node(vm);
   test_wabi_binary_compare_node_various_overlappings(vm);
-
+  test_wabi_smallint_compare(vm),
   wabi_mem_free(vm);
   free(vm);
 }

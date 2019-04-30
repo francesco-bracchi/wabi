@@ -70,8 +70,6 @@ wabi_map_array_promote(wabi_vm vm,
     if(vm->errno) return NULL;
     row++;
   }
-  // wabi_pr(new_map);
-  // printf("\n");
   return new_map;
 }
 
@@ -149,7 +147,6 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
 
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     wabi_map row = table + offset;
-
     wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 1));
     if(vm->errno) return NULL;
 
@@ -162,18 +159,19 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
     *(new_table + offset) = *sub_map;
     new_map->table = ((wabi_word_t) new_table) | WABI_TAG_MAP_HASH;
     new_map->bitmap = bitmap;
+
     return (wabi_map) new_map;
   }
   wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 2));
   if(vm->errno) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
-  // printf("offset: %lu size: %lu\n", offset, size);
   memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
   *(new_table + offset) = (wabi_map_t) *entry;
   memcpy(new_table + offset + 1, table + offset, WABI_MAP_BYTE_SIZE * (size - offset));
 
   new_map->bitmap = bitmap | (1UL << index);
   new_map->table = ((wabi_word_t) new_table) | WABI_TAG_MAP_HASH;
+
   return (wabi_map) new_map;
 }
 
@@ -296,13 +294,13 @@ wabi_map_array_dissoc_rec(wabi_vm vm,
       continue;
     } else if(cmp == 0) {
       // key found
-      wabi_word_t pos = row - table;
+      wabi_word_t offset = row - table;
       wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * size);
       if(vm->errno) return NULL;
 
       wabi_map new_table = (wabi_map) (new_map + 1);
-      memcpy(new_table, table, WABI_MAP_BYTE_SIZE * pos);
-      memcpy(new_table + pos + 1, table + pos , WABI_MAP_BYTE_SIZE * (size - pos));
+      memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
+      memcpy(new_table + offset, table + offset + 1 , WABI_MAP_BYTE_SIZE * (size - offset - 1));
 
       new_map->size = size - 1;
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
@@ -316,6 +314,27 @@ wabi_map_array_dissoc_rec(wabi_vm vm,
   // not found;
   return (wabi_map) map;
 }
+
+
+static inline void
+wabi_map_insert_sort(wabi_map_entry table,
+                     int size)
+{
+  int i, j;
+  wabi_map_entry_t x;
+
+  while(i < size) {
+    x = *(table + i);
+    j = i - 1;
+    while(j >= 0 && wabi_cmp_raw(table + j, &x) > 0) {
+      *(table + j + 1) = *(table + j);
+      j--;
+    }
+    *(table + j + 1) = x;
+    i++;
+  }
+}
+
 
 static inline wabi_map
 wabi_map_hash_demote(wabi_vm vm,
@@ -331,11 +350,11 @@ wabi_map_hash_demote(wabi_vm vm,
     switch(wabi_val_tag((wabi_val) row)) {
     case WABI_TAG_MAP_ENTRY:
       len++;
-      if(len >= WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
+      if(len > WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
       break;
     case WABI_TAG_MAP_ARRAY:
       len+= WABI_MAP_ARRAY_SIZE((wabi_map_array) row);
-      if(len >= WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
+      if(len > WABI_MAP_ARRAY_LIMIT) return (wabi_map) map;
       break;
     default:
       return (wabi_map) map;
@@ -345,6 +364,7 @@ wabi_map_hash_demote(wabi_vm vm,
   wabi_map_array new_map = (wabi_map_array) wabi_mem_allocate(vm, WABI_MAP_SIZE * (1 + len));
   if(vm->errno) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
+
   wabi_map_iter_t iter;
   wabi_map_entry entry;
   row = new_table;
@@ -354,6 +374,8 @@ wabi_map_hash_demote(wabi_vm vm,
     wabi_map_iterator_next(&iter);
     row++;
   }
+  wabi_map_insert_sort(new_table, size);
+
   new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
   new_map->size = len;
   return (wabi_map) new_map;
@@ -366,43 +388,41 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
                          wabi_word_t hash,
                          int hash_offset)
 {
-
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
   wabi_word_t index = WABI_MAP_HASH_INDEX(hash, hash_offset);
   wabi_word_t offset = WABI_MAP_BITMAP_OFFSET(bitmap, index);
   wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
-
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     wabi_map_hash new_map;
     wabi_map row = table + offset;
-    wabi_map sub_map = wabi_map_dissoc_rec(vm, row, key, hash, hash - 6);
+    wabi_map sub_map = wabi_map_dissoc_rec(vm, row, key, hash, hash_offset - 6);
     if(!sub_map) {
       new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * size);
       if(vm->errno) return NULL;
       wabi_map new_table = (wabi_map) (new_map + 1);
-      memcpy(table, new_table, offset * WABI_MAP_SIZE);
-      memcpy(table + offset + 1, new_table + offset, (size - offset - 1) * WABI_MAP_SIZE);
-      new_map->bitmap = bitmap ^ (1UL << offset);
+
+      memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
+      memcpy(new_table + offset, table + offset + 1L, (size - offset - 1L) * WABI_MAP_BYTE_SIZE);
+      new_map->bitmap = bitmap ^ (1UL << index);
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
     }
     else {
-      new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * size + 1);
+      new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 1));
       if(vm->errno) return NULL;
       wabi_map new_table = (wabi_map) (new_map + 1);
-      memcpy(table, new_table, size * WABI_MAP_SIZE);
-      *row = (wabi_map_t) *new_map;
+      memcpy(new_table, table, size * WABI_MAP_BYTE_SIZE);
+      *(new_table + offset) = (wabi_map_t) *sub_map;
       new_map->bitmap = bitmap;
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
     }
-    if(size <= WABI_MAP_ARRAY_LIMIT) {
+    if(size - 1 <= WABI_MAP_ARRAY_LIMIT) {
       return wabi_map_hash_demote(vm, (wabi_map_hash) new_map);
     }
     return (wabi_map) new_map;
   }
   return (wabi_map) map;
 }
-
 
 
 static wabi_map
@@ -488,9 +508,9 @@ wabi_map_hash_get_rec(wabi_map_hash map,
       }
       return NULL;
     case WABI_TAG_MAP_HASH:
-      return wabi_map_hash_get_rec((wabi_map_hash) child, key, hash, hash_offset + 6);
+      return wabi_map_hash_get_rec((wabi_map_hash) child, key, hash, hash_offset - 6);
     case WABI_TAG_MAP_ARRAY:
-      return wabi_map_array_get_rec((wabi_map_array) child, key, hash, hash_offset + 6);
+      return wabi_map_array_get_rec((wabi_map_array) child, key, hash, hash_offset - 6);
     }
   }
   return NULL;
@@ -730,3 +750,78 @@ wabi_map_length(wabi_vm vm, wabi_val map)
   wabi_word_t len = wabi_map_length_raw((wabi_map) map);
   return wabi_smallint(vm, len);
 }
+
+
+
+
+
+/* /\*** TEST ***\/ */
+
+/* void do_indent(int x) { */
+/*   for(int j = 0; j < x; j++) putchar(' '); */
+/* } */
+
+/* void wabi_struct(wabi_map map, int indent, int hash_offset); */
+
+/* void wabi_struct_array(wabi_map map, int indent, int hash_offset) { */
+/*   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE((wabi_map_array) map); */
+/*   wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map); */
+
+/*   do_indent(indent); */
+/*   printf("ARRAY [\n"); */
+/*   for(wabi_word_t index = 0; index < size; index++) { */
+/*     do_indent(indent); */
+/*     printf("%lu:\n", index); */
+/*     wabi_struct(table + index, indent + 2, hash_offset - 6); */
+/*     printf("\n"); */
+/*   } */
+/*   do_indent(indent); */
+/*   printf("]"); */
+/* } */
+
+
+/* void wabi_struct_hash(wabi_map map, int indent, int hash_offset) { */
+/*   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map); */
+/*   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap); */
+/*   wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE((wabi_map_hash) map); */
+/*   wabi_word_t offset = 0; */
+/*   do_indent(indent); */
+/*   printf("HASH %lu {\n", hash_offset); */
+/*   for(wabi_word_t index = 0; index < 64; index++) { */
+/*     if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) { */
+/*       wabi_word_t offset = WABI_MAP_BITMAP_OFFSET(bitmap, index); */
+/*       wabi_map submap = table + offset; */
+/*       do_indent(indent); */
+/*       printf("%lu:\n", index); */
+/*       wabi_struct(submap, indent + 2, hash_offset - 6); */
+/*       printf("\n"); */
+/*       offset++; */
+/*     } */
+/*   } */
+
+/*   do_indent(indent); */
+/*   printf("}"); */
+/* } */
+
+/* void wabi_struct(wabi_map map, int indent, int hash_offset) */
+/* { */
+/*   switch(wabi_val_tag((wabi_val) map)) { */
+/*   case WABI_TAG_MAP_ENTRY: */
+/*     do_indent(indent); */
+/*     wabi_pr(map); */
+/*     break; */
+/*   case WABI_TAG_MAP_ARRAY: */
+/*     wabi_struct_array(map, indent, hash_offset); */
+/*     break; */
+/*   case WABI_TAG_MAP_HASH: */
+/*     wabi_struct_hash(map, indent, hash_offset); */
+/*     break; */
+/*   default: */
+/*     printf("unknown: %lx", wabi_val_tag((wabi_val) map)); */
+/*   } */
+/* } */
+
+/* void wabi_str(wabi_map map) */
+/* { */
+/*   wabi_struct(map, 0, WABI_MAP_INITIAL_OFFSET); */
+/* } */
