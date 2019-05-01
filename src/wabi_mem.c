@@ -84,6 +84,7 @@ wabi_mem_compact_binary(wabi_vm vm, wabi_val src)
 wabi_word_t *
 wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
 {
+  // todo: use wbi_val_type(src)
   wabi_word_t tag = wabi_val_tag(src);
   if(tag == WABI_TAG_FORWARD) {
     return (wabi_word_t *) (*src & WABI_VALUE_MASK);
@@ -95,11 +96,14 @@ wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
     vm->mem_alloc++;
   } else switch(tag) {
     case WABI_TAG_PAIR:
+      memcpy(res, src, 2 * WABI_WORD_SIZE);
+      vm->mem_alloc+=2;
+      break;
     case WABI_TAG_MAP_ARRAY:
     case WABI_TAG_MAP_HASH:
     case WABI_TAG_MAP_ENTRY:
-      memcpy(res, src, 2 * WABI_WORD_SIZE);
-      vm->mem_alloc+=2;
+      memcpy(res, src, WABI_MAP_BYTE_SIZE);
+      vm->mem_alloc+=WABI_MAP_SIZE;
       break;
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
@@ -113,18 +117,7 @@ wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
 }
 
 
-wabi_map
-wabi_mem_copy_map(wabi_vm vm, wabi_map map, wabi_word_t size)
-{
-  wabi_word_t delta = size * WABI_MAP_SIZE;
-  wabi_map res = (wabi_map) vm->mem_alloc;
-  memcpy(res, map, delta * WABI_WORD_SIZE);
-  vm->mem_alloc += delta;
-  return res;
-}
-
-
-void
+inline static void
 wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
 {
   pair->car = (wabi_word_t) wabi_mem_copy_val(vm, (wabi_val) (pair->car | WABI_VALUE_MASK)) | WABI_TAG_PAIR;
@@ -133,13 +126,53 @@ wabi_mem_collect_pair(wabi_vm vm, wabi_pair pair)
 }
 
 
-
-inline void
+inline static void
 wabi_mem_collect_symbol(wabi_vm vm, wabi_val sym)
 {
   wabi_val new_bin = wabi_mem_copy_val(vm, (wabi_val)(*sym & WABI_VALUE_MASK));
   *sym = (wabi_word_t) new_bin | WABI_TAG_SYMBOL;
   vm->mem_scan++;
+}
+
+
+inline static void
+wabi_mem_collect_map_entry(wabi_vm vm,
+                           wabi_map_entry map)
+{
+  map->key = (wabi_word_t) wabi_mem_copy_val(vm, WABI_MAP_ENTRY_KEY(map));
+  map->value = (wabi_word_t) wabi_mem_copy_val(vm, WABI_MAP_ENTRY_VALUE(map)) | WABI_TAG_MAP_ENTRY;
+  vm->mem_scan +=2;
+}
+
+
+inline static void
+wabi_mem_collect_map_array(wabi_vm vm,
+                           wabi_map_array map)
+{
+  wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
+  wabi_map table = WABI_MAP_ARRAY_TABLE(map);
+  wabi_map res = (wabi_map) vm->mem_alloc;
+
+  memcpy(res, table, WABI_MAP_BYTE_SIZE * size);
+  vm->mem_alloc += size * WABI_MAP_SIZE;
+  map->table = (wabi_word_t) res | WABI_TAG_MAP_ARRAY;
+  vm->mem_scan += WABI_MAP_SIZE;
+}
+
+
+inline static void
+wabi_mem_collect_map_hash(wabi_vm vm,
+                          wabi_map_hash map)
+{
+  wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
+  wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
+  wabi_map table = WABI_MAP_HASH_TABLE(map);
+  wabi_word_t* res = vm->mem_alloc;
+
+  memcpy(res, table, WABI_MAP_BYTE_SIZE * size);
+  vm->mem_alloc += WABI_MAP_BYTE_SIZE * size;
+  map->table = (wabi_word_t) res | WABI_TAG_MAP_HASH;
+  vm->mem_scan+=2;
 }
 
 
@@ -165,9 +198,19 @@ wabi_mem_collect_step(wabi_vm vm)
     case WABI_TAG_SYMBOL:
       wabi_mem_collect_symbol(vm, vm->mem_scan);
       break;
+    case WABI_TAG_MAP_ENTRY:
+      wabi_mem_collect_map_entry(vm, (wabi_map_entry) vm->mem_scan);
+      break;
+    case WABI_TAG_MAP_ARRAY:
+      wabi_mem_collect_map_array(vm, (wabi_map_array) vm->mem_scan);
+      break;
+    case WABI_TAG_MAP_HASH:
+      wabi_mem_collect_map_hash(vm, (wabi_map_hash) vm->mem_scan);
+      break;
     }
   }
 }
+
 
 void
 wabi_mem_collect(wabi_vm vm)
@@ -188,7 +231,6 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_scan = vm->mem_from_space;
 
   vm->symbol_table = (wabi_word_t*) wabi_map_empty(vm);
-
   vm->mem_root = wabi_mem_copy_val(vm, vm->mem_root);
 
   while(vm->mem_scan < vm->mem_alloc) {

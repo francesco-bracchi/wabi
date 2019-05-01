@@ -19,7 +19,7 @@ wabi_hash_state_init(wabi_hash_state_t* state)
 }
 
 
-void
+static inline void
 wabi_hash_step(wabi_hash_state_t *state, char *data, wabi_word_t size)
 {
   for(wabi_word_t j = 0; j < size; j++) {
@@ -29,15 +29,15 @@ wabi_hash_step(wabi_hash_state_t *state, char *data, wabi_word_t size)
 }
 
 
-void
+static void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val);
 
 
-void
+static void
 wabi_hash_binary(wabi_hash_state_t *state, wabi_val bin);
 
 
-void
+static inline void
 wabi_binary_leaf_hash(wabi_hash_state_t *state, wabi_binary_leaf_t* leaf)
 {
   wabi_hash_step(state, (char *) leaf->data_ptr, leaf->length & WABI_VALUE_MASK);
@@ -52,7 +52,7 @@ wabi_binary_node_hash(wabi_hash_state_t *state, wabi_binary_node_t* node)
 }
 
 
-void
+static void
 wabi_hash_binary(wabi_hash_state_t *state, wabi_val bin)
 {
   // todo: make this if
@@ -66,7 +66,15 @@ wabi_hash_binary(wabi_hash_state_t *state, wabi_val bin)
 }
 
 
-void
+static inline void
+wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
+{
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
+}
+
+
+static inline void
 wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
 {
   wabi_map_entry entry;
@@ -79,15 +87,7 @@ wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
 }
 
 
-void
-wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
-{
-  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
-  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
-}
-
-
-void
+static void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
   wabi_word_t type = wabi_val_type(val);

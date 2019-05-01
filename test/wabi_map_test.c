@@ -289,12 +289,38 @@ wabi_map_test_hash(wabi_vm vm)
   ASSERT(wabi_hash_raw(m) == wabi_hash_raw(m0));
 }
 
+
+void
+wabi_map_test_gc(wabi_vm vm)
+{
+  char str[100];
+  wabi_val m, k, v;
+  int size = 1000;
+  wabi_word_t h0, h1;
+
+  m = wabi_map_empty(vm);
+  for(int j = 0; j < size; j++) {
+    sprintf(str, "%iN", j);
+    k = wabi_smallint(vm, j);
+    v = wabi_binary_new_from_cstring(vm, str);
+    m = wabi_map_assoc(vm, m, k, v);
+  }
+  vm->mem_root = m;
+  h0 = wabi_hash_raw(vm->mem_root);
+  // printf("before coll: %lu\n", wabi_mem_used(vm));
+  wabi_mem_collect(vm);
+  h1 = wabi_hash_raw(vm->mem_root);
+  // printf("after coll: %lu\n", wabi_mem_used(vm));
+  ASSERT(h0 == h1);
+}
+
+
 void
 wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 100 * 1024 * 1024); // 100MB
+  wabi_mem_init(vm, 40 * 1024 * 1024); // 100MB
 
   wabi_map_test_assoc_empty(vm);
   wabi_map_test_assoc_one(vm);
@@ -308,7 +334,7 @@ wabi_map_test()
   wabi_map_test_dissoc_length_gt_limit(vm);
   wabi_map_test_dissoc_demote(vm);
   wabi_map_test_hash(vm);
-
+  wabi_map_test_gc(vm);
   wabi_mem_free(vm);
   free(vm);
 }
