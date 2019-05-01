@@ -333,11 +333,12 @@ wabi_map_insert_sort(wabi_map_entry table,
   while(i < size) {
     tmp = *(table + i);
     j = i - 1;
-    k0 = WABI_MAP_ENTRY_KEY(table + j);
-    k = WABI_MAP_ENTRY_KEY(table + i);
-    while(j >= 0 && wabi_cmp_raw(k0, k) > 0) {
+    k0 = WABI_MAP_ENTRY_KEY(table + i);
+    k = WABI_MAP_ENTRY_KEY(table + j);
+    while(j >= 0 && wabi_cmp_raw(k, k0) < 0) {
       *(table + j + 1) = *(table + j);
       j--;
+      k = WABI_MAP_ENTRY_KEY(table + j);
     }
     *(table + j + 1) = tmp;
     i++;

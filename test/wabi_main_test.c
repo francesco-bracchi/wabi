@@ -13,6 +13,6 @@ int main(int argc, char** argv)
 {
   wabi_assert_init();
   wabi_map_test();
-  // wabi_cmp_test();
+  wabi_cmp_test();
   wabi_assert_results();
 }

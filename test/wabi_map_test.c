@@ -238,6 +238,34 @@ wabi_map_test_dissoc_length_gt_limit(wabi_vm vm)
 
 
 void
+wabi_map_test_dissoc_demote(wabi_vm vm)
+{
+  char str[100];
+  wabi_val m0, m, k, v;
+  int size = WABI_MAP_ARRAY_LIMIT + 1;
+
+  m  = wabi_map_empty(vm);
+  m0 = m;
+  for(int j = 0; j < size - 1; j++) {
+    sprintf(str, "%iN", j);
+    k = wabi_smallint(vm, j);
+    v = wabi_binary_new_from_cstring(vm, str);
+    m0 = wabi_map_assoc(vm, m0, k, v);
+  }
+
+  for(int j = 0; j < size; j++) {
+    sprintf(str, "%iN", j);
+    k = wabi_smallint(vm, j);
+    v = wabi_binary_new_from_cstring(vm, str);
+    m = wabi_map_assoc(vm, m, k, v);
+  }
+  k = wabi_smallint(vm, WABI_MAP_ARRAY_LIMIT);
+  m = wabi_map_dissoc(vm, m, k);
+  ASSERT(wabi_cmp_raw(m, m0) == 0);
+}
+
+
+void
 wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -254,6 +282,8 @@ wabi_map_test()
   wabi_map_test_dissoc_one(vm);
   wabi_map_test_dissoc_length_lt_limit(vm);
   wabi_map_test_dissoc_length_gt_limit(vm);
+
+  wabi_map_test_dissoc_demote(vm);
 
   wabi_mem_free(vm);
   free(vm);
