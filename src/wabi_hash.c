@@ -69,18 +69,12 @@ wabi_hash_binary(wabi_hash_state_t *state, wabi_val bin)
 void
 wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
 {
-  if(wabi_val_is_map_array((wabi_val) map)) {
-    wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
-    wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
-    for(wabi_word_t offset = 0; offset < size; offset++)
-      wabi_hash_val(state, (wabi_val) (table + offset));
-  }
-  if(wabi_val_is_map_hash((wabi_val) map)) {
-    wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
-    wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
-    wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE((wabi_map_hash) map);
-    for(wabi_word_t offset = 0; offset < size; offset++)
-      wabi_hash_val(state, (wabi_val) (table + offset));
+  wabi_map_entry entry;
+  wabi_map_iter_t iter;
+  wabi_map_iterator_init(&iter, map);
+  while((entry = wabi_map_iterator_current(&iter))) {
+    wabi_hash_entry(state, entry);
+    wabi_map_iterator_next(&iter);
   }
 }
 
