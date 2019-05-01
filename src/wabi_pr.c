@@ -9,7 +9,6 @@
 #include "wabi_binary.h"
 #include "wabi_map.h"
 
-
 void
 wabi_pr_binary(wabi_val val);
 
@@ -163,4 +162,92 @@ wabi_pr(wabi_val val) {
   default:
     printf("unknown %lx", *val);
   }
+}
+
+
+/*** TEST: print internal map layout ***/
+
+static inline void
+print_indent(int x)
+{
+  for(int j = 0; j < x; j++)
+    putchar(' ');
+}
+
+static void
+wabi_map_pr_tree(wabi_map map,
+                 int indent,
+                 wabi_word_t hash_offset);
+
+static void
+wabi_map_pr_tree_array(wabi_map map,
+                       int indent,
+                       wabi_word_t hash_offset)
+{
+  wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE((wabi_map_array) map);
+  wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map);
+
+  print_indent(indent);
+  printf("ARRAY [\n");
+  for(wabi_word_t index = 0; index < size; index++) {
+    print_indent(indent);
+    printf("%lu:\n", index);
+    wabi_map_pr_tree(table + index, indent + 2, hash_offset - 6);
+    printf("\n");
+  }
+  print_indent(indent);
+  printf("]");
+}
+
+
+static void
+wabi_map_pr_tree_hash(wabi_map map,
+                      int indent,
+                      wabi_word_t hash_offset)
+{
+  wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map);
+  wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE((wabi_map_hash) map);
+  print_indent(indent);
+  printf("HASH %lu {\n", hash_offset);
+  for(wabi_word_t index = 0; index < 64; index++) {
+    if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
+      wabi_word_t offset = WABI_MAP_BITMAP_OFFSET(bitmap, index);
+      wabi_map submap = table + offset;
+      print_indent(indent);
+      printf("%lu:\n", index);
+      wabi_map_pr_tree(submap, indent + 2, hash_offset - 6);
+      printf("\n");
+      offset++;
+    }
+  }
+
+  print_indent(indent);
+  printf("}");
+}
+
+static void
+wabi_map_pr_tree(wabi_map map,
+                 int indent,
+                 wabi_word_t hash_offset)
+{
+  switch(wabi_val_tag((wabi_val) map)) {
+  case WABI_TAG_MAP_ENTRY:
+    print_indent(indent);
+    wabi_pr((wabi_val) map);
+    break;
+  case WABI_TAG_MAP_ARRAY:
+    wabi_map_pr_tree_array(map, indent, hash_offset);
+    break;
+  case WABI_TAG_MAP_HASH:
+    wabi_map_pr_tree_hash(map, indent, hash_offset);
+    break;
+  default:
+    printf("unknown: %lx", wabi_val_tag((wabi_val) map));
+  }
+}
+
+void
+wabi_map_tree(wabi_map map)
+{
+  wabi_map_pr_tree(map, 0, WABI_MAP_INITIAL_OFFSET);
 }

@@ -31,7 +31,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word_t hash,
-                        int hash_offset);
+                        wabi_word_t hash_offset);
 
 
 wabi_map
@@ -39,7 +39,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word_t hash,
-                         int hash_offset);
+                         wabi_word_t hash_offset);
 
 
 wabi_map
@@ -47,13 +47,13 @@ wabi_map_assoc_rec(wabi_vm vm,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word_t hash,
-                   int hash_offset);
+                   wabi_word_t hash_offset);
 
 
 wabi_map_hash
 wabi_map_array_promote(wabi_vm vm,
                        wabi_map_array map,
-                       int hash_offset)
+                       wabi_word_t hash_offset)
 {
   wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE);
   if(vm->errno) return NULL;
@@ -79,7 +79,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word_t hash,
-                         int hash_offset)
+                         wabi_word_t hash_offset)
 {
   wabi_val key = (wabi_val) WABI_MAP_ENTRY_KEY(entry);
   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
@@ -90,7 +90,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
   while(row < limit) {
     wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     int cmp = wabi_cmp_raw(key, key0);
-    if(cmp > 0) {
+    if(cmp < 0) {
       row++;
       continue;
     } else if(cmp == 0) {
@@ -137,7 +137,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word_t hash,
-                        int hash_offset)
+                        wabi_word_t hash_offset)
 {
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
@@ -162,6 +162,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
 
     return (wabi_map) new_map;
   }
+  // offset: %lu index: %lu\n", offset, index);
   wabi_map_hash new_map = (wabi_map_hash) wabi_mem_allocate(vm, WABI_MAP_SIZE * (size + 2));
   if(vm->errno) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
@@ -181,7 +182,7 @@ wabi_map_entry_assoc_rec(wabi_vm vm,
                          wabi_map_entry entry0,
                          wabi_map_entry entry,
                          wabi_word_t hash,
-                         int hash_offset)
+                         wabi_word_t hash_offset)
 {
   int cmp = wabi_cmp_raw(WABI_MAP_ENTRY_KEY(entry0), WABI_MAP_ENTRY_KEY(entry));
   if(! cmp) return (wabi_map) entry;
@@ -207,7 +208,7 @@ wabi_map_assoc_rec(wabi_vm vm,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word_t hash,
-                   int hash_offset)
+                   wabi_word_t hash_offset)
 {
   switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ARRAY:
@@ -262,7 +263,11 @@ wabi_map_assoc(wabi_vm vm,
  */
 
 static wabi_map
-wabi_map_dissoc_rec(wabi_vm vm, wabi_map map, wabi_val key, wabi_word_t hash, int hash_offset);
+wabi_map_dissoc_rec(wabi_vm vm,
+                    wabi_map map,
+                    wabi_val key,
+                    wabi_word_t hash,
+                    wabi_word_t hash_offset);
 
 
 static inline wabi_map
@@ -270,7 +275,7 @@ wabi_map_entry_dissoc_rec(wabi_vm vm,
                       wabi_map_entry entry,
                       wabi_val key,
                       wabi_word_t hash,
-                      int hash_offset)
+                      wabi_word_t hash_offset)
 {
   return wabi_eq_raw(WABI_MAP_ENTRY_KEY(entry), key) ? NULL : (wabi_map) entry;
 }
@@ -280,7 +285,7 @@ wabi_map_array_dissoc_rec(wabi_vm vm,
                       wabi_map_array map,
                       wabi_val key,
                       wabi_word_t hash,
-                      int hash_offset)
+                      wabi_word_t hash_offset)
 {
   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
@@ -289,7 +294,7 @@ wabi_map_array_dissoc_rec(wabi_vm vm,
   while(row < limit) {
     wabi_val key0 = WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     int cmp = wabi_cmp_raw(key, key0);
-    if(cmp > 0) {
+    if(cmp < 0) {
       row++;
       continue;
     } else if(cmp == 0) {
@@ -321,16 +326,20 @@ wabi_map_insert_sort(wabi_map_entry table,
                      int size)
 {
   int i, j;
-  wabi_map_entry_t x;
+  wabi_map_entry_t tmp;
+  wabi_val k, k0;
 
+  i = 1;
   while(i < size) {
-    x = *(table + i);
+    tmp = *(table + i);
     j = i - 1;
-    while(j >= 0 && wabi_cmp_raw(table + j, &x) > 0) {
+    k0 = WABI_MAP_ENTRY_KEY(table + j);
+    k = WABI_MAP_ENTRY_KEY(table + i);
+    while(j >= 0 && wabi_cmp_raw(k0, k) > 0) {
       *(table + j + 1) = *(table + j);
       j--;
     }
-    *(table + j + 1) = x;
+    *(table + j + 1) = tmp;
     i++;
   }
 }
@@ -374,7 +383,7 @@ wabi_map_hash_demote(wabi_vm vm,
     wabi_map_iterator_next(&iter);
     row++;
   }
-  wabi_map_insert_sort(new_table, size);
+  wabi_map_insert_sort((wabi_map_entry) new_table, size);
 
   new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_ARRAY;
   new_map->size = len;
@@ -386,7 +395,7 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
                          wabi_map_hash map,
                          wabi_val key,
                          wabi_word_t hash,
-                         int hash_offset)
+                         wabi_word_t hash_offset)
 {
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap);
@@ -426,7 +435,11 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
 
 
 static wabi_map
-wabi_map_dissoc_rec(wabi_vm vm, wabi_map map, wabi_val key, wabi_word_t hash, int hash_offset)
+wabi_map_dissoc_rec(wabi_vm vm,
+                    wabi_map map,
+                    wabi_val key,
+                    wabi_word_t hash,
+                    wabi_word_t hash_offset)
 {
   switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ENTRY:
@@ -476,21 +489,21 @@ wabi_val
 wabi_map_hash_get_rec(wabi_map_hash map,
                       wabi_val key,
                       wabi_word_t hash,
-                      int hash_offset);
+                      wabi_word_t hash_offset);
 
 
 wabi_val
 wabi_map_array_get_rec(wabi_map_array map,
                        wabi_val key,
                        wabi_word_t hash,
-                       int hash_offset);
+                       wabi_word_t hash_offset);
 
 
 wabi_val
 wabi_map_hash_get_rec(wabi_map_hash map,
                       wabi_val key,
                       wabi_word_t hash,
-                      int hash_offset)
+                      wabi_word_t hash_offset)
 {
   wabi_val key0;
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
@@ -520,7 +533,7 @@ wabi_val
 wabi_map_array_get_rec(wabi_map_array map,
                        wabi_val key,
                        wabi_word_t hash,
-                       int hash_offset)
+                       wabi_word_t hash_offset)
 {
   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
@@ -547,7 +560,7 @@ wabi_val
 wabi_map_get_rec(wabi_map map,
                  wabi_val key,
                  wabi_word_t hash,
-                 int hash_offset)
+                 wabi_word_t hash_offset)
 {
   // todo: convert in a single loop (or exploit TCO opt in GCC?)
   if(wabi_val_is_map_array((wabi_val) map)) {
@@ -750,78 +763,3 @@ wabi_map_length(wabi_vm vm, wabi_val map)
   wabi_word_t len = wabi_map_length_raw((wabi_map) map);
   return wabi_smallint(vm, len);
 }
-
-
-
-
-
-/* /\*** TEST ***\/ */
-
-/* void do_indent(int x) { */
-/*   for(int j = 0; j < x; j++) putchar(' '); */
-/* } */
-
-/* void wabi_struct(wabi_map map, int indent, int hash_offset); */
-
-/* void wabi_struct_array(wabi_map map, int indent, int hash_offset) { */
-/*   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE((wabi_map_array) map); */
-/*   wabi_word_t size = WABI_MAP_ARRAY_SIZE((wabi_map_array) map); */
-
-/*   do_indent(indent); */
-/*   printf("ARRAY [\n"); */
-/*   for(wabi_word_t index = 0; index < size; index++) { */
-/*     do_indent(indent); */
-/*     printf("%lu:\n", index); */
-/*     wabi_struct(table + index, indent + 2, hash_offset - 6); */
-/*     printf("\n"); */
-/*   } */
-/*   do_indent(indent); */
-/*   printf("]"); */
-/* } */
-
-
-/* void wabi_struct_hash(wabi_map map, int indent, int hash_offset) { */
-/*   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP((wabi_map_hash) map); */
-/*   wabi_word_t size = WABI_MAP_BITMAP_COUNT(bitmap); */
-/*   wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE((wabi_map_hash) map); */
-/*   wabi_word_t offset = 0; */
-/*   do_indent(indent); */
-/*   printf("HASH %lu {\n", hash_offset); */
-/*   for(wabi_word_t index = 0; index < 64; index++) { */
-/*     if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) { */
-/*       wabi_word_t offset = WABI_MAP_BITMAP_OFFSET(bitmap, index); */
-/*       wabi_map submap = table + offset; */
-/*       do_indent(indent); */
-/*       printf("%lu:\n", index); */
-/*       wabi_struct(submap, indent + 2, hash_offset - 6); */
-/*       printf("\n"); */
-/*       offset++; */
-/*     } */
-/*   } */
-
-/*   do_indent(indent); */
-/*   printf("}"); */
-/* } */
-
-/* void wabi_struct(wabi_map map, int indent, int hash_offset) */
-/* { */
-/*   switch(wabi_val_tag((wabi_val) map)) { */
-/*   case WABI_TAG_MAP_ENTRY: */
-/*     do_indent(indent); */
-/*     wabi_pr(map); */
-/*     break; */
-/*   case WABI_TAG_MAP_ARRAY: */
-/*     wabi_struct_array(map, indent, hash_offset); */
-/*     break; */
-/*   case WABI_TAG_MAP_HASH: */
-/*     wabi_struct_hash(map, indent, hash_offset); */
-/*     break; */
-/*   default: */
-/*     printf("unknown: %lx", wabi_val_tag((wabi_val) map)); */
-/*   } */
-/* } */
-
-/* void wabi_str(wabi_map map) */
-/* { */
-/*   wabi_struct(map, 0, WABI_MAP_INITIAL_OFFSET); */
-/* } */

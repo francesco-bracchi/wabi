@@ -43,9 +43,7 @@ wabi_map_test_assoc_many(wabi_vm vm)
     v = wabi_binary_new_from_cstring(vm, str);
     m = wabi_map_assoc(vm, m, k, v);
   }
-  wabi_pr(m);
-  printf("\n");
-  for(j = 0; j < 64; j++) {
+  for(j = 0; j < 64; j+=17) {
     sprintf(str, "%iK", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
@@ -82,7 +80,7 @@ wabi_map_test_reassoc_many(wabi_vm vm)
     v = wabi_binary_new_from_cstring(vm, str);
     m = wabi_map_assoc(vm, m, k, v);
   }
-  for(j = 0; j < size ;j++) {
+  for(j = 0; j < size ;j+= 19) {
     sprintf(str, "%iH", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
@@ -224,20 +222,18 @@ void
 wabi_map_test_dissoc_length_gt_limit(wabi_vm vm)
 {
   char str[100];
-  wabi_val m, k, v, x;
+  wabi_val m, k, v;
+  int size = 10000;
   m  = wabi_map_empty(vm);
-  for(int j = 0; j < 100; j++) {
+  for(int j = 0; j < size; j++) {
     sprintf(str, "%iN", j);
     k = wabi_smallint(vm, j);
     v = wabi_binary_new_from_cstring(vm, str);
     m = wabi_map_assoc(vm, m, k, v);
   }
   k = wabi_smallint(vm, 7);
-
   m = wabi_map_dissoc(vm, m, k);
-
-  printf("xxx %lu\n", wabi_map_length_raw((wabi_map) m));
-  ASSERT(wabi_map_length_raw((wabi_map) m) == 99);
+  ASSERT(wabi_map_length_raw((wabi_map) m) == size - 1);
 }
 
 

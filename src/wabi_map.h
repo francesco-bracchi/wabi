@@ -71,7 +71,7 @@ typedef wabi_map_iter_t* wabi_map_iter;
 #define WABI_MAP_HASH_BITMAP(map) ((map)->bitmap)
 #define WABI_MAP_HASH_INDEX(hash, h_pos) (((hash) >> h_pos) & 0x3F)
 
-#define WABI_MAP_BITMAP_OFFSET(bitmap, index) WABI_POPCNT((bitmap) << (64 - (index)) & 0xFFFFFFFFFFFFFFFE)
+#define WABI_MAP_BITMAP_OFFSET(bitmap, index) ((index) ? WABI_POPCNT((bitmap) << (64 - (index))) : 0)
 #define WABI_MAP_BITMAP_COUNT(bitmap) WABI_POPCNT(bitmap)
 #define WABI_MAP_BITMAP_CONTAINS(bitmap, index) (((bitmap) >> (index)) & 1LU)
 
