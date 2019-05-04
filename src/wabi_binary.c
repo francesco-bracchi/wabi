@@ -22,6 +22,7 @@ wabi_binary_word_size(wabi_size_t size)
   return word_size;
 }
 
+
 wabi_val
 wabi_blob_new(wabi_vm vm, wabi_size_t size)
 {
@@ -49,7 +50,8 @@ wabi_binary_new(wabi_vm vm, wabi_size_t size)
 }
 
 wabi_val
-wabi_binary_new_from_cstring(wabi_vm vm, char* cstring)
+wabi_binary_new_from_cstring(wabi_vm vm,
+                             char* cstring)
 {
   wabi_size_t size = strlen(cstring);
   wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, size);

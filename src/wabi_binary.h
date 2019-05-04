@@ -41,6 +41,12 @@ typedef wabi_binary_t* wabi_binary;
 #define WABI_BINARY_NODE_RIGHT(bin) ((wabi_binary) ((bin)->right))
 #define WABI_BINARY_DATA_PTR(bin) ((char*) ((bin)->data_ptr))
 
+
+wabi_val
+wabi_blob_new(wabi_vm vm,
+              wabi_size_t size)
+
+
 wabi_size_t
 wabi_binary_word_size(wabi_size_t size);
 

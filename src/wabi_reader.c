@@ -1,39 +1,50 @@
-#include <unistd.h>
+#define wabi_reader_c
 
-#define WABI_READER_BUFFER_SIZE 4096;
-#define WABI_READ_BINARY_SIZE 128;
+#include <unistd.h>
+#include <stdio.h>
+
+#include "wabi_value.h"
+#include "wabi_mem.h"
+#include "wabi_vm.h"
+#include "wabi_binary.h"
+#include "wabi_pair.h"
+#include "wabi_atomic.h"
+
+#define WABI_READER_BUFFER_SIZE 1024
+#define WABI_READ_WORD_SIZE 512
+#define WABI_READ_BINARY_SIZE 512
 
 
 static inline void
-wabi_whitespace(int fd,
+wabi_whitespace(FILE *fd,
                 char* cur)
 {
-  while(cur == ' ' || cur == '\n' || cur == '\t') {
+  while(*cur == ' ' || *cur == '\n' || *cur == '\t') {
     *cur = getc(fd);
   }
 }
 
 
 static inline void
-wabi_next(int fd,
+wabi_next(FILE *fd,
           char* cur)
 {
-  *cur = getch(fd);
+  *cur = getc(fd);
 }
 
 
 static wabi_val
 wabi_read_rec(wabi_vm vm,
-              int fd,
+              FILE *fd,
               char* cur);
 
 
 static wabi_val
 wabi_read_list(wabi_vm vm,
-               int fd,
+               FILE *fd,
                char* cur)
 {
-  wabi_val car, cdr, res;
+  wabi_val car, cdr;
   wabi_whitespace(fd, cur);
   car = wabi_read_rec(vm, fd, cur);
   if(vm->errno) return NULL;
@@ -59,28 +70,28 @@ wabi_read_list(wabi_vm vm,
 
 static wabi_val
 wabi_read_binary(wabi_vm vm,
-                 int fd,
+                 FILE *fd,
                  char* cur)
 {
-  char* blob, limit;
-
-  wabi_binary_leaf leaf;
-  leaf = (wabi_binary_leaf) wabi_binary_new(vm, WABI_READ_BINARY_SIZE);
+  char *blob;
+  size_t size;
+  wabi_binary_leaf leaf = wabi_binary_new(vm, WABI_READ_WORD_SIZE);
   if(vm->errno) return NULL;
-
   blob = (char*) leaf->data_ptr;
-  limit = blob + WABI_READ_BINARY_SIZE;
-  while(blob < limit) {
+  size = 0;
+  while(size < WABI_READ_WORD_SIZE) {
     wabi_next(fd, cur);
     switch(*cur) {
     case '"':
       wabi_next(fd, cur);
-      return wabi_binary_sub_leaf(vm, leaf, 0, blob - (char*) leaf->data_ptr);
+      leaf->length = size | WABI_TAG_BINARY_LEAF;
+      return leaf;
       /* case '\\': */
       /*   escape; */
     default:
-      *blob = *cur;
-      blob++;
+      *blob= *cur;
+      *blob++;
+      size++;
     }
   }
   wabi_val more = wabi_read_binary(vm, fd, cur);
@@ -91,7 +102,7 @@ wabi_read_binary(wabi_vm vm,
 
 static wabi_val
 wabi_read_rec(wabi_vm vm,
-              int fd,
+              FILE *fd,
               char* cur)
 {
   wabi_whitespace(fd, cur);
@@ -118,10 +129,10 @@ wabi_read_rec(wabi_vm vm,
 
 wabi_val
 wabi_read_raw(wabi_vm vm,
-              int fd)
+              FILE *fd)
 {
-  cur = getc(fd);
-  return wabi_read_rec(vm, fd, &c);
+  char cur = getc(fd);
+  return wabi_read_rec(vm, fd, &cur);
 }
 
 
