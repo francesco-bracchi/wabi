@@ -8,6 +8,7 @@
 #include "wabi_pair.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
+#include "wabi_symbol.h"
 
 void
 wabi_pr_binary(wabi_val val);
@@ -158,6 +159,9 @@ wabi_pr(wabi_val val) {
     putchar('{');
     wabi_pr_map((wabi_map) val);
     putchar('}');
+    break;
+  case WABI_TYPE_SYMBOL:
+    wabi_pr_binary((wabi_val) WABI_SYMBOL_BINARY((wabi_symbol) val));
     break;
   default:
     printf("unknown %lx", *val);

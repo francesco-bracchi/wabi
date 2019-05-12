@@ -8,6 +8,7 @@
 #include "wabi_vm.h"
 #include "wabi_atomic.h"
 
+
 wabi_val
 wabi_smallint(wabi_vm vm, int64_t val)
 {

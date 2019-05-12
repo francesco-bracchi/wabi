@@ -9,6 +9,8 @@
 #include "wabi_binary.h"
 #include "wabi_pair.h"
 #include "wabi_atomic.h"
+#include "wabi_symbol.h"
+#include "wabi_pr.h"
 
 #define WABI_READER_BUFFER_SIZE 1024
 #define WABI_READ_WORD_SIZE 512
@@ -16,20 +18,28 @@
 
 
 static inline void
-wabi_whitespace(FILE *fd,
-                char* cur)
-{
-  while(*cur == ' ' || *cur == '\n' || *cur == '\t') {
-    *cur = getc(fd);
-  }
-}
-
-
-static inline void
 wabi_next(FILE *fd,
           char* cur)
 {
   *cur = getc(fd);
+}
+
+
+static inline void
+wabi_whitespace(FILE *fd,
+                char* cur)
+{
+  do {
+    switch(*cur) {
+    case ' ':
+    case '\n':
+    case '\t':
+      wabi_next(fd, cur);
+      continue;
+    default: return;
+    }
+  }
+  while(1);
 }
 
 
@@ -68,35 +78,89 @@ wabi_read_list(wabi_vm vm,
 }
 
 
-static wabi_val
+static wabi_binary
 wabi_read_binary(wabi_vm vm,
                  FILE *fd,
                  char* cur)
 {
   char *blob;
   size_t size;
-  wabi_binary_leaf leaf = wabi_binary_new(vm, WABI_READ_WORD_SIZE);
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, WABI_READ_WORD_SIZE);
   if(vm->errno) return NULL;
   blob = (char*) leaf->data_ptr;
   size = 0;
   while(size < WABI_READ_WORD_SIZE) {
-    wabi_next(fd, cur);
     switch(*cur) {
     case '"':
       wabi_next(fd, cur);
-      leaf->length = size | WABI_TAG_BINARY_LEAF;
-      return leaf;
+      leaf->length = size | WABI_TAG_BIN_LEAF;
+      return (wabi_binary) leaf;
       /* case '\\': */
       /*   escape; */
     default:
       *blob= *cur;
-      *blob++;
+      wabi_next(fd, cur);
+      blob++;
       size++;
     }
   }
-  wabi_val more = wabi_read_binary(vm, fd, cur);
+  wabi_binary more = wabi_read_binary(vm, fd, cur);
   if(vm->errno) return NULL;
-  return wabi_binary_concat_raw(vm, leaf, more);
+  return wabi_binary_concat_raw(vm, (wabi_binary) leaf, more);
+}
+
+
+static wabi_symbol
+wabi_read_symbol(wabi_vm vm,
+                 FILE *fd,
+                 char* cur)
+{
+  char *blob;
+  size_t size;
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, WABI_READ_WORD_SIZE);
+  if(vm->errno) return NULL;
+  blob = (char*) leaf->data_ptr;
+  size = 0;
+  while(size < WABI_READ_WORD_SIZE) {
+    switch(*cur) {
+    case ' ':
+    case '\n':
+    case '\t':
+    case '\f':
+    case '\r':
+    case ')':
+    case ']':
+    case '}':
+    case '"':
+    case ':':
+      leaf->length = size | WABI_TAG_BIN_LEAF;
+      return (wabi_symbol) wabi_intern(vm, (wabi_val) leaf);
+    case EOF:
+      vm->errno = WABI_ERROR_SYMBOL_TOO_LONG;
+      return NULL;
+    default:
+      *blob= *cur;
+      wabi_next(fd, cur);
+      blob++;
+      size++;
+    }
+  }
+  vm->errno = WABI_ERROR_SYMBOL_TOO_LONG;
+  return NULL;
+}
+
+
+static wabi_val
+wabi_read_number(wabi_vm vm,
+                 FILE *fd,
+                 char* cur)
+{
+  wabi_word_t n = 0;
+  while(*cur >= '0' && *cur <= '9') {
+    n = n * 10 + (*cur - '0');
+    wabi_next(fd, cur);
+  }
+  return wabi_smallint(vm, n);
 }
 
 
@@ -112,7 +176,7 @@ wabi_read_rec(wabi_vm vm,
     return wabi_read_list(vm, fd, cur);
   case '"':
     wabi_next(fd, cur);
-    return wabi_read_binary(vm, fd, cur);
+    return (wabi_val) wabi_read_binary(vm, fd, cur);
   /* case '{': */
   /*   return wabi_read_map(vm, fd); */
   /* case '[': */
@@ -127,73 +191,13 @@ wabi_read_rec(wabi_vm vm,
   }
 }
 
+
 wabi_val
 wabi_read_raw(wabi_vm vm,
               FILE *fd)
 {
-  char cur = getc(fd);
-  return wabi_read_rec(vm, fd, &cur);
+  char cur;
+  wabi_next(fd, &cur);
+  wabi_val res = wabi_read_rec(vm, fd, &cur);
+  return res;
 }
-
-
-
-/* typedef struct wabi_reader_struct { */
-/*   int fd; */
-/*   char* buffer; */
-/*   char* top; */
-/*   wabi_pair stack; */
-/*   wabi_val result; */
-/* } wabi_reader_t; */
-
-
-/* typedef wabi_reader_t* wabi_reader; */
-
-/* wabi_reader */
-/* wabi_reader_init (wabi_vm vm, */
-/*                   wabi_reader reader, */
-/*                   int fd) */
-/* { */
-/*   reader->fd= fd; */
-/*   reader->buffer = malloc(WABI_READER_BUFFER_SIZE); */
-/*   reader->top = reader->buffer; */
-/*   stack = wabi_null(vm); */
-/*   if(vm->errno) return NULL; */
-/* } */
-
-/* wabi_val */
-/* wabi_read(wabi_vm vm, */
-/*           wabi_reader reader) */
-/* { */
-/*   wabi_val expr; */
-/*   int bytes; */
-/*   for(;;) { */
-/*     expr = wabi_reader_process(vm, reader); */
-/*     if(expr) return expr; */
-/*     bytes = read(fd, reader->buffer, WABI_READER_BUFFER_SIZE); */
-/*     if(! bytes) { */
-/*       vm->errno = WABI_ERROR_EOF_READ; */
-/*       return NULL; */
-/*     } */
-/*     reader->top = reader->buffer + bytes; */
-/*   } */
-/*   return expr; */
-/* } */
-
-
-/* wabi_reader_process(wabi_vm vm, */
-/*                     wabi_reader reader) */
-/* { */
-/*   wabi_val expr; */
-/*   char* cur, top; */
-/*   cur = reader->buffer; */
-/*   top = reader->top; */
-/*   while(cur < top) { */
-/*     switch(&cur) { */
-/*       ' ' -> */
-/*         continue; */
-/*       '(' -> */
-/*         return read_list(vm, reader, cur, top); */
-
-/*     } */
-/*   } */
-/* } */
