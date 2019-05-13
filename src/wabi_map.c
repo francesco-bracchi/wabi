@@ -330,7 +330,7 @@ wabi_map_insert_sort(wabi_map_entry table,
   wabi_val k, k0;
 
   i = 1;
-  while(i < size) {
+  while(i <= size) {
     tmp = *(table + i);
     j = i - 1;
     k0 = WABI_MAP_ENTRY_KEY(table + i);

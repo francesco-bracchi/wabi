@@ -294,12 +294,6 @@ wabi_map_test_dissoc_demote(wabi_vm vm)
   k = wabi_smallint(vm, WABI_MAP_ARRAY_LIMIT);
   m = wabi_map_dissoc(vm, m, k);
 
-  /* printf("haha\n"); */
-  /* wabi_map_tree(m); */
-  /* printf("\n"); */
-  /* wabi_map_tree(m0); */
-  /* printf("\n"); */
-
   ASSERT(wabi_cmp_raw(m, m0) == 0);
 }
 
