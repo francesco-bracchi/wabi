@@ -29,11 +29,10 @@ wabi_reader_test()
   if(! fd) {
     printf("file not found\n");
   }
-  // wabi_val expr = wabi_read_raw(vm, fd);
-  wabi_read_raw(vm, fd);
+  wabi_val expr = wabi_read_raw(vm, fd);
   if(vm->errno) {
     printf("error: %i\n", vm->errno);
   }
-  ASSERT(1 == 0);
+  ASSERT(expr != NULL);
 
 }
