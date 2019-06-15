@@ -151,7 +151,6 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
     if(vm->errno) return NULL;
 
     wabi_map sub_map = wabi_map_assoc_rec(vm, row, entry, hash, hash_offset - 6);
-
     if(vm->errno) return NULL;
 
     wabi_map new_table = (wabi_map) (new_map + 1);
@@ -211,10 +210,10 @@ wabi_map_assoc_rec(wabi_vm vm,
                    wabi_word_t hash_offset)
 {
   switch(wabi_val_tag((wabi_val) map)) {
-  case WABI_TAG_MAP_ARRAY:
-    return (wabi_map) wabi_map_array_assoc_rec(vm, (wabi_map_array) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_HASH:
     return (wabi_map) wabi_map_hash_assoc_rec(vm, (wabi_map_hash) map, entry, hash, hash_offset);
+  case WABI_TAG_MAP_ARRAY:
+    return (wabi_map) wabi_map_array_assoc_rec(vm, (wabi_map_array) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_ENTRY:
     return (wabi_map) wabi_map_entry_assoc_rec(vm, (wabi_map_entry) map, entry, hash, hash_offset);
   default:

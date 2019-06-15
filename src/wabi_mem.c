@@ -19,7 +19,7 @@
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
-#define WABI_DEBUG 1
+#define WABI_DEBUG 0
 
 wabi_word_t *
 wabi_allocate_space(wabi_word_t size)
@@ -182,40 +182,50 @@ wabi_mem_collect_map_hash(wabi_vm vm,
 }
 
 
-void
-wabi_mem_collect_step(wabi_vm vm)
+inline static void
+wabi_mem_collect_all(wabi_vm vm)
 {
-  wabi_word_t tag;
-  tag = wabi_val_tag(vm->mem_scan);
-  if(tag <= WABI_TAG_ATOMIC_LIMIT) {
-    vm->mem_scan++;
-  }
-  else {
-    switch(tag) {
-    case WABI_TAG_PAIR:
-      wabi_mem_collect_pair(vm, (wabi_pair) vm->mem_scan);
-      break;
-    case WABI_TAG_BIN_BLOB:
-      vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
-      break;
-    case WABI_TAG_BIN_LEAF:
-      vm->mem_scan += 3;
-      break;
-    case WABI_TAG_SYMBOL:
-      wabi_mem_collect_symbol(vm, vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_ENTRY:
-      wabi_mem_collect_map_entry(vm, (wabi_map_entry) vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_ARRAY:
-      wabi_mem_collect_map_array(vm, (wabi_map_array) vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_HASH:
-      wabi_mem_collect_map_hash(vm, (wabi_map_hash) vm->mem_scan);
-      break;
-    default:
-      vm->errno = WABI_ERROR_UNKNOWN;
-      break;
+  while(vm->mem_scan < vm->mem_alloc) {
+
+    #if WABI_DEBUG
+    if(!((wabi_word_t) vm->mem_scan % 4096)) putchar('.');
+    #endif
+
+    wabi_word_t tag;
+    tag = wabi_val_tag(vm->mem_scan);
+    #if WABI_DEBUG
+    printf("%lu, %lx\n", vm->mem_scan - vm->mem_from_space, tag);
+    #endif
+    if(tag <= WABI_TAG_ATOMIC_LIMIT) {
+      vm->mem_scan++;
+    }
+    else {
+      switch(tag) {
+      case WABI_TAG_PAIR:
+        wabi_mem_collect_pair(vm, (wabi_pair) vm->mem_scan);
+        break;
+      case WABI_TAG_BIN_BLOB:
+        vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
+        break;
+      case WABI_TAG_BIN_LEAF:
+        vm->mem_scan += 3;
+        break;
+      case WABI_TAG_SYMBOL:
+        wabi_mem_collect_symbol(vm, vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_ENTRY:
+        wabi_mem_collect_map_entry(vm, (wabi_map_entry) vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_ARRAY:
+        wabi_mem_collect_map_array(vm, (wabi_map_array) vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_HASH:
+        wabi_mem_collect_map_hash(vm, (wabi_map_hash) vm->mem_scan);
+        break;
+      default:
+        vm->errno = WABI_ERROR_UNKNOWN;
+        return;
+      }
     }
   }
 }
@@ -224,6 +234,9 @@ wabi_mem_collect_step(wabi_vm vm)
 void
 wabi_mem_collect(wabi_vm vm)
 {
+  #if WABI_DEBUG
+  printf("GC start\n");
+  #endif
   vm->mem_to_space = vm->mem_from_space;
   vm->mem_from_space = wabi_allocate_space(vm->mem_size);
   if(vm->mem_from_space == NULL) {
@@ -238,14 +251,16 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = vm->mem_from_space;
   vm->symbol_table = (wabi_word_t*) wabi_map_empty(vm);
+  vm->errno = WABI_ERROR_NONE;
 
   vm->mem_root = wabi_mem_copy_val(vm, vm->mem_root);
 
-  while(vm->mem_scan < vm->mem_alloc) {
-    wabi_mem_collect_step(vm);
-  }
-  vm->errno = WABI_ERROR_NONE;
+  wabi_mem_collect_all(vm);
   free(vm->mem_to_space);
+
+  #if WABI_DEBUG
+  printf("GC end\n");
+  #endif
 }
 
 
