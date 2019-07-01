@@ -1,0 +1,368 @@
+(def quote (fx _ (p) p))
+
+(def quotes (fx _ p p))
+
+
+(def id (wrap quote))
+
+(def list (wrap quotes))
+
+(def apply
+  (fn (e op . cs)
+    (eval e (cons op cs))))
+
+(def cond
+  (fx e cs
+    (if (nil? cs) nil
+        (if (nil? (cdr cs)) (eval e (car cs))
+            (if (eval e (car cs))
+                (eval e (cdr cs))
+                (apply e cond (cdr (cdr cs))))))))
+
+(def list*
+  (wrap (fx _ (a . as)
+          (cond
+            (nil? as) a
+            (cons a (apply nil list* as))))))
+
+(def fn
+  (fx e (as . bs)
+    (wrap
+     (eval e
+       (list* fx _ as bs)))))
+
+(def defx
+  (fx e (n e1 as . bs)
+    (eval e
+      (list def n (list* fx e1 as bs)))))
+
+(def defn
+  (fx e (n as . bs)
+    (eval e
+      (list def n (list* fn as bs)))))
+
+(defn caar
+    (e)
+  (car (car e)))
+
+(defn cadr
+    (e)
+  (car (cdr e)))
+
+(defn cdar
+    (e)
+  (cdr (car e)))
+
+(defn cddr
+    (e)
+  (cdr (cdr e)))
+
+(defn flip
+    (f)
+  (fn (a b . xs)
+    (apply nil f (list* b a xs))))
+
+(defn fold1
+    (f i as)
+  (cond
+    (pair? as) (fold f (f i (car as)) (cdr as))
+    i))
+
+(defn rev-conc
+    (xs es)
+  (fold1 (flip cons) xs (rev es)))
+
+(defn rev
+    (as)
+  (rev-conc nil as))
+
+(defn conc
+    ls
+  (fold rev-conc nil (rev ls)))
+
+(defx ->
+    e (c . cs)
+  (eval e
+    (fold1 conc (list c) cs)))
+
+(defn part
+    (f . cs)
+  (fn bs (apply nil f (conc cs bs))))
+
+(def inc
+  (part + 1))
+
+(def dec
+  (part (flip -) 1))
+
+(def zero?
+  (part = 0))
+
+(def pos?
+  (part < 0))
+
+(def neg?
+  (part > 0))
+
+(def not-pos?
+  (part >= 0))
+
+(def not-neg?
+  (part <= 0))
+
+(defn map1
+    (f cs)
+  (fold1 (fn (i c) (cons (f c) i)) nil cs))
+
+(defn each1
+    (f cs)
+  (fold1 (fn (i c) (f c) i) nil cs))
+
+(defn all?
+    (t? cs)
+  (cond
+    (nil? cs) true
+    (t? (car cs)) (all? t? (cdr cs))
+    false))
+
+(defn some?
+    (t? cs)
+  (cond
+    (nil? cs) false
+    (t? (car cs)) true
+    (some? t? (cdr cs))))
+
+(defx and
+    e bs
+  (all? (part eval e) bs))
+
+(defx or
+    e bs
+  (some? (part eval e) bs))
+
+(defn always
+    (v)
+  (fn _ v))
+
+(defn len
+    (es)
+  (fold1 (fn (i _) (inc i)) es))
+
+
+(defn filter
+    (t? as)
+  (rev (fold1 (fn (i a) (cond (t? a) (cons a i) i)) nil as)))
+
+(defn remove
+    (t? xs)
+  (filter (comp not t?) xs))
+
+(defn find
+    (t? default xs)
+  (cond
+    (nil? xs) default
+    (t? (car xs)) (car xs)
+    (find t? default (cdr xs))))
+
+(defn in?
+    (x xs)
+  (cond
+    (nil? xs) false
+    (= x (car xs)) true
+    (in? x (cdr xs))))
+
+(defn drop
+    (n as)
+  (cond
+    (not-pos? n) as
+    (nil? as) nil
+    (drop (- n 1) (cdr as))))
+
+(defn takex
+    (n as rs)
+  (cond
+    (zero? n) (rev rs)
+    (nil? as) (rev rs)
+    (takex (dec n) (cdr as) (cons (car as) rs))))
+
+(defn take
+    (n as)
+  (takex n as nil))
+
+(defn partition-aux
+    (n as rs)
+  (def b (take n as))
+  (cond (= n (len g))
+        (partition-aux n (drop n as) (cons b rs))
+        (rev rs)))
+
+(defn partition
+    (n as)
+  (partition-aux n as nil))
+
+(defn bind-apply-named
+    (e n bs cs)
+  (def bsp (partition 2 bs))
+  (eval e
+    (list* defn name fs (map car bsp))
+    (list* apply e name (map cadr bsp))))
+
+(defn bind-apply
+    (e bs cs)
+  (eval e
+    (list* apply e (list* fn (odds bs) cs) (evens bs))))
+
+(defx let
+    e (c . cs)
+  (cond
+    (and (sym? c) (pair? cs)) (bind-apply-named (env-push e) c (car cs) (cdr cs))
+    (pair? cs) (bind-apply (env-push e) c cs)
+    (err "wrong let expression" (list* (quote let) c cs))))
+
+(defn zip
+    as
+  (let zip (as as rs nil)
+       (cond
+         (some? nil? as) (rev rs)
+         (zip (map1 cdr as) (cons (map1 car as) rs)))))
+
+(defn fold
+    (f i . lls)
+  (cond
+    (nil? lss) i
+    (nil? (cdr lss)) (fold1 f i (car lss))
+    (fold1 (part apply f) (apply zip lss))))
+
+(defn map
+    (f . lss)
+  (cond
+    (nil? lss) nil
+    (nil? (cdr lss)) (map1 f (car lss))
+    (map1 (part apply f) (apply zip lss))))
+
+(defn each
+  (f . css)
+  (cond
+    (nil? css) nil
+    (nil? (cdr css)) (each1 f (car css))
+    (each1 (part apply f) (apply zip css))))
+
+(defn iota
+    (lo hi)
+  (let iota (hi (dec hi) rs nil)
+       (cond
+         (< hi lo) rs
+         (iota (dec hi) (cons hi rs)))))
+
+(defx when
+    e (t . bs)
+  (eval e (list if t (list* do bs) nil)))
+
+(defx if-let
+    e ((k x) l r)
+  (let (val (eval e x))
+    (if val (apply eval (env-push e) (lsit def k val) l)
+        (eval e r))))
+
+(defx when-let
+    e (x . bs)
+  (eval e (list if-let x (list* do bs) nil)))
+
+(defx cond-let
+    e (k . cs)
+  (cond
+    (nil? cs) nil
+    (nil? (cdr cs)) (eval e (car cs))
+    (let (val (eval e (car cs)))
+      (if val
+          (eval (env-push e) (list def k val) (cadr cs))
+          (apply e cond-let (cddr cs))))))
+
+
+
+;; match
+;; (defmodule core.case (export case) (import core.base) (file "core/case.wabi"))
+
+(def *guard* (quote |))
+
+(defn case-guard?
+    (es)
+  (= (cadr rs) *cs-sym*))
+
+(defn case-empty?
+    (es)
+  (nil? es))
+
+(defn case-single?
+    (es)
+  (nil? (cdr es)))
+
+(defn case-default
+    (e a)
+  (eval e a))
+
+(defn case-err
+    (e)
+  (case-default e (list err "match failed")))
+
+(defn match-sym
+    (e p x)
+  (eval e (list def p x))
+  e)
+
+(defn match-pair
+    (e (p . ps) (x . xs))
+  (when (match-pattern e p x)
+    (match-pattern e ps xs)))
+
+(defn match-map
+    (e p x)
+  (let match (ks (
+    (cond
+      (nil? ks) e
+      (map-get (car k) v) (do (match-pattern (map-get p k) (map-get x k))
+
+(defn match-pattern
+    (e p x)
+  (cond
+    (sym? p) (match-sym e p x)
+    (and (pair? p) (pair? x)) (match-pair e p x)
+    ;; (and (map? p) (map? x) (match-map e p x)
+    ;; (and (vec? p) (vec? x)) (match-vec e p x)
+    (= p x) e
+    false))
+
+
+
+
+(defn case-match-step
+    (e x p c . cs)
+  (if-let (e1 (match-pattern (env-push e) p x))
+      (if (not (= *guard* c))
+        (eval e1 c)
+        (if (eval e1 (car cs))
+            (eval e1 (cadr cs))
+            (case-match e x (cddr cs))))
+    (case-match e x cs)))
+
+(defn case-match (e x cs)
+  (cond
+    (nil? cs) nil
+    (nil? (cdr cs)) (eval e (car cs))
+    (apply case-match-step e x cs)))
+
+(defx case
+    e (v . cs)
+  (case-match e (eval e v) cs))
+
+(case a
+  1 'one
+  2 'two
+  n | (and (num? n) (> n 2)) 'larger-than-two
+  n | (and (num? n) (< n 0)) 'negative
+  _ 'boh)
+
+
+
+
+  ;; un valore è definito su più di un'espressione
