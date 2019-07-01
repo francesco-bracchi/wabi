@@ -14,6 +14,7 @@ typedef struct wabi_vm_struct
   wabi_word_t *mem_root;
   wabi_word_t *mem_alloc;
   wabi_word_t *symbol_table;
+  wabi_word_t *mem_to_space;
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;

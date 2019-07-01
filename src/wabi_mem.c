@@ -19,6 +19,7 @@
 
 #define WABI_MEM_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
+#define WABI_DEBUG 0
 
 wabi_word_t *
 wabi_allocate_space(wabi_word_t size)
@@ -103,7 +104,7 @@ wabi_mem_copy_val(wabi_vm vm, wabi_word_t *src)
     case WABI_TAG_MAP_HASH:
     case WABI_TAG_MAP_ENTRY:
       memcpy(res, src, WABI_MAP_BYTE_SIZE);
-      vm->mem_alloc+=WABI_MAP_SIZE;
+      vm->mem_alloc += WABI_MAP_SIZE;
       break;
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
@@ -139,9 +140,11 @@ inline static void
 wabi_mem_collect_map_entry(wabi_vm vm,
                            wabi_map_entry map)
 {
-  map->key = (wabi_word_t) wabi_mem_copy_val(vm, WABI_MAP_ENTRY_KEY(map));
-  map->value = (wabi_word_t) wabi_mem_copy_val(vm, WABI_MAP_ENTRY_VALUE(map)) | WABI_TAG_MAP_ENTRY;
-  vm->mem_scan +=2;
+  wabi_val key = wabi_mem_copy_val(vm, WABI_MAP_ENTRY_KEY(map));
+  wabi_val value = wabi_mem_copy_val(vm, WABI_MAP_ENTRY_VALUE(map));
+  map->key = (wabi_word_t) key;
+  map->value = (wabi_word_t) value | WABI_TAG_MAP_ENTRY;
+  vm->mem_scan += 2;
 }
 
 
@@ -150,12 +153,15 @@ wabi_mem_collect_map_array(wabi_vm vm,
                            wabi_map_array map)
 {
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
-  wabi_map table = WABI_MAP_ARRAY_TABLE(map);
-  wabi_map res = (wabi_map) vm->mem_alloc;
+  if(size) {
+    // todo: remove the if or not? the output is the same, number of operations not.
+    wabi_map table = WABI_MAP_ARRAY_TABLE(map);
+    wabi_map res = (wabi_map) vm->mem_alloc;
 
-  memcpy(res, table, WABI_MAP_BYTE_SIZE * size);
-  vm->mem_alloc += size * WABI_MAP_SIZE;
-  map->table = (wabi_word_t) res | WABI_TAG_MAP_ARRAY;
+    memcpy(res, table, WABI_MAP_BYTE_SIZE * size);
+    vm->mem_alloc += size * WABI_MAP_SIZE;
+    map->table = (wabi_word_t) res | WABI_TAG_MAP_ARRAY;
+  }
   vm->mem_scan += WABI_MAP_SIZE;
 }
 
@@ -170,43 +176,56 @@ wabi_mem_collect_map_hash(wabi_vm vm,
   wabi_word_t* res = vm->mem_alloc;
 
   memcpy(res, table, WABI_MAP_BYTE_SIZE * size);
-  vm->mem_alloc += WABI_MAP_BYTE_SIZE * size;
+  vm->mem_alloc += WABI_MAP_SIZE * size;
   map->table = (wabi_word_t) res | WABI_TAG_MAP_HASH;
-  vm->mem_scan+=2;
+  vm->mem_scan += WABI_MAP_SIZE;
 }
 
 
-void
-wabi_mem_collect_step(wabi_vm vm)
+inline static void
+wabi_mem_collect_all(wabi_vm vm)
 {
-  wabi_word_t tag;
-  tag = wabi_val_tag(vm->mem_scan);
-  if(tag <= WABI_TAG_ATOMIC_LIMIT) {
-    vm->mem_scan++;
-  }
-  else {
-    switch(tag) {
-    case WABI_TAG_PAIR:
-      wabi_mem_collect_pair(vm, (wabi_pair) vm->mem_scan);
-      break;
-    case WABI_TAG_BIN_BLOB:
-      vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
-      break;
-    case WABI_TAG_BIN_LEAF:
-      vm->mem_scan += 3;
-      break;
-    case WABI_TAG_SYMBOL:
-      wabi_mem_collect_symbol(vm, vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_ENTRY:
-      wabi_mem_collect_map_entry(vm, (wabi_map_entry) vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_ARRAY:
-      wabi_mem_collect_map_array(vm, (wabi_map_array) vm->mem_scan);
-      break;
-    case WABI_TAG_MAP_HASH:
-      wabi_mem_collect_map_hash(vm, (wabi_map_hash) vm->mem_scan);
-      break;
+  while(vm->mem_scan < vm->mem_alloc) {
+
+    #if WABI_DEBUG
+    if(!((wabi_word_t) vm->mem_scan % 4096)) putchar('.');
+    #endif
+
+    wabi_word_t tag;
+    tag = wabi_val_tag(vm->mem_scan);
+    #if WABI_DEBUG
+    printf("%lu, %lx\n", vm->mem_scan - vm->mem_from_space, tag);
+    #endif
+    if(tag <= WABI_TAG_ATOMIC_LIMIT) {
+      vm->mem_scan++;
+    }
+    else {
+      switch(tag) {
+      case WABI_TAG_PAIR:
+        wabi_mem_collect_pair(vm, (wabi_pair) vm->mem_scan);
+        break;
+      case WABI_TAG_BIN_BLOB:
+        vm->mem_scan += (*vm->mem_scan & WABI_VALUE_MASK);
+        break;
+      case WABI_TAG_BIN_LEAF:
+        vm->mem_scan += 3;
+        break;
+      case WABI_TAG_SYMBOL:
+        wabi_mem_collect_symbol(vm, vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_ENTRY:
+        wabi_mem_collect_map_entry(vm, (wabi_map_entry) vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_ARRAY:
+        wabi_mem_collect_map_array(vm, (wabi_map_array) vm->mem_scan);
+        break;
+      case WABI_TAG_MAP_HASH:
+        wabi_mem_collect_map_hash(vm, (wabi_map_hash) vm->mem_scan);
+        break;
+      default:
+        vm->errno = WABI_ERROR_UNKNOWN;
+        return;
+      }
     }
   }
 }
@@ -215,8 +234,10 @@ wabi_mem_collect_step(wabi_vm vm)
 void
 wabi_mem_collect(wabi_vm vm)
 {
-  wabi_word_t *wabi_mem_to_space = vm->mem_from_space;
-  // wabi_map to_symbol_table = (wabi_map) vm->symbol_table;
+  #if WABI_DEBUG
+  printf("GC start\n");
+  #endif
+  vm->mem_to_space = vm->mem_from_space;
   vm->mem_from_space = wabi_allocate_space(vm->mem_size);
   if(vm->mem_from_space == NULL) {
     vm->errno = WABI_ERROR_NOMEM;
@@ -229,15 +250,17 @@ wabi_mem_collect(wabi_vm vm)
   vm->mem_limit = vm->mem_from_space + vm->mem_size;
   vm->mem_alloc = vm->mem_from_space;
   vm->mem_scan = vm->mem_from_space;
-
   vm->symbol_table = (wabi_word_t*) wabi_map_empty(vm);
+  vm->errno = WABI_ERROR_NONE;
+
   vm->mem_root = wabi_mem_copy_val(vm, vm->mem_root);
 
-  while(vm->mem_scan < vm->mem_alloc) {
-    wabi_mem_collect_step(vm);
-  }
-  // wabi_mem_collect_symbol_table(vm, to_symbol_table);
-  free(wabi_mem_to_space);
+  wabi_mem_collect_all(vm);
+  free(vm->mem_to_space);
+
+  #if WABI_DEBUG
+  printf("GC end\n");
+  #endif
 }
 
 
@@ -269,5 +292,5 @@ wabi_word_t
 wabi_mem_total(wabi_vm vm)
 {
   // if not running gc!
-  return (wabi_word_t)(vm->mem_alloc - vm->mem_from_space);
+  return (wabi_word_t)(vm->mem_limit - vm->mem_from_space);
 }

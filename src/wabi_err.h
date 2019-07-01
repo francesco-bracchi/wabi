@@ -14,6 +14,8 @@
 #define WABI_ERROR_INDEX_OUT_OF_RANGE 5
 #define WABI_ERROR_HASH_CONFLICT 6
 #define WABI_ERROR_EOF_READ 7
+#define WABI_ERROR_SYMBOL_TOO_LONG 8
+#define WABI_ERROR_UNKNOWN 9
 
 char* wabi_err_msg(int errno);
 

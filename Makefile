@@ -14,6 +14,7 @@ TESTS	        = $(shell ls ${TESTDIR}/*.c)
 TEST_OBJECTS	= $(TESTS:.c=.o)
 
 CFLAGS  = -g -Wall -foptimize-sibling-calls -O2 $(INCLUDES) $(LIBS)
+
 VERSION = "0.0.1"
 
 all: $(MAIN_TEST)

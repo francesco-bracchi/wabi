@@ -1,3 +1,4 @@
 wabi
 *.o
 *~
+wabi_test

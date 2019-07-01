@@ -36,6 +36,6 @@ wabi_assert_results() {
   printf("Total tests: %li\n", total);
   printf("Failed tests: %li\n", failures);
   printf("Success tests: %li\n", total - failures);
-  printf("time: %f\n", cpu_time);
+  printf("time: %fms\n", cpu_time / 1000);
   return !failures;
 }
