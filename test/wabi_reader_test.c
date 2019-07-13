@@ -20,18 +20,19 @@ void
 wabi_reader_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  vm->errno = 0;
-  wabi_vm_init(vm, 100 * 1024 * 1024); // 100MB
+  wabi_vm_init(vm, 10 * 1024 * 1024); // 100MB
 
   FILE *fd = fopen("test/test.wabi", "r");
 
   if(! fd) {
     printf("file not found\n");
+    return;
   }
   wabi_val expr = wabi_read_raw(vm, fd);
   if(vm->errno) {
     printf("error: %i\n", vm->errno);
   }
+  /* wabi_pr(expr); */
   ASSERT(expr != NULL);
 
   wabi_vm_free(vm);

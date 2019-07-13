@@ -2,7 +2,6 @@
 
 (def quotes (fx _ p p))
 
-
 (def id (wrap quote))
 
 (def list (wrap quotes))
@@ -332,9 +331,6 @@
     (= p x) e
     false))
 
-
-
-
 (defn case-match-step
     (e x p c . cs)
   (if-let (e1 (match-pattern (env-push e) p x))
@@ -354,15 +350,3 @@
 (defx case
     e (v . cs)
   (case-match e (eval e v) cs))
-
-(case a
-  1 'one
-  2 'two
-  n | (and (num? n) (> n 2)) 'larger-than-two
-  n | (and (num? n) (< n 0)) 'negative
-  _ 'boh)
-
-
-
-
-  ;; un valore è definito su più di un'espressione

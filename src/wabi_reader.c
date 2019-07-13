@@ -21,6 +21,7 @@ wabi_next(FILE *fd,
           char* cur)
 {
   *cur = getc(fd);
+
 }
 
 
@@ -105,7 +106,7 @@ wabi_read_binary(wabi_vm vm,
   }
   wabi_binary more = wabi_read_binary(vm, fd, cur);
   if(vm->errno) return NULL;
-  return wabi_binary_concat_raw(vm, (wabi_binary) leaf, more);
+  return wabi_binary_concat_raw(&(vm->store), (wabi_binary) leaf, more);
 }
 
 
@@ -117,6 +118,7 @@ wabi_read_symbol(wabi_vm vm,
   char *blob;
   size_t size;
   wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_binary_new(vm, WABI_READ_WORD_SIZE);
+
   if(vm->errno) return NULL;
   blob = (char*) leaf->data_ptr;
   size = 0;

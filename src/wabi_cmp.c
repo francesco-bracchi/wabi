@@ -9,8 +9,7 @@
 #include "wabi_symbol.h"
 #include "wabi_map.h"
 #include "wabi_cmp.h"
-
-#include "wabi_pr.h"
+#include "wabi_vm.h"
 
 static inline int
 wabi_cmp_leaves(wabi_binary_leaf left,

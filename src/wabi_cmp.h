@@ -3,6 +3,7 @@
 #define wabi_cmp_h
 
 #include "wabi_value.h"
+#include "wabi_vm.h"
 
 int
 wabi_cmp_raw(wabi_val left, wabi_val right);

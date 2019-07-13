@@ -3,7 +3,7 @@
 #define wabi_map_h
 
 #include "wabi_value.h"
-#include "wabi_vm.h"
+#include "wabi_store.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 
@@ -85,13 +85,13 @@ wabi_map_assoc(wabi_vm vm,
                wabi_val value);
 
 wabi_map
-wabi_map_assoc_raw(wabi_vm vm,
+wabi_map_assoc_raw(wabi_store store,
                    wabi_map map,
                    wabi_val key,
                    wabi_val value);
 
 wabi_map
-wabi_map_dissoc_raw(wabi_vm vm,
+wabi_map_dissoc_raw(wabi_store store,
                     wabi_map map,
                     wabi_val key);
 
@@ -99,6 +99,9 @@ wabi_val
 wabi_map_dissoc(wabi_vm vm,
                 wabi_val map,
                 wabi_val key);
+
+wabi_map
+wabi_map_empty_raw(wabi_store store);
 
 wabi_val
 wabi_map_empty(wabi_vm vm);

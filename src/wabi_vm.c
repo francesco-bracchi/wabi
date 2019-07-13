@@ -4,6 +4,7 @@
 #include "wabi_value.h"
 #include "wabi_store.h"
 
+
 void
 wabi_vm_init(wabi_vm vm, wabi_size_t size)
 {

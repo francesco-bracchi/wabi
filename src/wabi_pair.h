@@ -4,6 +4,7 @@
 
 #include "wabi_value.h"
 #include "wabi_vm.h"
+#include "wabi_store.h"
 
 #define WABI_PAIR_SIZE 2
 
@@ -17,6 +18,9 @@ typedef wabi_pair_t* wabi_pair;
 
 #define WABI_PAIR_CAR(e) ((wabi_val) ((e)->car))
 #define WABI_PAIR_CDR(e) ((wabi_val) ((e)->cdr & WABI_VALUE_MASK))
+
+wabi_pair
+wabi_cons_raw(wabi_store store, wabi_val car, wabi_val cdr);
 
 wabi_val
 wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr);

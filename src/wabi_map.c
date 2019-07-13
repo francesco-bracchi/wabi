@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "wabi_value.h"
+#include "wabi_store.h"
 #include "wabi_vm.h"
 #include "wabi_hash.h"
 #include "wabi_atomic.h"
@@ -26,7 +27,7 @@
  * Assoc operation
  */
 wabi_map
-wabi_map_hash_assoc_rec(wabi_vm vm,
+wabi_map_hash_assoc_rec(wabi_store store,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word_t hash,
@@ -34,7 +35,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
 
 
 wabi_map
-wabi_map_array_assoc_rec(wabi_vm vm,
+wabi_map_array_assoc_rec(wabi_store store,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word_t hash,
@@ -42,7 +43,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
 
 
 wabi_map
-wabi_map_assoc_rec(wabi_vm vm,
+wabi_map_assoc_rec(wabi_store store,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word_t hash,
@@ -50,12 +51,12 @@ wabi_map_assoc_rec(wabi_vm vm,
 
 
 wabi_map_hash
-wabi_map_array_promote(wabi_vm vm,
+wabi_map_array_promote(wabi_store store,
                        wabi_map_array map,
                        wabi_word_t hash_offset)
 {
-  wabi_map_hash new_map = (wabi_map_hash) wabi_vm_allocate(vm, WABI_MAP_SIZE);
-  if(vm->errno) return NULL;
+  wabi_map_hash new_map = (wabi_map_hash) wabi_store_allocate(store, WABI_MAP_SIZE);
+  if(! new_map) return NULL;
   new_map->bitmap = 0UL;
   new_map->table = WABI_TAG_MAP_HASH;
 
@@ -65,8 +66,8 @@ wabi_map_array_promote(wabi_vm vm,
   while(row < limit) {
     wabi_val key = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     wabi_word_t hash = wabi_hash_raw(key);
-    new_map = (wabi_map_hash) wabi_map_hash_assoc_rec(vm, new_map, (wabi_map_entry) row, hash, hash_offset);
-    if(vm->errno) return NULL;
+    new_map = (wabi_map_hash) wabi_map_hash_assoc_rec(store, new_map, (wabi_map_entry) row, hash, hash_offset);
+    if(!new_map) return NULL;
     row++;
   }
   return new_map;
@@ -74,7 +75,7 @@ wabi_map_array_promote(wabi_vm vm,
 
 // todo split in a couple of subroutines
 wabi_map
-wabi_map_array_assoc_rec(wabi_vm vm,
+wabi_map_array_assoc_rec(wabi_store store,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word_t hash,
@@ -95,8 +96,8 @@ wabi_map_array_assoc_rec(wabi_vm vm,
     } else if(cmp == 0) {
       // key found => replace
       wabi_word_t pos = row - table;
-      wabi_map_array new_map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE * (size + 1));
-      if(vm->errno) return NULL;
+      wabi_map_array new_map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE * (size + 1));
+      if(! new_map) return NULL;
 
       wabi_map new_table = (wabi_map) (new_map + 1);
       memcpy(new_table, table, WABI_MAP_BYTE_SIZE * size);
@@ -110,13 +111,13 @@ wabi_map_array_assoc_rec(wabi_vm vm,
   }
   // if not found and the hash is exhausted and the array map is bigger than the limit
   if(hash_offset > 0 && size >= WABI_MAP_ARRAY_LIMIT) {
-    wabi_map_hash hash_map = wabi_map_array_promote(vm, map, hash_offset);
-    if(vm->errno) return NULL;
-    return wabi_map_hash_assoc_rec(vm, hash_map, entry, hash, hash_offset);
+    wabi_map_hash hash_map = wabi_map_array_promote(store, map, hash_offset);
+    if(!hash_map) return NULL;
+    return wabi_map_hash_assoc_rec(store, hash_map, entry, hash, hash_offset);
   }
   // if not found and hash is exhausted, or the array map has more free entries
-  wabi_map_array new_map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE * (size + 2));
-  if(vm->errno) return NULL;
+  wabi_map_array new_map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE * (size + 2));
+  if(! new_map) return NULL;
 
   wabi_map new_table = (wabi_map) (new_map + 1);
   wabi_word_t pos = row - table;
@@ -132,7 +133,7 @@ wabi_map_array_assoc_rec(wabi_vm vm,
 
 
 wabi_map
-wabi_map_hash_assoc_rec(wabi_vm vm,
+wabi_map_hash_assoc_rec(wabi_store store,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word_t hash,
@@ -146,11 +147,11 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
 
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     wabi_map row = table + offset;
-    wabi_map_hash new_map = (wabi_map_hash) wabi_vm_allocate(vm, WABI_MAP_SIZE * (size + 1));
-    if(vm->errno) return NULL;
+    wabi_map_hash new_map = (wabi_map_hash) wabi_store_allocate(store, WABI_MAP_SIZE * (size + 1));
+    if(! new_map) return NULL;
 
-    wabi_map sub_map = wabi_map_assoc_rec(vm, row, entry, hash, hash_offset - 6);
-    if(vm->errno) return NULL;
+    wabi_map sub_map = wabi_map_assoc_rec(store, row, entry, hash, hash_offset - 6);
+    if(! sub_map) return NULL;
 
     wabi_map new_table = (wabi_map) (new_map + 1);
     memcpy(new_table, table, WABI_MAP_BYTE_SIZE * size);
@@ -161,8 +162,8 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
     return (wabi_map) new_map;
   }
   // offset: %lu index: %lu\n", offset, index);
-  wabi_map_hash new_map = (wabi_map_hash) wabi_vm_allocate(vm, WABI_MAP_SIZE * (size + 2));
-  if(vm->errno) return NULL;
+  wabi_map_hash new_map = (wabi_map_hash) wabi_store_allocate(store, WABI_MAP_SIZE * (size + 2));
+  if(! new_map) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
   memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
   *(new_table + offset) = (wabi_map_t) *entry;
@@ -176,7 +177,7 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
 
 
 static inline wabi_map
-wabi_map_entry_assoc_rec(wabi_vm vm,
+wabi_map_entry_assoc_rec(wabi_store store,
                          wabi_map_entry entry0,
                          wabi_map_entry entry,
                          wabi_word_t hash,
@@ -185,8 +186,8 @@ wabi_map_entry_assoc_rec(wabi_vm vm,
   int cmp = wabi_cmp_raw(WABI_MAP_ENTRY_KEY(entry0), WABI_MAP_ENTRY_KEY(entry));
   if(! cmp) return (wabi_map) entry;
 
-  wabi_map_array map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE * 3);
-  if(vm->errno) return NULL;
+  wabi_map_array map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE * 3);
+  if(! map) return NULL;
   wabi_map table = (wabi_map) (map + 1);
   if(cmp > 0) {
     *table = (wabi_map_t) *entry0;
@@ -202,7 +203,7 @@ wabi_map_entry_assoc_rec(wabi_vm vm,
 
 
 wabi_map
-wabi_map_assoc_rec(wabi_vm vm,
+wabi_map_assoc_rec(wabi_store store,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word_t hash,
@@ -210,31 +211,30 @@ wabi_map_assoc_rec(wabi_vm vm,
 {
   switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_HASH:
-    return (wabi_map) wabi_map_hash_assoc_rec(vm, (wabi_map_hash) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_hash_assoc_rec(store, (wabi_map_hash) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_ARRAY:
-    return (wabi_map) wabi_map_array_assoc_rec(vm, (wabi_map_array) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_array_assoc_rec(store, (wabi_map_array) map, entry, hash, hash_offset);
   case WABI_TAG_MAP_ENTRY:
-    return (wabi_map) wabi_map_entry_assoc_rec(vm, (wabi_map_entry) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_entry_assoc_rec(store, (wabi_map_entry) map, entry, hash, hash_offset);
   default:
-    vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
 }
 
 
 wabi_map
-wabi_map_assoc_raw(wabi_vm vm,
+wabi_map_assoc_raw(wabi_store store,
                    wabi_map map,
                    wabi_val key,
                    wabi_val value)
 {
   wabi_word_t hash = wabi_hash_raw(key);
-  wabi_map_entry entry = (wabi_map_entry) wabi_vm_allocate(vm, WABI_MAP_SIZE);
+  wabi_map_entry entry = (wabi_map_entry) wabi_store_allocate(store, WABI_MAP_SIZE);
+  if(! entry) return NULL;
   entry->key = (wabi_word_t) key;
   entry->value = (wabi_word_t) value | WABI_TAG_MAP_ENTRY;
-  if(vm->errno) return NULL;
 
-  return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+  return wabi_map_assoc_rec(store, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
 
@@ -246,10 +246,18 @@ wabi_map_assoc(wabi_vm vm,
 {
   if(wabi_val_is_nil(map)) {
     map = wabi_map_empty(vm);
-    if(vm->errno) return NULL;
+    if(! map) {
+      vm->errno = WABI_ERROR_NOMEM;
+      return NULL;
+    };
   }
   if(wabi_val_is_map(map)) {
-    return (wabi_val) wabi_map_assoc_raw(vm, (wabi_map) map, key, value);
+    wabi_map res = wabi_map_assoc_raw(&(vm->store), (wabi_map) map, key, value);
+    if(! map) {
+      vm->errno = WABI_ERROR_NOMEM;
+      return NULL;
+    };
+    return (wabi_val) res;
   }
   vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
@@ -261,7 +269,7 @@ wabi_map_assoc(wabi_vm vm,
  */
 
 static wabi_map
-wabi_map_dissoc_rec(wabi_vm vm,
+wabi_map_dissoc_rec(wabi_store store,
                     wabi_map map,
                     wabi_val key,
                     wabi_word_t hash,
@@ -269,7 +277,7 @@ wabi_map_dissoc_rec(wabi_vm vm,
 
 
 static inline wabi_map
-wabi_map_entry_dissoc_rec(wabi_vm vm,
+wabi_map_entry_dissoc_rec(wabi_store store,
                       wabi_map_entry entry,
                       wabi_val key,
                       wabi_word_t hash,
@@ -279,7 +287,7 @@ wabi_map_entry_dissoc_rec(wabi_vm vm,
 }
 
 static inline wabi_map
-wabi_map_array_dissoc_rec(wabi_vm vm,
+wabi_map_array_dissoc_rec(wabi_store store,
                       wabi_map_array map,
                       wabi_val key,
                       wabi_word_t hash,
@@ -298,8 +306,8 @@ wabi_map_array_dissoc_rec(wabi_vm vm,
     } else if(cmp == 0) {
       // key found
       wabi_word_t offset = row - table;
-      wabi_map_array new_map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE * size);
-      if(vm->errno) return NULL;
+      wabi_map_array new_map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE * size);
+      if(! new_map) return NULL;
 
       wabi_map new_table = (wabi_map) (new_map + 1);
       memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
@@ -345,7 +353,7 @@ wabi_map_insert_sort(wabi_map_entry table,
 
 
 static inline wabi_map
-wabi_map_hash_demote(wabi_vm vm,
+wabi_map_hash_demote(wabi_store store,
                      wabi_map_hash map)
 {
   wabi_word_t bitmap = WABI_MAP_HASH_BITMAP(map);
@@ -369,8 +377,8 @@ wabi_map_hash_demote(wabi_vm vm,
     }
     row++;
   }
-  wabi_map_array new_map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE * (1 + len));
-  if(vm->errno) return NULL;
+  wabi_map_array new_map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE * (1 + len));
+  if(! new_map) return NULL;
   wabi_map new_table = (wabi_map) (new_map + 1);
 
   wabi_map_iter_t iter;
@@ -390,7 +398,7 @@ wabi_map_hash_demote(wabi_vm vm,
 }
 
 static inline wabi_map
-wabi_map_hash_dissoc_rec(wabi_vm vm,
+wabi_map_hash_dissoc_rec(wabi_store store,
                          wabi_map_hash map,
                          wabi_val key,
                          wabi_word_t hash,
@@ -404,10 +412,10 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     wabi_map_hash new_map;
     wabi_map row = table + offset;
-    wabi_map sub_map = wabi_map_dissoc_rec(vm, row, key, hash, hash_offset - 6);
+    wabi_map sub_map = wabi_map_dissoc_rec(store, row, key, hash, hash_offset - 6);
     if(!sub_map) {
-      new_map = (wabi_map_hash) wabi_vm_allocate(vm, WABI_MAP_SIZE * size);
-      if(vm->errno) return NULL;
+      new_map = (wabi_map_hash) wabi_store_allocate(store, WABI_MAP_SIZE * size);
+      if(! new_map) return NULL;
       wabi_map new_table = (wabi_map) (new_map + 1);
 
       memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
@@ -416,8 +424,8 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
     }
     else {
-      new_map = (wabi_map_hash) wabi_vm_allocate(vm, WABI_MAP_SIZE * (size + 1));
-      if(vm->errno) return NULL;
+      new_map = (wabi_map_hash) wabi_store_allocate(store, WABI_MAP_SIZE * (size + 1));
+      if(! new_map) return NULL;
       wabi_map new_table = (wabi_map) (new_map + 1);
       memcpy(new_table, table, size * WABI_MAP_BYTE_SIZE);
       *(new_table + offset) = (wabi_map_t) *sub_map;
@@ -425,7 +433,7 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
       new_map->table = (wabi_word_t) new_table | WABI_TAG_MAP_HASH;
     }
     if(size - 1 <= WABI_MAP_ARRAY_LIMIT) {
-      return wabi_map_hash_demote(vm, (wabi_map_hash) new_map);
+      return wabi_map_hash_demote(store, (wabi_map_hash) new_map);
     }
     return (wabi_map) new_map;
   }
@@ -434,7 +442,7 @@ wabi_map_hash_dissoc_rec(wabi_vm vm,
 
 
 static wabi_map
-wabi_map_dissoc_rec(wabi_vm vm,
+wabi_map_dissoc_rec(wabi_store store,
                     wabi_map map,
                     wabi_val key,
                     wabi_word_t hash,
@@ -442,27 +450,25 @@ wabi_map_dissoc_rec(wabi_vm vm,
 {
   switch(wabi_val_tag((wabi_val) map)) {
   case WABI_TAG_MAP_ENTRY:
-    return wabi_map_entry_dissoc_rec(vm, (wabi_map_entry) map, key, hash, hash_offset);
+    return wabi_map_entry_dissoc_rec(store, (wabi_map_entry) map, key, hash, hash_offset);
   case WABI_TAG_MAP_ARRAY:
-    return wabi_map_array_dissoc_rec(vm, (wabi_map_array) map, key, hash, hash_offset);
+    return wabi_map_array_dissoc_rec(store, (wabi_map_array) map, key, hash, hash_offset);
   case WABI_TAG_MAP_HASH:
-    return wabi_map_hash_dissoc_rec(vm, (wabi_map_hash) map, key, hash, hash_offset);
+    return wabi_map_hash_dissoc_rec(store, (wabi_map_hash) map, key, hash, hash_offset);
   default:
-    vm->errno = WABI_ERROR_TYPE_MISMATCH;
     return NULL;
   }
 }
 
 
 wabi_map
-wabi_map_dissoc_raw(wabi_vm vm,
+wabi_map_dissoc_raw(wabi_store store,
                     wabi_map map,
                     wabi_val key)
 {
   wabi_word_t hash = wabi_hash_raw(key);
-  return wabi_map_dissoc_rec(vm, map, key, hash, WABI_MAP_INITIAL_OFFSET);
+  return wabi_map_dissoc_rec(store, map, key, hash, WABI_MAP_INITIAL_OFFSET);
 }
-
 
 
 wabi_val
@@ -474,9 +480,13 @@ wabi_map_dissoc(wabi_vm vm,
     return wabi_map_empty(vm);
   }
   if(wabi_val_is_map(map)) {
-    return (wabi_val) wabi_map_dissoc_raw(vm, (wabi_map) map, key);
+    wabi_map res = wabi_map_dissoc_raw(&(vm->store), (wabi_map) map, key);
+    if(! res) {
+      vm->errno = WABI_ERROR_NOMEM;
+      return NULL;
+    }
+    return (wabi_val) res;
   }
-  vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
 }
 
@@ -583,12 +593,12 @@ wabi_map_get(wabi_vm vm,
              wabi_val map,
              wabi_val key)
 {
-  if(wabi_val_is_nil(map)) {
-    return map;
-  }
   if(wabi_val_is_map(map)) {
     wabi_val res = wabi_map_get_raw((wabi_map) map, key);
     if(res) return res;
+    return wabi_nil(vm);
+  }
+  if(wabi_val_is_nil(map)) {
     return wabi_nil(vm);
   }
   vm->errno = WABI_ERROR_TYPE_MISMATCH;
@@ -711,17 +721,28 @@ wabi_map_iterator_next(wabi_map_iter iter) {
  * EMPTY MAP
  */
 
-wabi_val
-wabi_map_empty(wabi_vm vm)
+wabi_map
+wabi_map_empty_raw(wabi_store store)
 {
-  wabi_map_array map = (wabi_map_array) wabi_vm_allocate(vm, WABI_MAP_SIZE);
-  if(vm->errno) return NULL;
+  wabi_map_array map = (wabi_map_array) wabi_store_allocate(store, WABI_MAP_SIZE);
+  if(!map) return NULL;
 
   map->size = 0UL;
   map->table = WABI_TAG_MAP_ARRAY;
-  return (wabi_val) map;
+  return (wabi_map) map;
 }
 
+
+wabi_val
+wabi_map_empty(wabi_vm vm)
+{
+  wabi_map map = wabi_map_empty_raw(&(vm->store));
+  if(! map) {
+    vm->errno = WABI_ERROR_NOMEM;
+    return NULL;
+  }
+  return (wabi_val) map;
+}
 
 /**
  * Length
@@ -755,10 +776,10 @@ wabi_map_length_raw(wabi_map map) {
 wabi_val
 wabi_map_length(wabi_vm vm, wabi_val map)
 {
-  if(!wabi_val_is_map(map)) {
-    vm->errno = WABI_ERROR_TYPE_MISMATCH;
-    return NULL;
+  if(wabi_val_is_map(map)) {
+    wabi_word_t len = wabi_map_length_raw((wabi_map) map);
+    return wabi_smallint(vm, len);
   }
-  wabi_word_t len = wabi_map_length_raw((wabi_map) map);
-  return wabi_smallint(vm, len);
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
+  return NULL;
 }

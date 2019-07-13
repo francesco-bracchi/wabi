@@ -41,6 +41,7 @@ wabi_store_init(wabi_store store, wabi_size_t size)
   store->limit = store->from_space + store->size;
   store->alloc = store->from_space;
   store->scan = NULL;
+  store->symbol_table = (wabi_word_t*) wabi_map_empty_raw(store);
   return WABI_ERROR_NONE;
 }
 
@@ -125,15 +126,20 @@ wabi_store_collect_pair(wabi_store store, wabi_pair pair)
 inline static void
 wabi_store_collect_symbol(wabi_store store, wabi_val sym)
 {
-  wabi_val new_bin = wabi_store_copy_val(store, (wabi_val)(*sym & WABI_VALUE_MASK));
-  *sym = (wabi_word_t) new_bin | WABI_TAG_SYMBOL;
+  wabi_val bin = (wabi_val) (*sym & WABI_VALUE_MASK);
+  wabi_val interned = wabi_map_get_raw((wabi_map) store->symbol_table, bin);
+  if(interned != NULL) {
+    wabi_val new_bin = wabi_store_copy_val(store, bin);
+    *sym = (wabi_word_t) new_bin | WABI_TAG_SYMBOL;
+    store->symbol_table = (wabi_word_t*) wabi_map_assoc_raw(store, (wabi_map) store->symbol_table, new_bin, sym);
+  }
   store->scan++;
 }
 
 
 inline static void
 wabi_store_collect_map_entry(wabi_store store,
-                       wabi_map_entry map)
+                             wabi_map_entry map)
 {
   wabi_val key = wabi_store_copy_val(store, WABI_MAP_ENTRY_KEY(map));
   wabi_val value = wabi_store_copy_val(store, WABI_MAP_ENTRY_VALUE(map));
@@ -226,6 +232,8 @@ wabi_store_collect(wabi_store store)
 
   store->to_space = store->from_space;
   store->from_space = wabi_store_allocate_space(store->size);
+  store->symbol_table = (wabi_word_t *) wabi_map_empty_raw(store);
+
   if(store->from_space == NULL) {
     return WABI_ERROR_NOMEM;
   }

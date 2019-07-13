@@ -16,7 +16,6 @@ void
 wabi_binary_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  vm->errno = 0;
   wabi_vm_init(vm, 10 * 1024 * 1024); // 2MB
 
   wabi_vm_free(vm);

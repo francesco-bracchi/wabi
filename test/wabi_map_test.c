@@ -326,7 +326,6 @@ void
 wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  vm->errno = 0;
   wabi_vm_init(vm, 64 * 1024 * 1024);
 
   wabi_map_test_assoc_empty(vm);

@@ -5,6 +5,7 @@
 #include "wabi_value.h"
 #include "wabi_err.h"
 #include "wabi_vm.h"
+#include "wabi_store.h"
 
 typedef struct wabi_binary_leaf_struct
 {
@@ -42,18 +43,15 @@ typedef wabi_binary_t* wabi_binary;
 #define WABI_BINARY_DATA_PTR(bin) ((char*) ((bin)->data_ptr))
 
 
-wabi_val
-wabi_blob_new(wabi_vm vm,
-              wabi_size_t size);
-
-
 wabi_size_t
 wabi_binary_word_size(wabi_size_t size);
 
 
 wabi_val
-wabi_binary_new(wabi_vm vm, wabi_size_t size);
+wabi_binary_new_raw(wabi_store store, wabi_size_t size);
 
+wabi_val
+wabi_binary_new(wabi_vm vm, wabi_size_t size);
 
 wabi_val
 wabi_binary_new_from_cstring(wabi_vm vm, char* cstring);
@@ -68,16 +66,11 @@ wabi_binary_concat(wabi_vm vm, wabi_val left, wabi_val right);
 
 
 wabi_binary
-wabi_binary_concat_raw(wabi_vm vm, wabi_binary left, wabi_binary right);
+wabi_binary_concat_raw(wabi_store store, wabi_binary left, wabi_binary right);
 
 
 wabi_val
 wabi_binary_sub(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len);
-
-
-// this function is useful during the GC phase
-wabi_val
-wabi_binary_compact(wabi_vm vm, wabi_val bin);
 
 
 // this function is useful during the GC phase
