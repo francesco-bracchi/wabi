@@ -8,7 +8,6 @@
 
 #include "../src/wabi_value.h"
 #include "../src/wabi_err.h"
-#include "../src/wabi_mem.h"
 #include "../src/wabi_vm.h"
 #include "../src/wabi_atomic.h"
 #include "../src/wabi_binary.h"
@@ -97,8 +96,7 @@ void
 wabi_cmp_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  vm->errno = 0;
-  wabi_mem_init(vm, 10 * 1024 * 1024); // 2MB
+  wabi_vm_init(vm, 10 * 1024 * 1024); // 2MB
 
   test_wabi_binary_compare_different_string_same_length(vm);
   test_wabi_binary_compare_different_string_same_prefix(vm);
@@ -108,6 +106,6 @@ wabi_cmp_test()
   test_wabi_binary_compare_right_is_node(vm);
   test_wabi_binary_compare_node_various_overlappings(vm);
   test_wabi_smallint_compare(vm),
-  wabi_mem_free(vm);
+  wabi_vm_free(vm);
   free(vm);
 }

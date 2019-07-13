@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include "wabi_value.h"
-#include "wabi_mem.h"
 #include "wabi_vm.h"
 #include "wabi_binary.h"
 #include "wabi_pair.h"

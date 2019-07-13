@@ -9,7 +9,6 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_err.h"
-#include "wabi_mem.h"
 #include "wabi_atomic.h"
 #include "wabi_binary.h"
 
@@ -27,7 +26,7 @@ wabi_val
 wabi_blob_new(wabi_vm vm, wabi_size_t size)
 {
   size ++;
-  wabi_val res = wabi_mem_allocate(vm, size);
+  wabi_val res = wabi_vm_allocate(vm, size);
   if(vm->errno) return NULL;
   *res = size | WABI_TAG_BIN_BLOB;
   return res + 1;
@@ -36,11 +35,11 @@ wabi_blob_new(wabi_vm vm, wabi_size_t size)
 wabi_val
 wabi_binary_new(wabi_vm vm, wabi_size_t size)
 {
-  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_mem_allocate(vm, WABI_BINARY_LEAF_SIZE);
+  wabi_binary_leaf leaf = (wabi_binary_leaf) wabi_vm_allocate(vm, WABI_BINARY_LEAF_SIZE);
   if(vm->errno) return NULL;
 
   wabi_size_t word_size = wabi_binary_word_size(size);
-  wabi_word_t* blob = (wabi_word_t*) wabi_mem_allocate(vm, word_size + 1);
+  wabi_word_t* blob = (wabi_word_t*) wabi_vm_allocate(vm, word_size + 1);
   if(vm->errno) return NULL;
 
   leaf->length = size | WABI_TAG_BIN_LEAF;
@@ -84,7 +83,7 @@ wabi_binary_length(wabi_vm vm, wabi_val bin)
 wabi_binary
 wabi_binary_concat_raw(wabi_vm vm, wabi_binary left, wabi_binary right)
 {
-  wabi_binary_node node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
+  wabi_binary_node node = (wabi_binary_node) wabi_vm_allocate(vm, WABI_BINARY_NODE_SIZE);
   if(vm->errno) return NULL;
 
   wabi_size_t length = WABI_BINARY_LENGTH(left) + WABI_BINARY_LENGTH(right);
@@ -112,7 +111,7 @@ wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size_t from, wabi_size_t l
 static wabi_binary
 wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size_t from, wabi_size_t len)
 {
-  wabi_binary_leaf new_leaf = (wabi_binary_leaf) wabi_mem_allocate(vm, WABI_BINARY_LEAF_SIZE);
+  wabi_binary_leaf new_leaf = (wabi_binary_leaf) wabi_vm_allocate(vm, WABI_BINARY_LEAF_SIZE);
   if(vm->errno) return NULL;
 
   new_leaf->length = len | WABI_TAG_BIN_LEAF;
@@ -133,7 +132,7 @@ wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size_t from, wabi_s
   } else if(pivot <= from) {
     return wabi_binary_sub_aux(vm, right, from - pivot, len);
   } else {
-    wabi_binary_node new_node = (wabi_binary_node) wabi_mem_allocate(vm, WABI_BINARY_NODE_SIZE);
+    wabi_binary_node new_node = (wabi_binary_node) wabi_vm_allocate(vm, WABI_BINARY_NODE_SIZE);
     if(vm->errno) return NULL;
 
     wabi_binary new_left = wabi_binary_sub_aux(vm, left, from, pivot - from);

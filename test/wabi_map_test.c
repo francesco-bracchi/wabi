@@ -8,7 +8,6 @@
 
 #include "../src/wabi_value.h"
 #include "../src/wabi_err.h"
-#include "../src/wabi_mem.h"
 #include "../src/wabi_vm.h"
 #include "../src/wabi_binary.h"
 #include "../src/wabi_atomic.h"
@@ -44,9 +43,9 @@ wabi_map_test_assoc_many(wabi_vm vm)
 
     if (vm->errno) {
       printf("x");
-      vm->mem_root = m;
-      wabi_mem_collect(vm);
-      m = vm->mem_root;
+      vm->store.root = m;
+      wabi_vm_collect(vm);
+      m = vm->store.root;
       j--;
       continue;
     }
@@ -55,9 +54,9 @@ wabi_map_test_assoc_many(wabi_vm vm)
 
     if (vm->errno) {
       printf("y");
-      vm->mem_root = m;
-      wabi_mem_collect(vm);
-      m = vm->mem_root;
+      vm->store.root = m;
+      wabi_vm_collect(vm);
+      m = vm->store.root;
       j--;
       continue;
     }
@@ -66,9 +65,9 @@ wabi_map_test_assoc_many(wabi_vm vm)
 
     if (vm->errno) {
       printf("z");
-      vm->mem_root = m0;
-      wabi_mem_collect(vm);
-      m = vm->mem_root;
+      vm->store.root = m0;
+      wabi_vm_collect(vm);
+      m = vm->store.root;
       j--;
       continue;
     }
@@ -328,7 +327,7 @@ wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 64 * 1024 * 1024);
+  wabi_vm_init(vm, 64 * 1024 * 1024);
 
   wabi_map_test_assoc_empty(vm);
   wabi_map_test_assoc_one(vm);
@@ -342,6 +341,7 @@ wabi_map_test()
   wabi_map_test_dissoc_length_gt_limit(vm);
   wabi_map_test_dissoc_demote(vm);
   wabi_map_test_hash(vm);
-  wabi_mem_free(vm);
+
+  wabi_vm_free(vm);
   free(vm);
 }

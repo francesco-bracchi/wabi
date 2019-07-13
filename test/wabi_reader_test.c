@@ -8,7 +8,6 @@
 
 #include "../src/wabi_value.h"
 #include "../src/wabi_err.h"
-#include "../src/wabi_mem.h"
 #include "../src/wabi_vm.h"
 #include "../src/wabi_binary.h"
 #include "../src/wabi_atomic.h"
@@ -22,7 +21,7 @@ wabi_reader_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
   vm->errno = 0;
-  wabi_mem_init(vm, 100 * 1024 * 1024); // 100MB
+  wabi_vm_init(vm, 100 * 1024 * 1024); // 100MB
 
   FILE *fd = fopen("test/test.wabi", "r");
 
@@ -35,4 +34,5 @@ wabi_reader_test()
   }
   ASSERT(expr != NULL);
 
+  wabi_vm_free(vm);
 }
