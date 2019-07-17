@@ -5,6 +5,7 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_store.h"
+#include "wabi_binary.h"
 
 #define WABI_SYMBOL_BINARY(s) ((wabi_binary) (*(s) & WABI_VALUE_MASK))
 

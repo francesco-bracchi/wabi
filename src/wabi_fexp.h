@@ -12,10 +12,4 @@ typedef struct wabi_fexp_struct {
 
 typedef wabi_fexp_t* wabi_fexp;
 
-/* wabi_fexp */
-/* wabi_fexp_new(wabi_vm vm, */
-/*               wabi_val env, */
-/*               wabi_val parameter_env, */
-/*               wabi_val  parameters) */
-
 #endif
