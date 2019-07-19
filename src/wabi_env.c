@@ -3,13 +3,12 @@
 #include <stddef.h>
 #include "wabi_env.h"
 #include "wabi_store.h"
-#include "wabi_value.h"
 #include "wabi_symbol.h"
 #include "wabi_map.h"
 #include "wabi_err.h"
 
 
-inline static wabi_env
+wabi_env
 wabi_env_new_raw(wabi_store store, wabi_env prev)
 {
   wabi_map data = (wabi_map) wabi_map_empty_raw(store);
@@ -34,7 +33,7 @@ wabi_env_empty(wabi_vm vm)
     vm->errno = WABI_ERROR_NOMEM;
     return NULL;
   }
-  return res;
+  return (wabi_val) res;
 }
 
 
@@ -67,11 +66,11 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
 wabi_env
 wabi_env_assoc(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 {
-  wabi_map data1 = wabi_map_assoc_raw(&(vm->store), (wabi_map) env->data, (wabi_val) k, v);
-  if(! data1) {
+  wabi_map data = wabi_map_assoc_raw(&(vm->store), (wabi_map) env->data, (wabi_val) k, v);
+  if(! data) {
     vm->errno = WABI_ERROR_NOMEM;
     return NULL;
   }
-  env->data = (wabi_word_t) data1;
+  env->data = (wabi_word_t) data;
   return env;
 }
