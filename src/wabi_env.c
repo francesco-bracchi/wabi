@@ -19,7 +19,7 @@ wabi_env_new_raw(wabi_store store, wabi_env prev)
   if(! res)  {
     return NULL;
   }
-  res->prev = (wabi_word_t) prev | WABI_TAG_ENVIRONMENT;
+  res->prev = (wabi_word_t) prev | WABI_TAG_ENV;
   res->data = (wabi_word_t) data;
   return res;
 }
@@ -28,12 +28,10 @@ wabi_env_new_raw(wabi_store store, wabi_env prev)
 wabi_env
 wabi_env_empty(wabi_vm vm)
 {
-  wabi_env res = wabi_env_new_raw(&(vm->store), NULL);
-  if(! res) {
-    vm->errno = WABI_ERROR_NOMEM;
-    return NULL;
-  }
-  return (wabi_val) res;
+  wabi_env res = (wabi_env) wabi_env_new_raw(&(vm->store), NULL);
+  if(res) return res;
+  vm->errno = WABI_ERROR_NOMEM;
+  return NULL;
 }
 
 

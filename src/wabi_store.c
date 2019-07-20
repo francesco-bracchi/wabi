@@ -15,6 +15,8 @@
 #include "wabi_pair.h"
 #include "wabi_hash.h"
 #include "wabi_map.h"
+#include "wabi_env.h"
+#include "wabi_verb.h"
 
 #define WABI_STORE_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -81,7 +83,6 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
 wabi_word_t *
 wabi_store_copy_val(wabi_store store, wabi_word_t *src)
 {
-  // todo: use wbi_val_type(src)
   wabi_word_t tag = wabi_val_tag(src);
   if(tag == WABI_TAG_FORWARD) {
     return (wabi_word_t *) (*src & WABI_VALUE_MASK);
@@ -183,6 +184,30 @@ wabi_store_collect_map_hash(wabi_store store,
 }
 
 
+inline static void
+wabi_store_collect_environmnet(wabi_store store, wabi_env env)
+{
+  if(env->prev) {
+    env->prev = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (env->prev | WABI_VALUE_MASK)) | WABI_TAG_ENV;
+  }
+  env->data = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (env->data | WABI_VALUE_MASK));
+  store->scan += 2;
+}
+
+
+inline static void
+wabi_store_collect_verb(wabi_store store, wabi_verb_derived verb)
+{
+  wabi_word_t tag = verb->static_env & WABI_TAG_MASK;
+  verb->static_env = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->static_env | WABI_VALUE_MASK)) | tag;
+  verb->dynamic_env_name = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->dynamic_env_name | WABI_VALUE_MASK));
+  verb->arguments = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->arguments | WABI_VALUE_MASK));
+  verb->body = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->body | WABI_VALUE_MASK));
+
+  store->scan+= WABI_VERB_DERIVED_SIZE;
+}
+
+
 inline static int
 wabi_store_collect_all(wabi_store store)
 {
@@ -215,6 +240,17 @@ wabi_store_collect_all(wabi_store store)
         break;
       case WABI_TAG_MAP_HASH:
         wabi_store_collect_map_hash(store, (wabi_map_hash) store->scan);
+        break;
+      case WABI_TAG_ENV:
+        wabi_store_collect_environmnet(store, (wabi_env) store->scan);
+        break;
+      case WABI_TAG_BOPERATIVE:
+      case WABI_TAG_BAPPLICATIVE:
+        store->scan++;
+        break;
+      case WABI_TAG_OPERATIVE:
+      case WABI_TAG_APPLICATIVE:
+        wabi_store_collect_verb(store, (wabi_verb_derived) store->scan);
         break;
       default:
         return WABI_ERROR_UNKNOWN;
