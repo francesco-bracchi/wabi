@@ -11,6 +11,7 @@
 #include "../src/wabi_vm.h"
 #include "../src/wabi_atomic.h"
 #include "../src/wabi_binary.h"
+#include "../src/wabi_env.h"
 #include "../src/wabi_cmp.h"
 
 void
@@ -92,11 +93,49 @@ test_wabi_smallint_compare(wabi_vm vm)
   ASSERT(wabi_cmp_raw(l, r) < 0);
 }
 
+
+void test_wabi_env_compare(wabi_vm vm)
+{
+
+  wabi_env e0 = wabi_env_empty(vm);
+  wabi_symbol k0 = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val v0 = wabi_smallint(vm, 10U);
+  wabi_env_assoc(vm, e0, k0, v0);
+
+  wabi_env e1 = wabi_env_empty(vm);
+  wabi_symbol k1 = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val v1 = wabi_smallint(vm, 10U);
+  wabi_env_assoc(vm, e1, k1, v1);
+
+
+  ASSERT(wabi_cmp_raw((wabi_val) e0, (wabi_val) e1) == 0);
+}
+
+
+void test_wabi_env_extended(wabi_vm vm)
+{
+
+  wabi_env e = wabi_env_empty(vm);
+  wabi_env e0 = wabi_env_extend(vm, e);
+  wabi_symbol k0 = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val v0 = wabi_smallint(vm, 10U);
+  wabi_env_assoc(vm, e0, k0, v0);
+
+  wabi_env e1 = wabi_env_empty(vm);
+  wabi_symbol k1 = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val v1 = wabi_smallint(vm, 10U);
+  wabi_env_assoc(vm, e1, k1, v1);
+
+
+  ASSERT(wabi_cmp_raw((wabi_val) e0, (wabi_val) e1) != 0);
+  ASSERT(wabi_cmp_raw((wabi_val) e1, (wabi_val) e0) != 0);
+}
+
 void
 wabi_cmp_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  wabi_vm_init(vm, 10 * 1024 * 1024); // 2MB
+  wabi_vm_init(vm, 10 * 1024 * 1024); // 10MB
 
   test_wabi_binary_compare_different_string_same_length(vm);
   test_wabi_binary_compare_different_string_same_prefix(vm);
@@ -105,7 +144,8 @@ wabi_cmp_test()
   test_wabi_binary_compare_left_is_node(vm);
   test_wabi_binary_compare_right_is_node(vm);
   test_wabi_binary_compare_node_various_overlappings(vm);
-  test_wabi_smallint_compare(vm),
+  test_wabi_smallint_compare(vm);
+  test_wabi_env_compare(vm);
   wabi_vm_free(vm);
   free(vm);
 }

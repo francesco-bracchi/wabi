@@ -69,7 +69,9 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
   store->alloc += WABI_BINARY_LEAF_SIZE;
 
   new_blob = store->alloc;
-  store->alloc += 1 + word_size;
+  store->alloc += 2 + word_size;
+
+  *new_blob = len | WABI_TAG_BIN_BLOB;
 
   data = (char *) (new_blob + 1);
 
@@ -106,6 +108,10 @@ wabi_store_copy_val(wabi_store store, wabi_word_t *src)
     case WABI_TAG_BIN_LEAF:
     case WABI_TAG_BIN_NODE:
       wabi_store_compact_binary(store, src);
+      break;
+    case WABI_TAG_ENV:
+      memcpy(res, src, WABI_ENV_BYTE_SIZE);
+      store->alloc+= WABI_ENV_SIZE;
       break;
     default:
       return NULL;
@@ -187,11 +193,14 @@ wabi_store_collect_map_hash(wabi_store store,
 inline static void
 wabi_store_collect_environmnet(wabi_store store, wabi_env env)
 {
-  if(env->prev) {
-    env->prev = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (env->prev | WABI_VALUE_MASK)) | WABI_TAG_ENV;
+  wabi_env prev;
+  env->data = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) env->data);
+  prev = (wabi_env) (env->prev & WABI_VALUE_MASK);
+  if(prev) {
+    env->prev = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) prev) | WABI_TAG_ENV;
   }
-  env->data = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (env->data | WABI_VALUE_MASK));
-  store->scan += 2;
+
+  store->scan += WABI_ENV_SIZE;
 }
 
 
@@ -215,6 +224,7 @@ wabi_store_collect_all(wabi_store store)
 
     wabi_word_t tag;
     tag = wabi_val_tag(store->scan);
+
     if(tag <= WABI_TAG_ATOMIC_LIMIT) {
       store->scan++;
     }
@@ -281,7 +291,6 @@ wabi_store_collect(wabi_store store)
   store->scan = store->from_space;
 
   store->root = wabi_store_copy_val(store, store->root);
-
   result = wabi_store_collect_all(store);
   free(store->to_space);
 

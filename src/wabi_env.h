@@ -15,6 +15,7 @@ typedef struct wabi_env_struct {
 typedef wabi_env_t* wabi_env;
 
 #define WABI_ENV_SIZE 2
+#define WABI_ENV_BYTE_SIZE (WABI_ENV_SIZE * 64)
 
 wabi_env
 wabi_env_new_raw(wabi_store store, wabi_env prev);

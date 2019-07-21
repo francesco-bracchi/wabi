@@ -23,6 +23,7 @@ wabi_binary_word_size(wabi_size_t size)
 }
 
 
+// todo: do not waste the first word
 inline static wabi_val
 wabi_blob_new(wabi_store vm, wabi_size_t size)
 {

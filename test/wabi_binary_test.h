@@ -5,3 +5,6 @@
 
 void
 wabi_binary_test();
+
+
+#endif

@@ -9,6 +9,7 @@
 #include "wabi_symbol.h"
 #include "wabi_map.h"
 #include "wabi_cmp.h"
+#include "wabi_env.h"
 #include "wabi_vm.h"
 
 static inline int
@@ -87,7 +88,6 @@ wabi_cmp_pair(wabi_pair left, wabi_pair right) {
   return wabi_cmp_raw(WABI_PAIR_CDR(left), WABI_PAIR_CDR(right));
 }
 
-
 static inline int
 wabi_cmp_map(wabi_map left, wabi_map right)
 {
@@ -124,6 +124,23 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 }
 
 
+static inline int
+wabi_cmp_env(wabi_env left, wabi_env right) {
+  int cmp0;
+  do {
+    cmp0 = wabi_cmp_map((wabi_map) left->data,
+                        (wabi_map) right->data);
+    if(cmp0) return cmp0;
+
+    left = (wabi_env) (left->prev & WABI_VALUE_MASK);
+    right = (wabi_env) (right->prev & WABI_VALUE_MASK);
+    if(left == right) return 0;
+    if(left == NULL) return 1;
+    if(right == NULL) return -1;
+  } while(1);
+}
+
+
 int
 wabi_cmp_raw(wabi_val a, wabi_val b)
 {
@@ -149,6 +166,8 @@ wabi_cmp_raw(wabi_val a, wabi_val b)
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
   case WABI_TYPE_SYMBOL:
     return wabi_cmp_symbol(a, b);
+  case WABI_TYPE_ENV:
+    return wabi_cmp_env((wabi_env) a, (wabi_env) b);
   default:
     return -1;
   }

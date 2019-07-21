@@ -1,4 +1,4 @@
-#define wabi_binary_test_c
+#define wabi_env_test_c
 
 #include <string.h>
 #include <stdlib.h>
@@ -12,6 +12,7 @@
 #include "../src/wabi_env.h"
 #include "../src/wabi_symbol.h"
 #include "../src/wabi_atomic.h"
+#include "../src/wabi_binary.h"
 #include "../src/wabi_cmp.h"
 #include "../src/wabi_pr.h"
 
@@ -53,6 +54,29 @@ test_wabi_env_shadow(wabi_vm vm)
 
 
 void
+test_wabi_env_collect(wabi_vm vm)
+{
+  wabi_env e = wabi_env_empty(vm);
+  wabi_val k = wabi_binary_new_from_cstring(vm, "abcd");
+  wabi_val v0 = wabi_smallint(vm, 10U);
+  wabi_val v1 = wabi_smallint(vm, 20U);
+  wabi_env_assoc(vm, e, k, v0);
+  wabi_env e1 = wabi_env_extend(vm, e);
+  wabi_env_assoc(vm, e1, k, v1);
+  wabi_store store = wabi_vm_store(vm);
+
+  store->root = (wabi_word_t *) e;
+  wabi_vm_collect(vm);
+
+  wabi_env ex = wabi_env_empty(vm);
+  wabi_val kx = wabi_binary_new_from_cstring(vm, "abcd");
+  wabi_val vx = wabi_smallint(vm, 10U);
+  wabi_env_assoc(vm, ex, kx, vx);
+  ASSERT(wabi_cmp_raw((wabi_val) ex, store->root) == 0);
+}
+
+
+void
 wabi_env_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -60,6 +84,7 @@ wabi_env_test()
 
   test_wabi_env_insert(vm);
   test_wabi_env_shadow(vm);
+  test_wabi_env_collect(vm);
 
   wabi_vm_free(vm);
   free(vm);

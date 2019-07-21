@@ -51,6 +51,7 @@ wabi_verb_wrap_builtin_raw(wabi_store store, wabi_verb_builtin verb)
   return NULL;
 }
 
+
 static inline wabi_verb
 wabi_verb_wrap_derived_raw(wabi_store store, wabi_verb_derived verb)
 {
@@ -63,6 +64,7 @@ wabi_verb_wrap_derived_raw(wabi_store store, wabi_verb_derived verb)
   return NULL;
 }
 
+
 wabi_verb
 wabi_verb_wrap_raw(wabi_store store, wabi_verb verb)
 {
@@ -70,7 +72,6 @@ wabi_verb_wrap_raw(wabi_store store, wabi_verb verb)
     ? wabi_verb_wrap_builtin_raw(store, (wabi_verb_builtin) verb)
     : wabi_verb_wrap_derived_raw(store, (wabi_verb_derived) verb);
 }
-
 
 
 static inline wabi_verb
@@ -85,6 +86,7 @@ wabi_verb_unwrap_builtin_raw(wabi_store store, wabi_verb_builtin verb)
   return NULL;
 }
 
+
 static inline wabi_verb
 wabi_verb_unwrap_derived_raw(wabi_store store, wabi_verb_derived verb)
 {
@@ -96,6 +98,7 @@ wabi_verb_unwrap_derived_raw(wabi_store store, wabi_verb_derived verb)
   }
   return NULL;
 }
+
 
 wabi_verb
 wabi_verb_unwrap_raw(wabi_store store, wabi_verb verb)
@@ -119,6 +122,7 @@ wabi_verb_new(wabi_vm vm,
   return NULL;
 }
 
+
 wabi_verb
 wabi_verb_builtin_new(wabi_vm vm, void* fun)
 {
@@ -128,6 +132,7 @@ wabi_verb_builtin_new(wabi_vm vm, void* fun)
   return NULL;
 }
 
+
 wabi_verb
 wabi_verb_wrap(wabi_vm vm, wabi_verb verb)
 {
@@ -136,6 +141,7 @@ wabi_verb_wrap(wabi_vm vm, wabi_verb verb)
   vm->errno = WABI_ERROR_NOMEM;
   return NULL;
 }
+
 
 wabi_verb
 wabi_verb_unwrap(wabi_vm vm, wabi_verb verb)

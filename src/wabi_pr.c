@@ -9,6 +9,7 @@
 #include "wabi_binary.h"
 #include "wabi_map.h"
 #include "wabi_symbol.h"
+#include "wabi_env.h"
 
 void
 wabi_pr_binary(wabi_val val);
@@ -130,6 +131,22 @@ wabi_pr_map(wabi_map map)
   }
 }
 
+
+void
+wabi_pr_env(wabi_env env)
+{
+  printf("#env{");
+  do {
+    wabi_pr_map((wabi_map) env->data);
+    env = (wabi_env) (env->prev & WABI_VALUE_MASK);
+    if(env == NULL) break;
+    printf(";");
+    break;
+  } while(1);
+  printf("}");
+}
+
+
 void
 wabi_pr(wabi_val val) {
   switch(wabi_val_type(val)) {
@@ -162,6 +179,9 @@ wabi_pr(wabi_val val) {
     break;
   case WABI_TYPE_SYMBOL:
     wabi_pr_binary((wabi_val) WABI_SYMBOL_BINARY((wabi_symbol) val));
+    break;
+  case WABI_TYPE_ENV:
+    wabi_pr_env((wabi_env) val);
     break;
   default:
     printf("unknown %lx", *val);
