@@ -16,7 +16,7 @@
 #include "wabi_hash.h"
 #include "wabi_map.h"
 #include "wabi_env.h"
-#include "wabi_verb.h"
+#include "wabi_combiner.h"
 
 #define WABI_STORE_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -205,15 +205,16 @@ wabi_store_collect_environmnet(wabi_store store, wabi_env env)
 
 
 inline static void
-wabi_store_collect_verb(wabi_store store, wabi_verb_derived verb)
+wabi_store_collect_combiner_derived(wabi_store store,
+                                    wabi_combiner_derived combiner)
 {
-  wabi_word_t tag = verb->static_env & WABI_TAG_MASK;
-  verb->static_env = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->static_env | WABI_VALUE_MASK)) | tag;
-  verb->dynamic_env_name = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->dynamic_env_name | WABI_VALUE_MASK));
-  verb->arguments = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->arguments | WABI_VALUE_MASK));
-  verb->body = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (verb->body | WABI_VALUE_MASK));
+  wabi_word_t tag = combiner->static_env & WABI_TAG_MASK;
+  combiner->static_env = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (combiner->static_env | WABI_VALUE_MASK)) | tag;
+  combiner->caller_env_name = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (combiner->caller_env_name | WABI_VALUE_MASK));
+  combiner->arguments = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (combiner->arguments | WABI_VALUE_MASK));
+  combiner->body = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (combiner->body | WABI_VALUE_MASK));
 
-  store->scan+= WABI_VERB_DERIVED_SIZE;
+  store->scan+= WABI_COMBINER_DERIVED_SIZE;
 }
 
 
@@ -254,13 +255,15 @@ wabi_store_collect_all(wabi_store store)
       case WABI_TAG_ENV:
         wabi_store_collect_environmnet(store, (wabi_env) store->scan);
         break;
-      case WABI_TAG_BOPERATIVE:
-      case WABI_TAG_BAPPLICATIVE:
+      case WABI_TAG_BUILTIN_OP:
+      case WABI_TAG_BUILTIN_APP:
+        // todo: find out if it would be better to have a check on the builtin bit (i.e. if)
         store->scan++;
         break;
       case WABI_TAG_OPERATIVE:
       case WABI_TAG_APPLICATIVE:
-        wabi_store_collect_verb(store, (wabi_verb_derived) store->scan);
+        // todo: find out if it would be better to have a check on the derived bit (i.e. if)
+        wabi_store_collect_combiner_derived(store, (wabi_combiner_derived) store->scan);
         break;
       default:
         return WABI_ERROR_UNKNOWN;

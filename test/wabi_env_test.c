@@ -80,7 +80,7 @@ void
 wabi_env_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  wabi_vm_init(vm, 10 * 1024 * 1024); // 2MB
+  wabi_vm_init(vm, 10 * 1024 * 1024); // 10MB
 
   test_wabi_env_insert(vm);
   test_wabi_env_shadow(vm);

@@ -9,6 +9,9 @@ typedef struct wabi_vm_struct
 {
   int errno;
   wabi_store_t store;
+  wabi_val control;
+  wabi_val environment;
+  wabi_val continuation;
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;
