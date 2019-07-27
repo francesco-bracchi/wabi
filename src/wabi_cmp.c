@@ -7,6 +7,7 @@
 #include "wabi_atomic.h"
 #include "wabi_pair.h"
 #include "wabi_symbol.h"
+#include "wabi_combiner.h"
 #include "wabi_map.h"
 #include "wabi_cmp.h"
 #include "wabi_env.h"
@@ -141,6 +142,45 @@ wabi_cmp_env(wabi_env left, wabi_env right) {
 }
 
 
+static inline int
+wabi_cmp_derived_combiner(wabi_combiner_derived a, wabi_combiner_derived b)
+{
+  int cmp;
+
+  cmp = wabi_cmp_raw((wabi_val) a->body, (wabi_val) b->body);
+  if(cmp) return cmp;
+
+  cmp = wabi_cmp_raw((wabi_val) a->arguments, (wabi_val) b->arguments);
+  if(cmp) return cmp;
+
+  cmp = wabi_cmp_raw((wabi_val) a->caller_env_name, (wabi_val) b->caller_env_name);
+  if(cmp) return cmp;
+
+  return wabi_cmp_raw((wabi_val) (a->static_env & WABI_VALUE_MASK),
+                      (wabi_val) (b->caller_env_name & WABI_VALUE_MASK));
+}
+
+
+static inline int
+wabi_cmp_combiner(wabi_combiner a, wabi_combiner b)
+{
+  wabi_word_t tag_a = wabi_val_tag((wabi_val) a);
+  wabi_word_t tag_b = wabi_val_tag((wabi_val) b);
+  wabi_word_t tag_d = tag_b - tag_a;
+
+  if(tag_d) return tag_d;
+
+  switch(tag_a) {
+  case WABI_TAG_OPERATIVE:
+  case WABI_TAG_APPLICATIVE:
+    return wabi_cmp_derived_combiner((wabi_combiner_derived) a, (wabi_combiner_derived) b);
+  case WABI_TAG_BUILTIN_OP:
+  case WABI_TAG_BUILTIN_APP:
+    return (*((wabi_val) b) & WABI_VALUE_MASK) - (*((wabi_val) a) & WABI_VALUE_MASK);
+  }
+  return -1;
+}
+
 int
 wabi_cmp_raw(wabi_val a, wabi_val b)
 {
@@ -168,6 +208,8 @@ wabi_cmp_raw(wabi_val a, wabi_val b)
     return wabi_cmp_symbol(a, b);
   case WABI_TYPE_ENV:
     return wabi_cmp_env((wabi_env) a, (wabi_env) b);
+  case WABI_TYPE_COMBINER:
+    return wabi_cmp_combiner((wabi_combiner) a, (wabi_combiner) b);
   default:
     return -1;
   }

@@ -9,6 +9,7 @@
 #include "wabi_binary.h"
 #include "wabi_map.h"
 #include "wabi_symbol.h"
+#include "wabi_combiner.h"
 #include "wabi_env.h"
 
 void
@@ -148,6 +149,48 @@ wabi_pr_env(wabi_env env)
 
 
 void
+wabi_pr_applicative(wabi_combiner_derived val)
+{
+  printf("(fn ");
+  wabi_pr((wabi_val) val->arguments);
+  printf(" ");
+  wabi_pr((wabi_val) val->body);
+  printf(")");
+}
+
+
+void
+wabi_pr_operative(wabi_combiner_derived val)
+{
+  printf("(fx ");
+  wabi_pr((wabi_val) val->caller_env_name);
+  printf(" ");
+  wabi_pr((wabi_val) val->arguments);
+  printf(" ");
+  wabi_pr((wabi_val) val->body);
+  printf(")");
+}
+
+/** todo: add a tag name to the builtin ds */
+void
+wabi_pr_combiner(wabi_val val) {
+  switch(wabi_val_tag(val)) {
+  case WABI_TAG_OPERATIVE:
+    wabi_pr_operative((wabi_combiner_derived) val);
+    break;
+  case WABI_TAG_APPLICATIVE:
+    wabi_pr_applicative((wabi_combiner_derived) val);
+    break;
+  case WABI_TAG_BUILTIN_OP:
+    printf("builtin operative");
+    break;
+  case WABI_TAG_BUILTIN_APP:
+    printf("builtin applicative");
+    break;
+  }
+}
+
+void
 wabi_pr(wabi_val val) {
   switch(wabi_val_type(val)) {
   case WABI_TAG_NIL:
@@ -182,6 +225,9 @@ wabi_pr(wabi_val val) {
     break;
   case WABI_TYPE_ENV:
     wabi_pr_env((wabi_env) val);
+    break;
+  case WABI_TYPE_COMBINER:
+    wabi_pr_combiner(val);
     break;
   default:
     printf("unknown %lx", *val);

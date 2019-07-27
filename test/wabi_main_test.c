@@ -12,8 +12,6 @@
 #include "wabi_env_test.h"
 #include "wabi_combiner_test.h"
 
-
-
 int main(int argc, char** argv)
 {
   wabi_assert_init();

@@ -23,10 +23,10 @@ wabi_combiner_builtin_new_raw(wabi_store store, void* cfun)
 
 wabi_combiner
 wabi_combiner_derived_new_raw(wabi_store store,
-                          wabi_env static_env,
-                          wabi_symbol dynamic_env_name,
-                          wabi_val arguments,
-                          wabi_val body)
+                              wabi_env static_env,
+                              wabi_symbol dynamic_env_name,
+                              wabi_val arguments,
+                              wabi_val body)
 {
   wabi_combiner_derived res = (wabi_combiner_derived) wabi_store_allocate(store, WABI_COMBINER_DERIVED_SIZE);
   if(res) {
@@ -34,6 +34,7 @@ wabi_combiner_derived_new_raw(wabi_store store,
     res->caller_env_name = (wabi_word_t) dynamic_env_name;
     res->arguments = (wabi_word_t) arguments;
     res->body = (wabi_word_t) body;
+    return (wabi_combiner) res;
   }
   return NULL;
 }
@@ -68,7 +69,8 @@ wabi_combiner_wrap_derived_raw(wabi_store store, wabi_combiner_derived combiner)
 wabi_combiner
 wabi_combiner_wrap_raw(wabi_store store, wabi_combiner combiner)
 {
-  return WABI_COMBINER_IS_BUILTIN(combiner)
+  wabi_word_t is_builtin = *((wabi_word_t*) combiner) & WABI_COMBINER_WRAP_MASK;
+  return is_builtin
     ? wabi_combiner_wrap_builtin_raw(store, (wabi_combiner_builtin) combiner)
     : wabi_combiner_wrap_derived_raw(store, (wabi_combiner_derived) combiner);
 }
@@ -124,7 +126,7 @@ wabi_combiner_new(wabi_vm vm,
 
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_vm vm, void* fun)
+wabi_combiner_builtin_new(wabi_vm vm, wabi_builtin_fun_type fun)
 {
   wabi_combiner res = wabi_combiner_builtin_new_raw(&(vm->store), fun);
   if(res) return res;
@@ -134,20 +136,28 @@ wabi_combiner_builtin_new(wabi_vm vm, void* fun)
 
 
 wabi_combiner
-wabi_combiner_wrap(wabi_vm vm, wabi_combiner combiner)
+wabi_combiner_wrap(wabi_vm vm, wabi_val combiner)
 {
-  wabi_combiner res = wabi_combiner_wrap_raw(&(vm->store), combiner);
-  if(res) return res;
-  vm->errno = WABI_ERROR_NOMEM;
+  if(wabi_val_is_combiner(combiner)) {
+    wabi_combiner res = wabi_combiner_wrap_raw(&(vm->store), (wabi_combiner) combiner);
+    if(res) return res;
+    vm->errno = WABI_ERROR_NOMEM;
+    return NULL;
+  }
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
 }
 
 
 wabi_combiner
-wabi_combiner_unwrap(wabi_vm vm, wabi_combiner combiner)
+wabi_combiner_unwrap(wabi_vm vm, wabi_val combiner)
 {
-  wabi_combiner res = wabi_combiner_unwrap_raw(&(vm->store), combiner);
-  if(res) return res;
-  vm->errno = WABI_ERROR_NOMEM;
+  if(wabi_val_is_combiner(combiner)) {
+    wabi_combiner res = wabi_combiner_unwrap_raw(&(vm->store), (wabi_combiner) combiner);
+    if(res) return res;
+    vm->errno = WABI_ERROR_NOMEM;
+    return NULL;
+  }
+  vm->errno = WABI_ERROR_TYPE_MISMATCH;
   return NULL;
 }

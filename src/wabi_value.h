@@ -81,5 +81,8 @@ typedef int wabi_error;
 #define wabi_val_is_map(val) wabi_val_is_type(val, WABI_TYPE_MAP)
 
 #define wabi_val_is_symbol(val) wabi_val_is_tagged(val, WABI_TAG_SYMBOL)
+#define wabi_val_is_env(val) wabi_val_is_type(val, WABI_TYPE_ENV)
+#define wabi_val_is_combiner(val) wabi_val_is_type(val, WABI_TYPE_COMBINER)
+
 
 #endif
