@@ -17,6 +17,17 @@
 #include "../src/wabi_pr.h"
 
 void
+test_wabi_vm_bind_ignore(wabi_vm vm)
+{
+  wabi_env e = wabi_env_empty(vm);
+  wabi_val i = wabi_ignore(vm);
+  wabi_val v = wabi_smallint(vm, 10);
+  wabi_vm_bind(vm, (wabi_val) e, i, v);
+  ASSERT(wabi_cmp_raw(e, wabi_env_empty(vm)) == 0);
+}
+
+
+void
 test_wabi_vm_bind_var(wabi_vm vm)
 {
   wabi_env e = wabi_env_empty(vm);
@@ -56,6 +67,18 @@ test_wabi_vm_bind_pair(wabi_vm vm)
 }
 
 void
+test_wabi_vm_arity_error(wabi_vm vm)
+{
+  wabi_env e = wabi_env_empty(vm);
+  wabi_val ab = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val sa = wabi_intern(vm, ab);
+  wabi_val pat = wabi_cons(vm, sa, wabi_nil(vm));
+  wabi_val val = wabi_nil(vm);
+  wabi_vm_bind(vm, (wabi_val) e, pat, val);
+  ASSERT(vm->errno != 0);
+}
+
+void
 wabi_vm_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -63,6 +86,8 @@ wabi_vm_test()
 
   test_wabi_vm_bind_var(vm);
   test_wabi_vm_bind_pair(vm);
+  test_wabi_vm_bind_ignore(vm);
+  test_wabi_vm_arity_error(vm);
 
   wabi_vm_free(vm);
   free(vm);

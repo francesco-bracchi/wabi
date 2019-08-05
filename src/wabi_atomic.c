@@ -41,6 +41,14 @@ wabi_boolean_raw(wabi_store store, int val)
 }
 
 wabi_val
+wabi_ignore_raw(wabi_store store) {
+  wabi_val res = (wabi_val) wabi_store_allocate(store, WABI_IGNORE_SIZE);
+  if(! res) return NULL;
+  *res = WABI_VALUE_IGNORE;
+  return res;
+}
+
+wabi_val
 wabi_smallint(wabi_vm vm, int64_t val)
 {
   wabi_val res = wabi_smallint_raw(&(vm->store), val);
@@ -68,6 +76,17 @@ wabi_val
 wabi_boolean(wabi_vm vm, int val)
 {
   wabi_val res = wabi_boolean_raw(&(vm->store), val);
+  if(! res) {
+    vm->errno = WABI_ERROR_NOMEM;
+    return NULL;
+  }
+  return res;
+}
+
+
+wabi_val
+wabi_ignore(wabi_vm vm) {
+  wabi_val res = wabi_ignore_raw(&(vm->store));
   if(! res) {
     vm->errno = WABI_ERROR_NOMEM;
     return NULL;
