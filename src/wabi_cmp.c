@@ -156,7 +156,7 @@ wabi_cmp_derived_combiner(wabi_combiner_derived a, wabi_combiner_derived b)
   cmp = wabi_cmp_raw((wabi_val) a->caller_env_name, (wabi_val) b->caller_env_name);
   if(cmp) return cmp;
 
-  return wabi_cmp_raw((wabi_val) (a->static_env & WABI_VALUE_MASK),
+  return wabi_cmp_raw((wabi_val) (a->caller_env_name & WABI_VALUE_MASK),
                       (wabi_val) (b->caller_env_name & WABI_VALUE_MASK));
 }
 
@@ -168,7 +168,7 @@ wabi_cmp_combiner(wabi_combiner a, wabi_combiner b)
   wabi_word_t tag_b = wabi_val_tag((wabi_val) b);
   wabi_word_t tag_d = tag_b - tag_a;
 
-  if(tag_d) return tag_d;
+  if(tag_d) return tag_d >> 56;
 
   switch(tag_a) {
   case WABI_TAG_OPERATIVE:
