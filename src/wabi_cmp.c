@@ -191,7 +191,7 @@ wabi_cmp_raw(wabi_val a, wabi_val b)
   wabi_word_t type = wabi_val_type(a);
   wabi_word_t type_diff = type - wabi_val_type(b);
   if(type_diff) {
-    return type_diff;
+    return (int)(type_diff >> 56);
   }
   // types are the same, compare atomic values
   if(type <= WABI_TAG_ATOMIC_LIMIT) {

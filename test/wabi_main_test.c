@@ -11,6 +11,7 @@
 #include "wabi_reader_test.h"
 #include "wabi_env_test.h"
 #include "wabi_combiner_test.h"
+#include "wabi_vm_test.h"
 
 int main(int argc, char** argv)
 {
@@ -21,5 +22,6 @@ int main(int argc, char** argv)
   wabi_binary_test();
   wabi_env_test();
   wabi_combiner_test();
+  wabi_vm_test();
   wabi_assert_results();
 }

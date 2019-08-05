@@ -34,6 +34,6 @@ wabi_env_lookup(wabi_env env, wabi_symbol k);
 
 
 wabi_env
-wabi_env_assoc(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
+wabi_env_def(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
 #endif

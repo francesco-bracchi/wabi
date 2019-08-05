@@ -304,49 +304,48 @@
     (e)
   (case-default e (list err "match failed")))
 
-(defn match-sym
-    (e p x)
-  (eval e (list def p x))
-  e)
 
-(defn match-pair
-    (e (p . ps) (x . xs))
-  (when (match-pattern e p x)
-    (match-pattern e ps xs)))
 
-(defn match-map
-    (e p x)
-  (let match (ks (
-    (cond
-      (nil? ks) e
-      (map-get (car k) v) (do (match-pattern (map-get p k) (map-get x k))
+;;;; what's better? a compacte
 
-(defn match-pattern
-    (e p x)
+(let a 10 b 20
+   (+ a b))
+
+(loop foo a 10
+          b 20
+   (foo (+ a b) (- b a)))
+
+(let (a 10 b 20)
+  (+ a b))
+
+(let foo (a 10
+          b 20)
+   (foo (+ a b) (- b a)))
+
+
+
+(defx let
+    e xs
+  (def b (last xs))
+  (def as
+
+
+(defn let/let
+    (e (x . xs))
   (cond
-    (sym? p) (match-sym e p x)
-    (and (pair? p) (pair? x)) (match-pair e p x)
-    ;; (and (map? p) (map? x) (match-map e p x)
-    ;; (and (vec? p) (vec? x)) (match-vec e p x)
-    (= p x) e
-    false))
+    (pair? xs)
+      (do (eval e (list def x (car xs)))
+          (let/let e (cdr xs)))
+    (nil? xs)
+    (eval e x)))
 
-(defn case-match-step
-    (e x p c . cs)
-  (if-let (e1 (match-pattern (env-push e) p x))
-      (if (not (= *guard* c))
-        (eval e1 c)
-        (if (eval e1 (car cs))
-            (eval e1 (cadr cs))
-            (case-match e x (cddr cs))))
-    (case-match e x cs)))
 
-(defn case-match (e x cs)
-  (cond
-    (nil? cs) nil
-    (nil? (cdr cs)) (eval e (car cs))
-    (apply case-match-step e x cs)))
+(defx loop
+    e (n . xs)
+  (loop/loop (env/push e) n xs))
 
-(defx case
-    e (v . cs)
-  (case-match e (eval e v) cs))
+
+
+(def a 10
+     b (+ 1 2)
+     c (/ (+ a b) 2))

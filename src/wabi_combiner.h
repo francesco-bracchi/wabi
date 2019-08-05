@@ -17,6 +17,7 @@
 typedef struct wabi_combiner_derived_struct {
   wabi_word_t static_env;
   wabi_word_t caller_env_name;
+  // TODO: rename to parameters
   wabi_word_t arguments;
   wabi_word_t body;
 } wabi_combiner_derived_t;

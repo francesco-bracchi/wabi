@@ -62,13 +62,18 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
 
 
 wabi_env
-wabi_env_assoc(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
+wabi_env_def(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 {
-  wabi_map data = wabi_map_assoc_raw(&(vm->store), (wabi_map) env->data, (wabi_val) k, v);
-  if(! data) {
-    vm->errno = WABI_ERROR_NOMEM;
-    return NULL;
+  wabi_val prev = wabi_map_get_raw((wabi_map) env->data, (wabi_val) k);
+  if(! prev) {
+    wabi_map data = wabi_map_assoc_raw(&(vm->store), (wabi_map) env->data, (wabi_val) k, v);
+    if(! data) {
+      vm->errno = WABI_ERROR_NOMEM;
+      return NULL;
+    }
+    env->data = (wabi_word_t) data;
+    return env;
   }
-  env->data = (wabi_word_t) data;
-  return env;
+  vm->errno = WABI_ERROR_REDEFINE_VARIABLE;
+  return NULL;
 }

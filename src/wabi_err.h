@@ -16,6 +16,8 @@
 #define WABI_ERROR_EOF_READ 7
 #define WABI_ERROR_SYMBOL_TOO_LONG 8
 #define WABI_ERROR_UNKNOWN 9
+#define WABI_ERROR_REDEFINE_VARIABLE 10
+#define WABI_ERROR_BIND 11
 
 char* wabi_err_msg(int errno);
 

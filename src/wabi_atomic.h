@@ -34,4 +34,6 @@ wabi_nil(wabi_vm vm);
 wabi_val
 wabi_boolean(wabi_vm vm, int val);
 
+#define trueish(e) (wabi_val_is_boolean((wabi_val) e) ? (*((wabi_val) e) & WABI_VALUE_MASK) : !wabi_val_is_nil((wabi_val) e))
+
 #endif

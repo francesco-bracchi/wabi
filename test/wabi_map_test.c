@@ -12,6 +12,7 @@
 #include "../src/wabi_binary.h"
 #include "../src/wabi_atomic.h"
 #include "../src/wabi_map.h"
+#include "../src/wabi_symbol.h"
 #include "../src/wabi_pr.h"
 
 
@@ -323,6 +324,24 @@ wabi_map_test_hash(wabi_vm vm)
 
 
 void
+wabi_map_test_case0(wabi_vm vm)
+{
+
+  wabi_val ab = wabi_binary_new_from_cstring(vm, "a");
+  wabi_val sa = wabi_intern(vm, ab);
+  wabi_val asb = wabi_binary_new_from_cstring(vm, "as");
+  wabi_val sas = wabi_intern(vm, asb);
+
+  wabi_val m = wabi_map_empty(vm);
+  m = wabi_map_assoc(vm, m, sa, wabi_smallint(vm, 20));
+  m = wabi_map_assoc(vm, m, sas, wabi_smallint(vm, 10));
+
+  wabi_val x1 = wabi_map_get(vm, m, sa);
+  ASSERT(x1 != NULL);
+  ASSERT(wabi_eq_raw(x1, wabi_smallint(vm, 20)));
+}
+
+void
 wabi_map_test()
 {
   wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
@@ -340,6 +359,7 @@ wabi_map_test()
   wabi_map_test_dissoc_length_gt_limit(vm);
   wabi_map_test_dissoc_demote(vm);
   wabi_map_test_hash(vm);
+  wabi_map_test_case0(vm);
 
   wabi_vm_free(vm);
   free(vm);

@@ -100,12 +100,12 @@ void test_wabi_env_compare(wabi_vm vm)
   wabi_env e0 = wabi_env_empty(vm);
   wabi_symbol k0 = wabi_binary_new_from_cstring(vm, "a");
   wabi_val v0 = wabi_smallint(vm, 10U);
-  wabi_env_assoc(vm, e0, k0, v0);
+  wabi_env_def(vm, e0, k0, v0);
 
   wabi_env e1 = wabi_env_empty(vm);
   wabi_symbol k1 = wabi_binary_new_from_cstring(vm, "a");
   wabi_val v1 = wabi_smallint(vm, 10U);
-  wabi_env_assoc(vm, e1, k1, v1);
+  wabi_env_def(vm, e1, k1, v1);
 
 
   ASSERT(wabi_cmp_raw((wabi_val) e0, (wabi_val) e1) == 0);
@@ -119,12 +119,12 @@ void test_wabi_env_extended(wabi_vm vm)
   wabi_env e0 = wabi_env_extend(vm, e);
   wabi_symbol k0 = wabi_binary_new_from_cstring(vm, "a");
   wabi_val v0 = wabi_smallint(vm, 10U);
-  wabi_env_assoc(vm, e0, k0, v0);
+  wabi_env_def(vm, e0, k0, v0);
 
   wabi_env e1 = wabi_env_empty(vm);
   wabi_symbol k1 = wabi_binary_new_from_cstring(vm, "a");
   wabi_val v1 = wabi_smallint(vm, 10U);
-  wabi_env_assoc(vm, e1, k1, v1);
+  wabi_env_def(vm, e1, k1, v1);
 
 
   ASSERT(wabi_cmp_raw((wabi_val) e0, (wabi_val) e1) != 0);

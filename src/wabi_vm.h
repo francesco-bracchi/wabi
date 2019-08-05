@@ -7,11 +7,13 @@
 
 typedef struct wabi_vm_struct
 {
-  int errno;
-  wabi_store_t store;
   wabi_val control;
   wabi_val environment;
   wabi_val continuation;
+  wabi_val err_meta;
+  wabi_store_t store;
+  int errno;
+  unsigned int fuel;
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;
@@ -28,5 +30,11 @@ wabi_vm_init(wabi_vm vm, wabi_size_t size);
 
 void
 wabi_vm_free(wabi_vm vm);
+
+void
+wabi_vm_bind(wabi_vm vm,
+             wabi_val env,
+             wabi_val pattern,
+             wabi_val value);
 
 #endif

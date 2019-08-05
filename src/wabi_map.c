@@ -548,11 +548,10 @@ wabi_map_array_get_rec(wabi_map_array map,
   wabi_word_t size = WABI_MAP_ARRAY_SIZE(map);
   wabi_map_entry child = (wabi_map_entry) table;
   wabi_map_entry limit = (wabi_map_entry) table + size;
-
   while(child < limit) {
     wabi_val key0 = (wabi_val) WABI_MAP_ENTRY_KEY(child);
     int cmp = wabi_cmp_raw(key, key0);
-    if(cmp > 0) {
+    if(cmp < 0) {
       child++;
       continue;
     } else if(cmp == 0) {
