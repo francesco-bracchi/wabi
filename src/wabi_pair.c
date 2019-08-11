@@ -7,6 +7,10 @@
 #include "wabi_store.h"
 #include "wabi_err.h"
 
+/**
+ * TODO: these can be macros
+*/
+
 wabi_val
 wabi_car_raw(wabi_val pair)
 {

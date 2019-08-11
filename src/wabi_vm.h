@@ -9,7 +9,9 @@ typedef struct wabi_vm_struct
 {
   wabi_val control;
   wabi_val environment;
-  wabi_val continuation;
+  wabi_word_t* continuation;
+  wabi_word_t* top;
+  wabi_word_t* continuation_limit;
   wabi_val err_meta;
   wabi_store_t store;
   int errno;
@@ -17,6 +19,19 @@ typedef struct wabi_vm_struct
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;
+
+
+typedef struct wabi_cont_bind_struct
+{
+  wabi_word_t symbol;
+  wabi_word_t rest;
+  wabi_word_t prev;
+} wabi_cont_bind_t;
+
+typedef wabi_cont_bind_t* wabi_vm_cont_bind;
+
+#define WABI_CONT_BIND_SIZE 3;
+
 
 #define wabi_vm_store(vm) (&(vm->store))
 

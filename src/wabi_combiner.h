@@ -37,7 +37,7 @@ typedef union wabi_combiner_union {
 
 typedef wabi_combiner_t* wabi_combiner;
 
-typedef wabi_val wabi_builtin_fun_type(wabi_vm, wabi_val);
+typedef void wabi_builtin_fun_type(wabi_vm);
 
 #define WABI_COMBINER_BUILTIN_SIZE 1
 #define WABI_COMBINER_DERIVED_SIZE 4

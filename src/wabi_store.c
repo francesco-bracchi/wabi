@@ -17,6 +17,7 @@
 #include "wabi_map.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
+#include "wabi_secd_frame.h"
 
 #define WABI_STORE_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -113,6 +114,10 @@ wabi_store_copy_val(wabi_store store, wabi_word_t *src)
       memcpy(res, src, WABI_ENV_BYTE_SIZE);
       store->alloc+= WABI_ENV_SIZE;
       break;
+    case WABI_TAG_SECD_FRAME:
+      memcpy(res, src, WABI_FRAME_BYTE_SIZE);
+      store->alloc+= WABI_ENV_SIZE;
+      break;
     default:
       return NULL;
     }
@@ -141,6 +146,15 @@ wabi_store_collect_symbol(wabi_store store, wabi_val sym)
     store->symbol_table = (wabi_word_t*) wabi_map_assoc_raw(store, (wabi_map) store->symbol_table, new_bin, sym);
   }
   store->scan++;
+}
+
+inline static void
+wabi_store_collect_secd_frame(wabi_store store, wabi_secd_frame frame)
+{
+  frame->stack = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) frame->stack & WABI_VALUE_MASK) & WABI_TAG_SECD_FRAME;
+  frame->environment = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) frame->frame);
+  frame->control = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) frame->control);
+  store->scan+=3;
 }
 
 
@@ -264,6 +278,9 @@ wabi_store_collect_all(wabi_store store)
       case WABI_TAG_APPLICATIVE:
         // todo: find out if it would be better to have a check on the derived bit (i.e. if)
         wabi_store_collect_combiner_derived(store, (wabi_combiner_derived) store->scan);
+        break;
+      case WABI_TAG_SECD_FRAME:
+        wabi_store_collect_secd_frame(store, (wabi_frame) store->scan);
         break;
       default:
         return WABI_ERROR_UNKNOWN;

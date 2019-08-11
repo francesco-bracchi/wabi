@@ -16,25 +16,16 @@ typedef struct wabi_pair_struct
 
 typedef wabi_pair_t* wabi_pair;
 
-#define WABI_PAIR_CAR(e) ((wabi_val) ((e)->car))
-#define WABI_PAIR_CDR(e) ((wabi_val) ((e)->cdr & WABI_VALUE_MASK))
-
-wabi_pair
-wabi_cons_raw(wabi_store store, wabi_val car, wabi_val cdr);
+#define WABI_CAR_RAW(pair) (*((pair) + 1) & WABI_VALUE_MASK)
+#define WABI_CDR_RAW(pair) (*(pair) & WABI_VALUE_MASK)
 
 wabi_val
-wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr);
+wabi_cons(wabi_store store, wabi_val car, wabi_val cdr);
 
 wabi_val
-wabi_car(wabi_vm vm, wabi_val pair);
+wabi_car(wabi_val pair);
 
 wabi_val
-wabi_cdr(wabi_vm vm, wabi_val pair);
-
-wabi_val
-wabi_car_raw(wabi_val pair);
-
-wabi_val
-wabi_cdr_raw(wabi_val pair);
+wabi_cdr(wabi_val pair);
 
 #endif
