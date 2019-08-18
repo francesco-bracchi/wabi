@@ -1,0 +1,15 @@
+(def quote
+  (fx _ (p) p))
+
+(def quotes
+  (fx _ p p))
+
+(def id
+  (wrap quote))
+
+(def list
+  (wrap quotes))
+
+(def apply
+  (fn (e op . cs)
+    (eval e (cons op cs))))
