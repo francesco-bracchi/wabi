@@ -1,14 +1,10 @@
 *~
-aclocal.m4
-autom4te.cache
-compile
-configure
-install-sh
-missing
-Makefile.in
-Makefile
+
 test/check_store
 src/wabi
+aclocal.m4
+autom4te.cache
+Makefile.in
 config.h
 config.h.in
 config.log
@@ -19,7 +15,6 @@ depcomp
 .deps
 *.o
 *.la
-stamp-h1
 test-driver
 test/*.log
 test/*.trs
