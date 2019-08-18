@@ -13,6 +13,12 @@ config.*
 configure.scan
 ltmain.sh
 m4/*
+Makefile.in
+aclocal.m4
+compile
+configure
+install-sh
+missing
 
 src/*.o
 src/wabi
