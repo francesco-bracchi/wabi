@@ -19,6 +19,7 @@ compile
 configure
 install-sh
 missing
+wabi-*.tar.gz
 
 src/*.o
 src/wabi
@@ -26,3 +27,4 @@ src/wabi
 test/*.o
 test/check_store
 test/*.log
+test/*.trs
