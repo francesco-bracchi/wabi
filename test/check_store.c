@@ -13,7 +13,6 @@ START_TEST(test_store_create)
 
   s.space = NULL;
   res = wabi_store_init(&s, 1000);
-  printf("res: %i\n", res);
   ck_assert_int_eq(res, 1);
   ck_assert_ptr_nonnull(s.space);
   wabi_store_free(&s);
