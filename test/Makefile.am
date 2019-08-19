@@ -1,4 +1,10 @@
-TESTS = check_store
-check_PROGRAMS = check_store
-check_store_SOURCES = check_store.c $(top_builddir)/src/wabi_store.h
-check_store_CFLAGS = @CHECK_CFLAGS@
+TESTS = \
+	check_store
+
+check_PROGRAMS = \
+	check_store
+
+check_store_SOURCES = check_store.c
+# check_store_LTLIBADD = libwabi.la
+
+check_store_CFLAGS = @CHECK_CFLAGS@ -lcheck

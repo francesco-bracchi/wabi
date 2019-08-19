@@ -35,13 +35,7 @@ AC_FUNC_MALLOC
 AC_CHECK_LIB([ev], [ev_run], [LIBEV=-lev], [AC_MSG_ERROR(Unable to find libev library)])
 AC_SUBST([LIBEV])
 
-
-# Check for cunit
-AC_CHECK_LIB([cunit], [CU_initialize_registry], [LIBEV=-lcunit], [AC_MSG_ERROR(Unable to find cunit library)])
-AC_SUBST([LIBEV])
-
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.10])
-
 
 AC_SYS_LARGEFILE
 

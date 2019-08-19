@@ -15,5 +15,5 @@ int wabi_loop(wabi_system sys)
 
   printf("haha");
 
-  wabi_system_destroy(&wabi_sys);
+  wabi_system_free(&wabi_sys);
 }
