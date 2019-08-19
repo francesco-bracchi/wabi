@@ -19,10 +19,15 @@ compile
 configure
 install-sh
 missing
+libtool
+build-aux
 wabi-*.tar.gz
 
 src/*.o
+src/*.lo
 src/wabi
+src/*.la
+src/.libs
 
 test/*.o
 test/check_store

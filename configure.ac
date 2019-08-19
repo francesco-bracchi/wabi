@@ -3,12 +3,22 @@
 
 AC_PREREQ([2.69])
 AC_INIT([wabi],[0.0.1],[frbracch@gmail.com])
+
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_CONFIG_HEADERS([config.h])
 
+## LIBUTOOL stuff
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+LT_PREREQ([2.4.6])
+LT_INIT([disable-shared])
+
 # Checks for programs.
 AC_PROG_CC
+
 # Checks for header files.
+
 AC_CHECK_HEADERS([stdint.h stdlib.h ev.h])
 
 AC_CONFIG_FILES([Makefile
@@ -31,5 +41,8 @@ AC_CHECK_LIB([cunit], [CU_initialize_registry], [LIBEV=-lcunit], [AC_MSG_ERROR(U
 AC_SUBST([LIBEV])
 
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.10])
+
+
+AC_SYS_LARGEFILE
 
 AC_OUTPUT
