@@ -11,7 +11,7 @@ wabi_store_init(wabi_store store,
                 wabi_size size)
 {
   wabi_word *mem = malloc(WABI_WORD_SIZE * size);
-  if(mem && (mem + size >= wabi_store_limit)) {
+  if(mem && (mem + size <= wabi_store_limit)) {
     store->space = mem;
     store->limit = mem + size;
     store->heap = store->space;

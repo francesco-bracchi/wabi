@@ -1,21 +1,5 @@
-/*
- * Check: a unit test framework for C
- * Copyright (C) 2001, 2002 Arien Malec
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+/**
+ * Store test
  */
 
 #include <stdlib.h>
@@ -24,7 +8,15 @@
 
 START_TEST(test_store_create)
 {
-  ck_assert_int_eq(1, 0);
+  wabi_store_t s;
+  int res;
+
+  s.space = NULL;
+  res = wabi_store_init(&s, 1000);
+  printf("res: %i\n", res);
+  ck_assert_int_eq(res, 1);
+  ck_assert_ptr_nonnull(s.space);
+  wabi_store_free(&s);
 }
 END_TEST
 
