@@ -25,4 +25,14 @@ wabi_store_init(wabi_store store,
 void
 wabi_store_free(wabi_store store);
 
+
+wabi_word *
+wabi_store_heap_alloc(wabi_store store,
+                      wabi_size size);
+
+
+wabi_word *
+wabi_store_stack_alloc(wabi_store store,
+                       wabi_size size);
+
 #endif

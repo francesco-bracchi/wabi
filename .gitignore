@@ -30,6 +30,7 @@ src/*.la
 src/.libs
 
 test/*.o
-test/check_store
 test/*.log
 test/*.trs
+test/check_store
+test/check_binary

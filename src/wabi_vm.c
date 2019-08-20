@@ -1,107 +1,67 @@
-/* #define wabi_vm_c */
+#define wabi_vm_c
 
-/* #include "wabi_vm.h" */
-/* #include "wabi_store.h" */
-/* #include "wabi_system.h" */
+#include <stdint.h>
+#include <stddef.h>
+#include "wabi_vm.h"
+#include "wabi_store.h"
+#include "wabi_cont.h"
+#include "wabi_system.h"
 
-/* #define CONTROL ctrl */
-/* #define STACK (store.stack) */
-/* #define HEAP (store.heap) */
+/**
+ * State steps:
+ * CONTROL          | STACK                             --> NEW_CONTROL       | NEW STACK
 
-/* #define STACK_OVERFLOW(size) (HEAP + (size) >= STACK) */
-/* #define ALLOC(size) STACK_OVERFLOW(size) ? 0 : HEAP =+ (size) */
-/* #define SWAP swap */
+ * (f . as)         | ((eval e0) . s)                   --> f                 | ((eval e0) (apply e0 as) . s)
+ * c (sym? c)       | ((eval e0) . s)                   --> (lookup c e0)     | s
+ * c                | ((eval e0) . s)                   --> c                 | s
 
-/* /\** */
-/*  * State steps: */
-/*  * CONTROL | STACK  --> NEW_CONTROL | NEW STACK */
-/*  * */
-/*  * ## EVAL */
-/*  * (f . as)         | (EVAL(e0) . s)       --> f             | (EVAL(e0) APPLY(AS) . s) */
-/*  * c when (sym? c)  | (EVAL(e0). s)        --> LOOKUP(e0, c) | s */
-/*  * c                | (EVAL(e0) . s)       --> c | s */
-/*  * */
-/*  * ## APPLY */
-/*  * c when (oper? c) | (APPLY(e0, as) . s)      --> as | (CALL(e0, c) . s) */
-/*  * c when (app? c)  | (APPLY(e0, as) . s)      --> as | (EVAL_ALL(e0) CALL(e0, C) . s) */
-/*  * */
-/*  * ## CALL */
+ * c (oper? c)      | ((apply e0 as) . s)               --> as                | ((call e0 c) . s)
+ * c (app? c)       | ((apply e0 as) . s)               --> as                | ((eval-all e0) (call e0 c) . s)
 
-/*  * as               | (CALL(e0, (fx e1 ex ps b)) . s)  --> b | (EVAL(ext(e1, bind(ps, as), bin(ex e0))) . s) */
-/*  * as               | (CALL(e0, bt) . s)               --> BTCALL(bt) */
+ * as               | ((call e0 (fx e1 ex ps b)) . s)   --> b                 | ((eval (ext e1 (bind ex e0) (bind ps as))) . s)
+ * as               | ((call e0 bt . s)                 --> (btcall bt as &s) | s
+ *
+ * false            | ((sel e0 l r) . s)                --> r                 | ((eval e0) . s)
+ * nil              | ((sel e0 l r) . s)                --> r                 | ((eval e0) . s)
+ * c                | ((sel e0 l r) . s)                --> l                 | ((eval e0) . s)
 
-/*  * ## COND */
-/*  * false            | (COND(e0, l, r)  . s)     --> r | (EVAL(e0) . s) */
-/*  * nil              | (COND(e0, l, r)  . s)     --> r | (EVAL(e0) . s) */
-/*  * _                | (COND(e0, l, r)  . s)     --> l | (EVAL(e0) . s) */
-/*  * */
-/*  * ## SEQ */
-/*  * x                | SEQ(e0, (y . ys))             --> y | (EVAL(e0), SEQ(e0, ys))) */
-/*  * x                | SEQ(e0, as) when (nil? as)    -->  x | s */
-/*  *\/ */
+ * nil              | ((eval-all e0) . s)               --> nil               | s
+ * (a . as)         | ((eval-all e0) . s)               --> a                 | ((eval e0) (eval-more e0 as nil) . s)
+ * x                | ((eval-more e0 (a . as) xs) . s)  --> a                 | ((eval e0) (eval-more e0 as (x . xs)) . s)
+ * x                | ((eval-more e0 nil xs) . s)       --> nil               | ((eval-rev (x . xs)) . s)
+ * ys               | ((eval-rev nil) . s)              --> ys                | s
+ * ys               | ((eval-rev (x . xs) . s)          --> (x . ys)          | ((eval-rev xs) . s)
+
+ * x                | ((seq e0 nil) . s)                --> x                 | s
+ * x                | ((seq e0 (a . as) . s)            --> a                 | ((eval e0) (seq e0 as) . s)
+ * x                | ()                                --> SUCCESS(x)
+ *
+ * ### fuel
+ *
+ * fuel is decremented only on eval operations?
+ */
 
 
-/* int */
-/* wabi_vm_run(wabi_system sys, */
-/*             wabi_word* ctrl, */
-/*             wabi_env env) */
-/* { */
-/*   wabi_store_t store; */
-/*   wabi_word* error = NULL; */
 
-/*   if(!wabi_store_init(&store, sys->config.store_initial_size)) { */
-/*     return 0; */
-/*   } */
+int
+wabi_vm_run(wabi_system sys,
+            wabi_val ctrl,
+            wabi_val env)
+{
+  wabi_store_t store;
+  wabi_word* error = NULL;
+  wabi_cont cont;
+  uint64_t fuel = sys->config.fuel;
 
-/*   PUSH_EVAL(env); */
-/*   do { */
-/*     switch(WABI_TAG(STACK)) { */
-/*     case WABI_EVAL: */
-/*       switch(WABI_TAG(CONTROL)) { */
-/*       case WABI_PAIR: */
-/*         WABI_POP; */
-/*         WABI_PUSH_APPLY(WABI_CDR(CONTROL)); */
-/*         WABI_PUSH_EVAL; */
-/*         CONTROL = WABI_CAR(CONTROL); */
-/*         break; */
-/*       case WABI_SYMBOL: */
-/*         CONTROL=WABI_LOOKUP(ENV, CONTROL); */
-/*         WABI_POP; */
-/*         break; */
-/*       default: */
-/*         WABI_POP; */
-/*       } */
-/*       break; */
-/*     case WABI_APPLY: */
-/*       if(WABI_APPLICATIVE(CONTROL)) { */
-/*         swap = STACK; */
-/*         STACK_POP; */
-/*         WABI_PUSH_CALL(CONTROL); */
-/*         WABI_PUSH_EVAL_ALL; */
-/*         CONTROL = WABI_APPLY_ARGUMENTS(swap); */
-/*       } else { */
-/*         swap = STACK; */
-/*         STACK_POP; */
-/*         WABI_PUSH_CALL(CONTROL); */
-/*         CONTROL = WABI_APPLY_ARGUMENTS(swap); */
-/*       } */
-/*       break; */
-/*     case WABI_CALL: */
-/*       swap = WABI_CALL_FUNCTION(STACK); */
-/*       if (WABI_BUILTIN?(swap)) { */
-/*         BTCALL(swap, store); */
-/*       } else { */
-/*         WABI_PUSH_EVAL(WABI_ENV_EXTEND(WABI_OPERATIVE_ENV(swap), */
-/*                                        WABI_BIND(WABI_OPERATIVE_PARAMETERS(swap), CONTROL), */
-/*                                        WABI_BIND(WABI_OPERATIVE_DYNAMIC_ENV_NAME(swap), WABI_ENV))); */
-/*         CONTROL = WABI_OPERATIVE_BODY(swap); */
+  if(!wabi_store_init(&store, sys->config.store_initial_size)) {
+    return 0;
+  }
 
-/*       } */
-/*     } */
-/*     fuel--; */
-/*   } while(fuel && !error && STACK < store.limit); */
+  wabi_cont_eval_push(&store, env);
 
-/*   if(! fuel) return 3; */
-/*   if(error) return 2; */
-/*   if(store.stack == limit) return 1; */
-/* } */
+  do {
+  } while(fuel && !error);
+
+  if(! fuel) return 3;
+  if(error) return 2;
+}
