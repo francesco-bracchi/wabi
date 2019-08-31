@@ -34,3 +34,4 @@ test/*.log
 test/*.trs
 test/check_store
 test/check_binary
+test/check_map

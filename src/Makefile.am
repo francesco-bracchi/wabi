@@ -25,7 +25,9 @@ libwabi_la_SOURCES = \
 	wabi_cont.h \
 	wabi_cont.c \
 	wabi_vm.h \
-	wabi_vm.c
+	wabi_vm.c \
+	wabi_pr.h \
+	wabi_pr.c
 
 libwabi_la_LIBADD=$(LIBEV)
 

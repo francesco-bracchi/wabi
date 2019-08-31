@@ -147,7 +147,7 @@ START_TEST(iter)
   entry = wabi_map_iterator_current(&iter);
 
   ck_assert_ptr_nonnull(wabi_map_iterator_current(&iter));
-  ck_assert_int_eq(wabi_cmp((wabi_val)wabi_map_iterator_current(&iter), k), 0);
+  ck_assert_int_eq(wabi_cmp((wabi_val) WABI_MAP_ENTRY_KEY(entry), k), 0);
 
   wabi_map_iterator_next(&iter);
   entry = wabi_map_iterator_current(&iter);
