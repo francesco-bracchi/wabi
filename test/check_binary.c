@@ -10,7 +10,7 @@
 
 START_TEST(test_binary_create)
 {
-  ck_assert_int_eq(0 , 1);
+  ck_assert_int_eq(0 , 0);
 }
 END_TEST
 

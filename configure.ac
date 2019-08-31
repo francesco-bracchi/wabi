@@ -35,7 +35,7 @@ AC_FUNC_MALLOC
 AC_CHECK_LIB([ev], [ev_run], [LIBEV=-lev], [AC_MSG_ERROR(Unable to find libev library)])
 AC_SUBST([LIBEV])
 
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.10])
+PKG_CHECK_MODULES([CHECK], [check >= 0.12.0])
 
 AC_SYS_LARGEFILE
 

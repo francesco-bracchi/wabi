@@ -22,17 +22,16 @@ typedef enum wabi_tag_enum {
   wabi_tag_map_array  = 0x9000000000000000,
   wabi_tag_map_entry  = 0xA000000000000000,
   wabi_tag_map_hash   = 0xB000000000000000,
-  wabi_tag_map_operb  = 0xC000000000000000,
 
-  wabi_tag_oper       = 0xD000000000000000,
-  wabi_tag_app        = 0xE000000000000000,
-  wabi_tag_bt_oper    = 0xF000000000000000,
-  wabi_tag_bt_app     = 0x0800000000000000,
+  wabi_tag_oper       = 0xC000000000000000,
+  wabi_tag_app        = 0xD000000000000000,
+  wabi_tag_bt_oper    = 0xE000000000000000,
+  wabi_tag_bt_app     = 0xF800000000000000,
 
-  wabi_tag_env        = 0x1800000000000000,
-  wabi_tag_var        = 0x3800000000000000,
-  wabi_tag_cont_eval  = 0x3800000000000000,
-  wabi_tag_cont_apply = 0x4800000000000000,
+  wabi_tag_env        = 0x0800000000000000,
+  wabi_tag_var        = 0x1800000000000000,
+  wabi_tag_cont_eval  = 0x2800000000000000,
+  wabi_tag_cont_apply = 0x3800000000000000,
 } wabi_tag;
 
 static const wabi_word wabi_val_nil    = 0x0000000000000000;
@@ -43,6 +42,7 @@ static const wabi_word wabi_val_ignore = 0x0000000000000003;
 static const wabi_word wabi_tag_immediate_limit = wabi_tag_forward;
 static const wabi_word wabi_word_value_mask = 0x07FFFFFFFFFFFFFF;
 static const wabi_word wabi_word_tag_mask = 0xF800000000000000;
+static const int wabi_word_tag_offset = 64 - 5;
 
 typedef wabi_word* wabi_val;
 
@@ -50,7 +50,7 @@ typedef wabi_word* wabi_val;
 
 #define WABI_WORD_VAL(word) ((word) & wabi_word_value_mask)
 
-#define WABI_TAG(val) WABI_WORD_TAG(*val)
+#define WABI_TAG(val) WABI_WORD_TAG(*((wabi_val) val))
 
 #define WABI_DEREF(val) ((wabi_val) WABI_WORD_VAL(*val))
 
