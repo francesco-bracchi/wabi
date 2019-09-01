@@ -114,10 +114,6 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_step(state, "M", 1);
     wabi_hash_map(state, (wabi_map) val);
     return;
-  /* case WABI_TYPE_MAP: */
-  /*   wabi_hash_step(state, "M", 1); */
-  /*   wabi_hash_map(state, (wabi_map) val); */
-  /*   return; */
   /* case WABI_TYPE_SYMBOL: */
   /*   wabi_hash_step(state, "S", 1); */
   /*   wabi_hash_binary(state, wabi_symbol_binary((wabi_symbol) val)) */
