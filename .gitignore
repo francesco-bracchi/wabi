@@ -36,3 +36,4 @@ test/check_store
 test/check_binary
 test/check_map
 test/check_cmp
+test/check_hash

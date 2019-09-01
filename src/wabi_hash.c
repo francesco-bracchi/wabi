@@ -5,7 +5,7 @@
 #include "wabi_pair.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
-#include "wabi_symbol.h"
+// #include "wabi_symbol.h"
 
 typedef struct wabi_hash_state_struct
 {
@@ -29,7 +29,8 @@ wabi_hash_step(wabi_hash_state_t *state,
                char *data,
                wabi_word size)
 {
-  for(wabi_word j = 0; j < size; j++) {
+  wabi_word j;
+  for(j = 0; j < size; j++) {
     state->v_hash = state->a * state->v_hash + *(data + j);
     state->a *= state->b;
   }
@@ -89,12 +90,14 @@ void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
   wabi_word tag = WABI_TAG(val);
-
   if(tag < wabi_tag_immediate_limit) {
     wabi_hash_step(state, (char *) val, 8);
     return;
   }
   switch(tag) {
+  case wabi_tag_fixnum:
+    wabi_hash_step(state, (char *) val, 8);
+    return;
   case wabi_tag_pair:
     wabi_hash_step(state, "P", 1);
     wabi_hash_val(state, wabi_car((wabi_pair) val));
@@ -110,6 +113,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
   case wabi_tag_map_entry:
     wabi_hash_step(state, "M", 1);
     wabi_hash_map(state, (wabi_map) val);
+    return;
   /* case WABI_TYPE_MAP: */
   /*   wabi_hash_step(state, "M", 1); */
   /*   wabi_hash_map(state, (wabi_map) val); */
@@ -123,11 +127,10 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
   state->err = 1;
 }
 
-
 wabi_word
 wabi_hash(wabi_val val)
 {
-  wabi_hash_state_t hash_state;
+  wabi_hash_state_t hash_state;;
   wabi_hash_state_init(&hash_state);
   wabi_hash_val(&hash_state, val);
   if(!hash_state.err) {
