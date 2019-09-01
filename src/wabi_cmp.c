@@ -11,7 +11,6 @@
 #include "wabi_map.h"
 #include "wabi_cmp.h"
 #include "wabi_env.h"
-#include "wabi_vm.h"
 
 static inline int
 wabi_cmp_leaves(wabi_binary_leaf left,
@@ -182,7 +181,7 @@ wabi_cmp_combiner(wabi_combiner a, wabi_combiner b)
 }
 
 int
-wabi_cmp_raw(wabi_val a, wabi_val b)
+wabi_cmp(wabi_val a, wabi_val b)
 {
   // if the 2 values are the very same, they are equal :|
   if(a == b) return 0;
@@ -215,23 +214,8 @@ wabi_cmp_raw(wabi_val a, wabi_val b)
   }
 }
 
-
 int
-wabi_eq_raw(wabi_val left, wabi_val right)
+wabi_eq(wabi_val left, wabi_val right)
 {
   return !wabi_cmp_raw(left, right);
-}
-
-
-wabi_val
-wabi_cmp(wabi_vm vm, wabi_val left, wabi_val right)
-{
-  return wabi_smallint(vm, wabi_cmp_raw(left, right));
-}
-
-
-wabi_val
-wabi_eq(wabi_vm vm, wabi_val left, wabi_val right)
-{
-  return (wabi_val) wabi_boolean(vm, wabi_eq_raw(left, right));
 }

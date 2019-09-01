@@ -218,6 +218,7 @@
     (pair? cs) (bind-apply (env-push e) c cs)
     (err "wrong let expression" (list* (quote let) c cs))))
 
+
 (defn zip
     as
   (let zip (as as rs nil)
@@ -349,3 +350,10 @@
 (def a 10
      b (+ 1 2)
      c (/ (+ a b) 2))
+
+
+(reset (* 2 (shift k (k (k 4)))))
+
+(pr (* 2 (ctrl k (k 4))))
+
+(# (* 2 (ctrl k (k 4))))

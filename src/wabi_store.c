@@ -17,7 +17,7 @@
 #include "wabi_map.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
-#include "wabi_secd_frame.h"
+#include "wabi_var.h"
 
 #define WABI_STORE_LIMIT (wabi_word_t *)0x00FFFFFFFFFFFFFF
 
@@ -97,6 +97,7 @@ wabi_store_copy_val(wabi_store store, wabi_word_t *src)
     store->alloc++;
   } else switch(tag) {
     case WABI_TAG_PAIR:
+    case WABI_TAG_VAR:
       memcpy(res, src, 2 * WABI_WORD_SIZE);
       store->alloc+=2;
       break;
@@ -114,10 +115,6 @@ wabi_store_copy_val(wabi_store store, wabi_word_t *src)
       memcpy(res, src, WABI_ENV_BYTE_SIZE);
       store->alloc+= WABI_ENV_SIZE;
       break;
-    case WABI_TAG_SECD_FRAME:
-      memcpy(res, src, WABI_FRAME_BYTE_SIZE);
-      store->alloc+= WABI_ENV_SIZE;
-      break;
     default:
       return NULL;
     }
@@ -131,6 +128,15 @@ wabi_store_collect_pair(wabi_store store, wabi_pair pair)
 {
   pair->car = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (pair->car | WABI_VALUE_MASK)) | WABI_TAG_PAIR;
   pair->cdr = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) pair->cdr);
+  store->scan += 2;
+}
+
+
+inline static void
+wabi_store_collect_var(wabi_store store, wabi_var var)
+{
+  var->listeners = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) (var->listeners | WABI_VALUE_MASK)) | WABI_TAG_VAR;
+  var->value = (wabi_word_t) wabi_store_copy_val(store, (wabi_val) var->value);
   store->scan += 2;
 }
 
@@ -279,8 +285,8 @@ wabi_store_collect_all(wabi_store store)
         // todo: find out if it would be better to have a check on the derived bit (i.e. if)
         wabi_store_collect_combiner_derived(store, (wabi_combiner_derived) store->scan);
         break;
-      case WABI_TAG_SECD_FRAME:
-        wabi_store_collect_secd_frame(store, (wabi_frame) store->scan);
+      case WABI_TAG_VAR:
+        wabi_store_collect_var(store, (wabi_var) store->scan);
         break;
       default:
         return WABI_ERROR_UNKNOWN;

@@ -48,9 +48,7 @@ typedef void wabi_builtin_fun_type(wabi_vm);
 #define WABI_COMBINER_UNWRAP_MASK      0xFEFFFFFFFFFFFFFF
 
 #define WABI_COMBINER_IS_BUILTIN(combiner) (*((wabi_word_t*) (combiner)) & WABI_COMBINER_BUILTIN_MASK)
-// #define WABI_COMBINER_IS_APPLICATIVE(combiner) (*((wabi_word_t*) (combiner)) & WABI_COMBINER_APPLICATIVE_MASK)
 #define WABI_COMBINER_IS_OPERATIVE(combiner) (!WABI_COMBINER_IS_APPLICATIVE(combiner))
-
 #define WABI_COMBINER_IS_APPLICATIVE(combiner) (*((wabi_val) combiner) & WABI_COMBINER_APPLICATIVE_MASK)
 
 wabi_combiner
