@@ -7,6 +7,7 @@
 #include "wabi_pair.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
+#include "wabi_number.h"
 /* #include "wabi_symbol.h" */
 /* #include "wabi_combiner.h" */
 /* #include "wabi_env.h" */
@@ -93,7 +94,9 @@ wabi_pr_map_array(wabi_map_array map)
   for(int j = 0; j < size; j++) {
     wabi_map_entry row = (wabi_map_entry)(table + j);
     wabi_pr_map_entry(row);
-    putchar(' ');
+    if(size - j - 1) {
+      putchar(' ');
+    }
   }
 }
 
@@ -209,6 +212,9 @@ wabi_pr(wabi_val val) {
     /* case WABI_TAG_SMALLINT: */
     /*   printf("%li", *val & WABI_VALUE_MASK); */
     /*   break; */
+  case wabi_tag_fixnum:
+    printf("%ld", WABI_CAST_INT64(val));
+    break;
   case wabi_tag_pair:
     printf("(");
     wabi_pr_pair((wabi_pair) val);

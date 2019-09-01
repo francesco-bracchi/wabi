@@ -6,6 +6,7 @@
 #include "wabi_map.h"
 // #include "wabi_symbol.h"
 #include "wabi_cmp.h"
+#include "wabi_number.h"
 
 int
 wabi_cmp_leaves(wabi_binary_leaf left,
@@ -177,11 +178,16 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 /* } */
 
 int
+wabi_cmp_fixnum(wabi_val a, wabi_val b) {
+  long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
+  return d ? (d > 0L ? 1 : -1) : 0;
+}
+
+int
 wabi_cmp(wabi_val a, wabi_val b)
 {
   // if the 2 values are the very same, they are equal :|
   if(a == b) return 0;
-
   // types are different => type order
   wabi_word tag = WABI_TAG(a);
   wabi_word tag_diff = tag - WABI_TAG(b);
@@ -193,6 +199,8 @@ wabi_cmp(wabi_val a, wabi_val b)
     return *a - *b;
   }
   switch(tag) {
+  case wabi_tag_fixnum:
+    return wabi_cmp_fixnum(a, b);
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
     return wabi_cmp_binary((wabi_binary) a, (wabi_binary) b);

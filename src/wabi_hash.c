@@ -4,6 +4,8 @@
 #include "wabi_hash.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
+#include "wabi_map.h"
+#include "wabi_symbol.h"
 
 typedef struct wabi_hash_state_struct
 {
@@ -64,24 +66,24 @@ wabi_hash_binary(wabi_hash_state_t *state, wabi_binary bin)
   wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
 }
 
-/* void */
-/* wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry) */
-/* { */
-/*   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry)); */
-/*   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry)); */
-/* } */
+void
+wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
+{
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
+}
 
-/* void */
-/* wabi_hash_map(wabi_hash_state_t *state, wabi_map map) */
-/* { */
-/*   wabi_map_entry entry; */
-/*   wabi_map_iter_t iter; */
-/*   wabi_map_iterator_init(&iter, map); */
-/*   while((entry = wabi_map_iterator_current(&iter))) { */
-/*     wabi_hash_entry(state, entry); */
-/*     wabi_map_iterator_next(&iter); */
-/*   } */
-/* } */
+void
+wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
+{
+  wabi_map_entry entry;
+  wabi_map_iter_t iter;
+  wabi_map_iterator_init(&iter, map);
+  while((entry = wabi_map_iterator_current(&iter))) {
+    wabi_hash_entry(state, entry);
+    wabi_map_iterator_next(&iter);
+  }
+}
 
 void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
@@ -103,6 +105,11 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_step(state, "B", 1);
     wabi_hash_binary(state, (wabi_binary) val);
     return;
+  case wabi_tag_map_array:
+  case wabi_tag_map_hash:
+  case wabi_tag_map_entry:
+    wabi_hash_step(state, "M", 1);
+    wabi_hash_map(state, (wabi_map) val);
   /* case WABI_TYPE_MAP: */
   /*   wabi_hash_step(state, "M", 1); */
   /*   wabi_hash_map(state, (wabi_map) val); */
