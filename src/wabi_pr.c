@@ -8,6 +8,7 @@
 #include "wabi_binary.h"
 #include "wabi_map.h"
 #include "wabi_number.h"
+#include "wabi_symbol.h"
 /* #include "wabi_symbol.h" */
 /* #include "wabi_combiner.h" */
 /* #include "wabi_env.h" */
@@ -209,11 +210,11 @@ wabi_pr(wabi_val val) {
       printf("_");
       break;
     }
-    /* case WABI_TAG_SMALLINT: */
-    /*   printf("%li", *val & WABI_VALUE_MASK); */
-    /*   break; */
   case wabi_tag_fixnum:
     printf("%ld", WABI_CAST_INT64(val));
+    break;
+  case wabi_tag_symbol:
+    wabi_pr_binary((wabi_binary) WABI_DEREF(val));
     break;
   case wabi_tag_pair:
     printf("(");

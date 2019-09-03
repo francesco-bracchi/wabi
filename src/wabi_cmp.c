@@ -4,9 +4,9 @@
 #include "wabi_binary.h"
 #include "wabi_pair.h"
 #include "wabi_map.h"
-// #include "wabi_symbol.h"
 #include "wabi_cmp.h"
 #include "wabi_number.h"
+#include "wabi_symbol.h"
 
 int
 wabi_cmp_leaves(wabi_binary_leaf left,
@@ -65,17 +65,10 @@ wabi_cmp_bin(wabi_binary left,
 
 
 int
-wabi_cmp_binary(wabi_binary left, wabi_binary right) {
+wabi_cmp_binary(wabi_binary left, wabi_binary right)
+{
   return wabi_cmp_bin(left, 0, wabi_binary_length(left), right, 0, wabi_binary_length(right));
 }
-
-
-/* int */
-/* wabi_cmp_symbol(wabi_symbol left, wabi_symbol right) { */
-/*   return wabi_cmp_binary(WABI_SYMBOL_BINARY(left), */
-/*                          WABI_SYMBOL_BINARY(right)); */
-/* } */
-
 
 int
 wabi_cmp_pair(wabi_pair left, wabi_pair right) {
@@ -178,7 +171,7 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 /* } */
 
 int
-wabi_cmp_fixnum(wabi_val a, wabi_val b) {
+wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
   long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
   return d ? (d > 0L ? 1 : -1) : 0;
 }
@@ -194,13 +187,14 @@ wabi_cmp(wabi_val a, wabi_val b)
   if(tag_diff) {
     return (int)(tag_diff >> wabi_word_tag_offset);
   }
-  // types are the same, compare atomic values
-  if(tag <= wabi_tag_immediate_limit) {
-    return *a - *b;
-  }
   switch(tag) {
+  case wabi_tag_constant:
+    return (*a - *b);
   case wabi_tag_fixnum:
-    return wabi_cmp_fixnum(a, b);
+    return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
+  case wabi_tag_symbol:
+    // todo, since a symbol only refers to binary short circuit here
+    return wabi_cmp(WABI_DEREF(a), WABI_DEREF(b));
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
     return wabi_cmp_binary((wabi_binary) a, (wabi_binary) b);
@@ -210,8 +204,6 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
-  /* case WABI_TYPE_SYMBOL: */
-  /*   return wabi_cmp_symbol(a, b); */
   /* case WABI_TYPE_ENV: */
   /*   return wabi_cmp_env((wabi_env) a, (wabi_env) b); */
   /* case WABI_TYPE_COMBINER: */

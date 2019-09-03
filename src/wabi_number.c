@@ -11,8 +11,10 @@ wabi_fixnum_new(wabi_store store,
                 int64_t val)
 {
   wabi_val res = wabi_store_heap_alloc(store, 1);
-  if(! res) return NULL;
-  *res = val & wabi_word_value_mask;
-  WABI_SET_TAG(res, wabi_tag_fixnum);
-  return res;
+  if(res) {
+    *res = val & wabi_word_value_mask;
+    WABI_SET_TAG(res, wabi_tag_fixnum);
+    return res;
+  }
+  return NULL;
 }

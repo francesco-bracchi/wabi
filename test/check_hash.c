@@ -12,6 +12,7 @@
 #include "../src/wabi_pair.h"
 #include "../src/wabi_binary.h"
 #include "../src/wabi_map.h"
+#include "../src/wabi_symbol.h"
 
 #include "../src/wabi_hash.h"
 
@@ -52,10 +53,10 @@ END_TEST
 
 START_TEST(numbers)
 {
-  wabi_val zero = (wabi_val) wabi_fixnum_new(&store, 0UL);
-  wabi_val neg = (wabi_val) wabi_fixnum_new(&store, -99UL);
-  wabi_val pos = (wabi_val) wabi_fixnum_new(&store, 19UL);
-  printf("%lx %lx %lx\n", wabi_hash(neg), wabi_hash(zero), wabi_hash(pos));
+  wabi_val zero, neg, pos;
+  zero = (wabi_val) wabi_fixnum_new(&store, 0UL);
+  neg = (wabi_val) wabi_fixnum_new(&store, -99UL);
+  pos = (wabi_val) wabi_fixnum_new(&store, 19UL);
   ck_assert_int_ne(wabi_hash(neg), 0);
   ck_assert_int_ne(wabi_hash(zero), 0);
   ck_assert_int_ne(wabi_hash(pos), 0);
@@ -64,8 +65,8 @@ END_TEST
 
 START_TEST(binaries)
 {
-  wabi_val one = (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "one");
-
+  wabi_val one;
+  one = (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "one");
   ck_assert_int_ne(wabi_hash(one), 0);
 }
 END_TEST
@@ -77,6 +78,19 @@ START_TEST(maps)
   m = wabi_map_empty(&store);
   m = wabi_map_assoc(&store, m, (wabi_val) wabi_fixnum_new(&store, 0), (wabi_val) wabi_fixnum_new(&store, 0));;
   ck_assert_int_ne(wabi_hash((wabi_val) m), 0);
+}
+END_TEST
+
+START_TEST(symbols)
+{
+  wabi_symbol s;
+  wabi_binary b;
+
+  b = (wabi_binary) wabi_binary_leaf_new_from_cstring(&store, "abc123");
+  s = wabi_symbol_new(&store, (wabi_val) b);
+
+  ck_assert_int_ne(wabi_hash((wabi_val) s), 0);
+  ck_assert_int_ne(wabi_hash((wabi_val) s), wabi_hash((wabi_val) b));
 }
 END_TEST
 
@@ -97,6 +111,7 @@ map_suite(void)
   tcase_add_test(tc_core, numbers);
   tcase_add_test(tc_core, binaries);
   tcase_add_test(tc_core, maps);
+  tcase_add_test(tc_core, symbols);
   suite_add_tcase(s, tc_core);
 
   return s;

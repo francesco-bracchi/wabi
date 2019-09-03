@@ -13,7 +13,5 @@ int wabi_loop(wabi_system sys)
   wabi_sys.config.store_initial_size = 10240;
   wabi_system_init(&wabi_sys);
 
-  printf("haha");
-
   wabi_system_free(&wabi_sys);
 }

@@ -8,6 +8,8 @@ libwabi_la_SOURCES = \
 	wabi_binary.c \
 	wabi_number.h \
 	wabi_number.c \
+	wabi_symbol.h \
+	wabi_symbol.c \
 	wabi_pair.h \
 	wabi_pair.c \
 	wabi_hash.h \

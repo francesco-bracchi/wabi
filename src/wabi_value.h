@@ -8,9 +8,9 @@ typedef int wabi_error_code;
 
 typedef enum wabi_tag_enum {
   wabi_tag_constant   = 0x0000000000000000,
-  wabi_tag_forward    = 0x1000000000000000,
-  wabi_tag_fixnum     = 0x2000000000000000,
-  wabi_tag_symbol     = 0x3000000000000000,
+  wabi_tag_fixnum     = 0x1000000000000000,
+  wabi_tag_symbol     = 0x2000000000000000,
+  wabi_tag_forward    = 0x3000000000000000,
   wabi_tag_pair       = 0x4000000000000000,
 
   wabi_tag_bin_blob   = 0x5000000000000000,

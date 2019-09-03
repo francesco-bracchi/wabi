@@ -9,6 +9,7 @@
 typedef wabi_val wabi_fixnum;
 
 static const int wabi_fixnum_sign_offset = wabi_word_tag_offset - 1;
+
 static const wabi_word wabi_fixnum_sign_mask = 1UL << wabi_fixnum_sign_offset;
 
 #define FIXNUM_NEG(v) ((v) & wabi_fixnum_sign_mask)
