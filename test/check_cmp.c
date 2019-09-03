@@ -30,7 +30,7 @@ setup(void)
 void
 teardown(void)
 {
-  wabi_store_free(&store);
+  wabi_store_destroy(&store);
 }
 
 START_TEST(types)
@@ -39,13 +39,9 @@ START_TEST(types)
   *nil = wabi_val_nil;
 
   wabi_val num = (wabi_val) wabi_fixnum_new(&store, 0);
-
   wabi_val pair = (wabi_val) wabi_cons(&store, num, nil);
-
   wabi_val bin = (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "binary");
-
   wabi_val sym = (wabi_val) wabi_symbol_new(&store, bin);
-
   wabi_val map = (wabi_val) wabi_map_empty(&store);
 
   ck_assert_int_gt(wabi_cmp(num, nil), 0);

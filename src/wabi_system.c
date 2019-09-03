@@ -15,5 +15,5 @@ wabi_system_init(wabi_system sys)
 void
 wabi_system_free(wabi_system sys)
 {
-  wabi_store_free(&(sys->global_store));
+  wabi_store_destroy(&(sys->global_store));
 }

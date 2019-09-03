@@ -25,7 +25,7 @@ wabi_store_init(wabi_store store,
 
 
 void
-wabi_store_free(wabi_store store)
+wabi_store_destroy(wabi_store store)
 {
   free(store->space);
 }

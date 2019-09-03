@@ -16,7 +16,7 @@ START_TEST(test_store_create)
   res = wabi_store_init(&s, 1000);
   ck_assert_int_eq(res, 1);
   ck_assert_ptr_nonnull(s.space);
-  wabi_store_free(&s);
+  wabi_store_destroy(&s);
 }
 END_TEST
 
@@ -31,7 +31,7 @@ START_TEST(test_store_heap_allocate)
   ck_assert_ptr_nonnull(s.space);
   v = wabi_store_heap_alloc(&s, 2U);
   ck_assert_ptr_eq(s.heap, v + 2U);
-  wabi_store_free(&s);
+  wabi_store_destroy(&s);
 }
 END_TEST
 
@@ -48,7 +48,7 @@ START_TEST(test_store_stack_allocate)
   v = wabi_store_stack_alloc(&s, 2U);
   ck_assert_ptr_eq(s.stack, v);
   ck_assert_ptr_eq(s0, v + 2U);
-  wabi_store_free(&s);
+  wabi_store_destroy(&s);
 }
 END_TEST
 
@@ -66,7 +66,7 @@ START_TEST(test_store_fail_to_allocate)
   v = wabi_store_heap_alloc(&s, 1U);
   ck_assert_ptr_null(v);
 
-  wabi_store_free(&s);
+  wabi_store_destroy(&s);
 }
 END_TEST
 

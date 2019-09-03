@@ -22,7 +22,7 @@ setup(void)
 void
 teardown(void)
 {
-  wabi_store_free(&store);
+  wabi_store_destroy(&store);
 }
 
 START_TEST(assoc_empty)
