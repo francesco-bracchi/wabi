@@ -18,6 +18,8 @@ libwabi_la_SOURCES = \
 	wabi_cmp.c \
 	wabi_map.h \
 	wabi_map.c \
+	wabi_env.h \
+	wabi_env.c \
 	wabi_system.h \
 	wabi_system.c \
 	wabi_store.h \
