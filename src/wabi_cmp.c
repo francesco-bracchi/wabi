@@ -1,12 +1,15 @@
 #define wabi_cmp_c
 
+#include <stddef.h>
 #include "wabi_value.h"
 #include "wabi_binary.h"
 #include "wabi_pair.h"
 #include "wabi_map.h"
-#include "wabi_cmp.h"
 #include "wabi_number.h"
 #include "wabi_symbol.h"
+#include "wabi_env.h"
+
+#include "wabi_cmp.h"
 
 int
 wabi_cmp_leaves(wabi_binary_leaf left,
@@ -114,21 +117,20 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 }
 
 
-/* int */
-/* wabi_cmp_env(wabi_env left, wabi_env right) { */
-/*   int cmp0; */
-/*   do { */
-/*     cmp0 = wabi_cmp_map((wabi_map) left->data, */
-/*                         (wabi_map) right->data); */
-/*     if(cmp0) return cmp0; */
+int
+wabi_cmp_env(wabi_env left, wabi_env right) {
+  int cmp0;
+  do {
+    cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data);
+    if(cmp0) return cmp0;
 
-/*     left = (wabi_env) (left->prev & WABI_VALUE_MASK); */
-/*     right = (wabi_env) (right->prev & WABI_VALUE_MASK); */
-/*     if(left == right) return 0; */
-/*     if(left == NULL) return 1; */
-/*     if(right == NULL) return -1; */
-/*   } while(1); */
-/* } */
+    left = (wabi_env) WABI_WORD_VAL(left->prev);
+    right = (wabi_env) WABI_WORD_VAL(right->prev);
+    if(left == right) return 0;
+    if(left == NULL) return 1;
+    if(right == NULL) return -1;
+  } while(1);
+}
 
 
 /* int */
@@ -204,8 +206,8 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
-  /* case WABI_TYPE_ENV: */
-  /*   return wabi_cmp_env((wabi_env) a, (wabi_env) b); */
+  case wabi_tag_env:
+    return wabi_cmp_env((wabi_env) a, (wabi_env) b);
   /* case WABI_TYPE_COMBINER: */
   /*   return wabi_cmp_combiner((wabi_combiner) a, (wabi_combiner) b); */
   default:

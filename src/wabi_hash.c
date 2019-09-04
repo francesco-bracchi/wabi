@@ -6,6 +6,7 @@
 #include "wabi_binary.h"
 #include "wabi_map.h"
 #include "wabi_symbol.h"
+#include "wabi_env.h"
 
 typedef struct wabi_hash_state_struct
 {
@@ -55,7 +56,6 @@ wabi_binary_node_hash(wabi_hash_state_t *state, wabi_binary_node node)
   wabi_hash_binary(state, (wabi_binary) node->right);
 }
 
-
 void
 wabi_hash_binary(wabi_hash_state_t *state, wabi_binary bin)
 {
@@ -86,9 +86,18 @@ wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
   }
 }
 
+wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
+{
+  do {
+    wabi_hash_map(state, (wabi_map) env->data);
+    env = (wabi_env) WABI_WORD_VAL(env->prev);
+  } while(env);
+}
+
 void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
+  printf("HASH_VAL %lx\n", WABI_TAG(val));
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
   case wabi_tag_fixnum:
@@ -113,6 +122,10 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
   case wabi_tag_map_entry:
     wabi_hash_step(state, "M", 1);
     wabi_hash_map(state, (wabi_map) val);
+    return;
+  case wabi_tag_env:
+    wabi_hash_step(state, "E", 1);
+    wabi_hash_env(state, (wabi_env) val);
     return;
   }
   state->err = 1;

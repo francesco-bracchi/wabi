@@ -9,6 +9,9 @@
 #include "../src/wabi_store.h"
 #include "../src/wabi_value.h"
 #include "../src/wabi_symbol.h"
+#include "../src/wabi_binary.h"
+#include "../src/wabi_number.h"
+#include "../src/wabi_cmp.h"
 
 #include "../src/wabi_env.h"
 
@@ -26,9 +29,61 @@ teardown(void)
   wabi_store_destroy(&store);
 }
 
-START_TEST(test)
+START_TEST(empty)
 {
-  ck_assert_int_eq(0, 1);
+  wabi_env env;
+  env = wabi_env_new(&store);
+  ck_assert_ptr_nonnull(env);
+}
+END_TEST
+
+
+START_TEST(insert)
+{
+  wabi_env env;
+  wabi_symbol k;
+  wabi_val v, v0;
+  env = wabi_env_new(&store);
+  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
+  v0 = wabi_fixnum_new(&store, 12U);
+  wabi_env_set(&store, env, k, v0);
+  v = wabi_env_lookup(env, k);
+
+  ck_assert_int_eq(0, wabi_cmp(v, v0));
+}
+END_TEST
+
+START_TEST(extend)
+{
+  wabi_env env;
+  wabi_symbol k;
+  wabi_val v, v0;
+  env = wabi_env_new(&store);
+  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
+  v0 = wabi_fixnum_new(&store, 12U);
+  wabi_env_set(&store, env, k, v0);
+  env = wabi_env_extend(&store, env);
+  v = wabi_env_lookup(env, k);
+
+  ck_assert_int_eq(0, wabi_cmp(v, v0));
+}
+END_TEST
+
+START_TEST(shadow)
+{
+  wabi_env env, env0;
+  wabi_symbol k;
+  wabi_val v, v0, v1;
+  env0 = wabi_env_new(&store);
+  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
+  v0 = wabi_fixnum_new(&store, 12U);
+  wabi_env_set(&store, env0, k, v0);
+  env = wabi_env_extend(&store, env0);
+  v = wabi_fixnum_new(&store, 42U);
+  wabi_env_set(&store, env, k, v);
+
+  ck_assert_int_eq(0, wabi_cmp(wabi_env_lookup(env0, k), v0));
+  ck_assert_int_eq(0, wabi_cmp(wabi_env_lookup(env, k), v));
 }
 END_TEST
 
@@ -45,7 +100,11 @@ map_suite(void)
   tc_core = tcase_create("Core");
   tcase_add_checked_fixture(tc_core, setup, teardown);
 
-  tcase_add_test(tc_core, test);
+  tcase_add_test(tc_core, empty);
+  tcase_add_test(tc_core, insert);
+  tcase_add_test(tc_core, extend);
+  tcase_add_test(tc_core, shadow);
+
   suite_add_tcase(s, tc_core);
 
   return s;

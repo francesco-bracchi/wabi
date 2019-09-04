@@ -6,7 +6,6 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-
 int
 wabi_store_init(wabi_store store,
                 wabi_size size)
@@ -22,7 +21,6 @@ wabi_store_init(wabi_store store,
   }
   return 0;
 }
-
 
 void
 wabi_store_destroy(wabi_store store)
@@ -46,7 +44,6 @@ wabi_store_has_rooms(wabi_store store, wabi_size size)
   return 1;
 }
 
-
 wabi_word *
 wabi_store_heap_alloc(wabi_store store, wabi_size size)
 {
@@ -58,7 +55,6 @@ wabi_store_heap_alloc(wabi_store store, wabi_size size)
   }
   return NULL;
 }
-
 
 wabi_word *
 wabi_store_stack_alloc(wabi_store store, wabi_size size)

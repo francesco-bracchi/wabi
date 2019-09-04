@@ -15,6 +15,7 @@
 #include "../src/wabi_binary.h"
 #include "../src/wabi_map.h"
 #include "../src/wabi_symbol.h"
+#include "../src/wabi_env.h"
 
 #include "../src/wabi_pr.h"
 
@@ -125,6 +126,16 @@ START_TEST(maps)
 END_TEST
 
 
+START_TEST(envs)
+{
+  wabi_env e0, e;
+  e0 = wabi_env_new(&store);
+  e = wabi_env_extend(&store, e0);
+  ck_assert_int_ne(wabi_cmp((wabi_val) e0, (wabi_val) e), 0);
+}
+END_TEST
+
+
 Suite *
 map_suite(void)
 {
@@ -143,11 +154,11 @@ map_suite(void)
   tcase_add_test(tc_core, binaries);
   tcase_add_test(tc_core, maps);
   tcase_add_test(tc_core, symbols);
+  tcase_add_test(tc_core, envs);
   suite_add_tcase(s, tc_core);
 
   return s;
 }
-
 
 int main(void)
 {

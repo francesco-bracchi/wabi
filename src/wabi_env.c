@@ -51,14 +51,13 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
   return NULL;
 }
 
-
-wabi_env
+int
 wabi_env_set(wabi_store store, wabi_env env, wabi_symbol k, wabi_val v)
 {
   wabi_map data = wabi_map_assoc(store, (wabi_map) env->data, (wabi_val) k, v);
   if(data) {
     env->data = (wabi_word) data;
-    return env;
+    return 1;
   }
-  return NULL;
+  return 0;
 }
