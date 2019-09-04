@@ -86,6 +86,7 @@ wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
   }
 }
 
+void
 wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
 {
   do {
@@ -97,7 +98,6 @@ wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
 void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
-  printf("HASH_VAL %lx\n", WABI_TAG(val));
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
   case wabi_tag_fixnum:
