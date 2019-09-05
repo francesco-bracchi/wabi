@@ -8,6 +8,7 @@
 #include "wabi_number.h"
 #include "wabi_symbol.h"
 #include "wabi_env.h"
+#include "wabi_combiner.h"
 
 #include "wabi_cmp.h"
 
@@ -179,6 +180,30 @@ wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
 }
 
 int
+wabi_cmp_builtin_combiner(wabi_combiner_builtin a, wabi_combiner_builtin b)
+{
+  return wabi_cmp_binary((wabi_binary) a->c_name, (wabi_binary) b->c_name);
+}
+
+int
+wabi_cmp_combiner_derived(wabi_combiner_derived a, wabi_combiner_derived b)
+{
+    int cmp;
+
+    cmp = wabi_cmp((wabi_val) a->body, (wabi_val) b->body);
+    if(cmp) return cmp;
+
+    cmp = wabi_cmp((wabi_val) a->parameters, (wabi_val) b->parameters);
+    if(cmp) return cmp;
+
+    cmp = wabi_cmp((wabi_val) a->caller_env_name, (wabi_val) b->caller_env_name);
+    if(cmp) return cmp;
+
+    return wabi_cmp((wabi_val) WABI_WORD_VAL(a->static_env),
+                    (wabi_val) WABI_WORD_VAL(b->static_env));
+}
+
+int
 wabi_cmp(wabi_val a, wabi_val b)
 {
   // if the 2 values are the very same, they are equal :|
@@ -208,8 +233,12 @@ wabi_cmp(wabi_val a, wabi_val b)
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
   case wabi_tag_env:
     return wabi_cmp_env((wabi_env) a, (wabi_env) b);
-  /* case WABI_TYPE_COMBINER: */
-  /*   return wabi_cmp_combiner((wabi_combiner) a, (wabi_combiner) b); */
+  case wabi_tag_app:
+  case wabi_tag_oper:
+    return wabi_cmp_combiner_derived((wabi_combiner_derived) a, (wabi_combiner_derived) b);
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    return wabi_cmp_builtin_combiner((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
   default:
     return -1;
   }

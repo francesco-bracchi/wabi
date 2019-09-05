@@ -14,6 +14,7 @@
 #include "../src/wabi_map.h"
 #include "../src/wabi_symbol.h"
 #include "../src/wabi_env.h"
+#include "../src/wabi_combiner.h"
 
 #include "../src/wabi_hash.h"
 
@@ -104,6 +105,20 @@ START_TEST(envs)
 END_TEST
 
 
+START_TEST(combiners)
+{
+  wabi_binary cname = wabi_binary_leaf_new_from_cstring(&store, "builtin_name");
+  wabi_combiner c = wabi_combiner_builtin_new(&store, cname, NULL);
+  ck_assert_int_ne(wabi_hash((wabi_val) c), 0);
+  ck_assert_int_ne(wabi_hash((wabi_val) c), wabi_hash((wabi_val) cname));
+}
+END_TEST
+
+// TODO:
+// 1. test derived,
+// 2. test (wrap op) != op
+// 3. (wrap bt_op) != bt_op
+
 Suite *
 map_suite(void)
 {
@@ -122,6 +137,7 @@ map_suite(void)
   tcase_add_test(tc_core, maps);
   tcase_add_test(tc_core, symbols);
   tcase_add_test(tc_core, envs);
+  tcase_add_test(tc_core, combiners);
   suite_add_tcase(s, tc_core);
 
   return s;

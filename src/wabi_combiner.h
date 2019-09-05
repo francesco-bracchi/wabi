@@ -11,22 +11,24 @@
 #include "wabi_env.h"
 #include "wabi_value.h"
 #include "wabi_store.h"
+#include "wabi_binary.h"
 
 typedef struct wabi_combiner_derived_struct {
   wabi_word static_env;
   wabi_word caller_env_name;
-  // TODO: rename to parameters
-  wabi_word arguments;
+  wabi_word parameters;
   wabi_word body;
 } wabi_combiner_derived_t;
 
 
 typedef wabi_combiner_derived_t* wabi_combiner_derived;
 
-typedef wabi_word wabi_combiner_builtin_t;
+typedef struct wabi_combiner_builtin_struct {
+  wabi_word c_ptr;
+  wabi_word c_name;
+} wabi_combiner_builtin_t;
 
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
-
 
 typedef union wabi_combiner_union {
   wabi_combiner_builtin_t builtin;
@@ -35,17 +37,17 @@ typedef union wabi_combiner_union {
 
 typedef wabi_combiner_t* wabi_combiner;
 
-#define WABI_COMBINER_BUILTIN_SIZE 1
+#define WABI_COMBINER_BUILTIN_SIZE 2
 #define WABI_COMBINER_DERIVED_SIZE 4
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_store store, void* cfun);
+wabi_combiner_builtin_new(wabi_store store, wabi_binary cname, void* cfun);
 
 wabi_combiner
 wabi_combiner_new(wabi_store store,
                   wabi_env static_env,
                   wabi_val caller_env_name,
-                  wabi_val arguments,
+                  wabi_val parameters,
                   wabi_val body);
 
 wabi_combiner

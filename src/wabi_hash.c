@@ -7,6 +7,7 @@
 #include "wabi_map.h"
 #include "wabi_symbol.h"
 #include "wabi_env.h"
+#include "wabi_combiner.h"
 
 typedef struct wabi_hash_state_struct
 {
@@ -96,6 +97,24 @@ wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
 }
 
 void
+wabi_hash_combiner(wabi_hash_state_t *state, wabi_combiner c)
+{
+  switch(WABI_TAG(c)) {
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    wabi_hash_val(state, (wabi_val) ((wabi_combiner_builtin) c)->c_name);
+    return;
+  /* case wabi_tag_app: */
+  /* case wabi_tag_oper: */
+  default:
+    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->static_env);
+    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->caller_env_name);
+    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->parameters);
+    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->body);
+  }
+}
+
+void
 wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 {
   switch(WABI_TAG(val)) {
@@ -127,7 +146,16 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_step(state, "E", 1);
     wabi_hash_env(state, (wabi_env) val);
     return;
+  case wabi_tag_app:
+  case wabi_tag_bt_app:
+  case wabi_tag_oper:
+  case wabi_tag_bt_oper:
+    wabi_hash_step(state, "C", 1);
+    wabi_hash_step(state, (char*) val, 1);
+    wabi_hash_combiner(state, (wabi_combiner) val);
+    return;
   }
+
   state->err = 1;
 }
 

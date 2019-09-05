@@ -27,9 +27,14 @@ typedef enum wabi_tag_enum {
   wabi_tag_bt_oper    = 0x7000000000000000, // 1011 0
 
   wabi_tag_env        = 0x7800000000000000,
+  // ---------------------------
+
   wabi_tag_var        = 0x8000000000000000,
-  wabi_tag_cont_eval  = 0x8800000000000000,
-  wabi_tag_cont_apply = 0x9000000000000000,
+  wabi_tag_alien      = 0x8800000000000000,
+  wabi_tag_tagged     = 0x9000000000000000,
+
+  wabi_tag_cont_eval  = 0x9000000000000000,
+  wabi_tag_cont_apply = 0x9800000000000000,
 } wabi_tag;
 
 typedef wabi_word* wabi_val;
