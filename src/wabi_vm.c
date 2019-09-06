@@ -32,8 +32,8 @@
  * ys               | ((eval-rev nil) . s)              --> ys                | s
  * ys               | ((eval-rev (x . xs) . s)          --> (x . ys)          | ((eval-rev xs) . s)
 
- * x                | ((seq e0 nil) . s)                --> x                 | s
- * x                | ((seq e0 (a . as) . s)            --> a                 | ((eval e0) (seq e0 as) . s)
+ * x                | ((prog e0 nil) . s)                --> x                 | s
+ * x                | ((prog e0 (a . as) . s)            --> a                 | ((eval e0) (prog e0 as) . s)
  * x                | ()                                --> SUCCESS(x)
  *
  * ### fuel
