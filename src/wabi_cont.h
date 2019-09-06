@@ -68,6 +68,14 @@ typedef struct wabi_cont_eval_rev_struct {
 
 typedef wabi_cont_eval_rev_t* wabi_cont_eval_rev;
 
+typedef struct wabi_cont_def_struct {
+  wabi_word prev;
+  wabi_word env;
+  wabi_word pattern;
+} wabi_cont_def_t;
+
+typedef wabi_cont_def_t* wabi_cont_def;
+
 typedef union wabi_cont_union {
   wabi_word prev;
   wabi_cont_eval_t eval;
@@ -90,6 +98,7 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_EVAL_MORE_SIZE 4
 #define WABI_CONT_EVAL_REV_SIZE 2
 #define WABI_CONT_PROG_SIZE 2
+#define WABI_CONT_DEF_SIZE 3
 
 wabi_cont
 wabi_cont_pop(wabi_store store);
@@ -117,5 +126,8 @@ wabi_cont_eval_rev_push(wabi_store store, wabi_val data);
 
 void
 wabi_cont_eval_prog_push(wabi_store store, wabi_val env, wabi_val ctrls);
+
+void
+wabi_cont_def_push(wabi_store store, wabi_val env, wabi_val val);
 
 #endif

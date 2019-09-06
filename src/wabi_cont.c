@@ -108,3 +108,15 @@ wabi_cont_prog_push(wabi_store store, wabi_val env, wabi_val ctrls)
   WABI_SET_TAG(cont, wabi_tag_cont_prog);
   store->stack = (wabi_word*) cont;
 }
+
+void
+wabi_cont_def_push(wabi_store store, wabi_val env, wabi_val pattern)
+{
+  wabi_cont_def cont;
+  cont = (wabi_cont_def) wabi_store_stack_alloc(store, WABI_CONT_DEF_SIZE);
+  cont->prev = (wabi_word) store->stack;
+  cont->env = (wabi_word) env;
+  cont->pattern = (wabi_word) pattern;
+  WABI_SET_TAG(cont, wabi_tag_cont_prog);
+  store->stack = (wabi_word*) cont;
+}
