@@ -2,10 +2,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: alpine:3.10.2
 
     steps:
       - checkout
+
+      - run:
+          name: Prepare
+          command: apk upgrade; apk update; apk add autoconf gcc libev-dev
 
       - run:
           name: Greeting
