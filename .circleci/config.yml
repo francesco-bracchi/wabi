@@ -9,15 +9,7 @@ jobs:
 
       - run:
           name: Prepare
-          command: apk add -u --no-progress autoconf automake gcc libev-dev
-
-      - run:
-          name: Greeting
-          command: echo Hello, world.
-
-      - run:
-          name: Print the Current Time
-          command: date
+          command: apk add -u --no-progress make autoconf automake g++ m4 libtool libev-dev check-dev
 
       - run:
           name: Autoconf
