@@ -4,7 +4,10 @@
 
 #include "wabi_word.h"
 #include "wabi_store.h"
+#include "wabi_value.h"
+#include "wabi_map.h"
 #include <stdint.h>
+
 
 typedef struct wabi_system_config_struct
 {
@@ -18,8 +21,10 @@ typedef wabi_system_config_t* wabi_system_config;
 
 typedef struct wabi_system_struct
 {
-  wabi_system_config_t config;
-  wabi_store_t global_store;
+  wabi_system_config config;
+  wabi_store global_store;
+  wabi_map symbol_table;
+  wabi_val nil;
 } wabi_system_t;
 
 typedef wabi_system_t* wabi_system;

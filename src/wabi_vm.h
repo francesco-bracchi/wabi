@@ -5,10 +5,12 @@
 
 #include "wabi_value.h"
 #include "wabi_system.h"
+#include "wabi_env.h"
+#include "wabi_cont.h"
+
+typedef wabi_val wabi_control;
 
 int
-wabi_vm_run(wabi_system sys,
-            wabi_val ctrl,
-            wabi_val env);
+wabi_vm_run(wabi_control control, wabi_env env, wabi_store store, wabi_cont cont);
 
 #endif

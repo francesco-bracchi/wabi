@@ -4,7 +4,8 @@ TESTS = \
 	check_map \
 	check_cmp \
 	check_hash \
-	check_env
+	check_env \
+	check_vm
 
 check_PROGRAMS = \
 	check_store \
@@ -12,7 +13,8 @@ check_PROGRAMS = \
 	check_map \
 	check_cmp \
 	check_hash \
-	check_env
+	check_env \
+	check_vm
 
 check_store_SOURCES = check_store.c
 check_store_LDADD = ../src/libwabi.la
@@ -37,3 +39,7 @@ check_hash_CFLAGS = @CHECK_CFLAGS@ -lcheck
 check_env_SOURCES = check_env.c
 check_env_LDADD = ../src/libwabi.la
 check_env_CFLAGS = @CHECK_CFLAGS@ -lcheck
+
+check_vm_SOURCES = check_vm.c
+check_vm_LDADD = ../src/libwabi.la
+check_vm_CFLAGS = @CHECK_CFLAGS@ -lcheck

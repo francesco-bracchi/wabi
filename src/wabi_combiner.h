@@ -12,6 +12,9 @@
 #include "wabi_value.h"
 #include "wabi_store.h"
 #include "wabi_binary.h"
+#include "wabi_cont.h"
+
+typedef void (*wabi_builtin_fun)(wabi_val*, wabi_store*, wabi_env*, wabi_cont*);
 
 typedef struct wabi_combiner_derived_struct {
   wabi_word static_env;
@@ -37,11 +40,12 @@ typedef union wabi_combiner_union {
 
 typedef wabi_combiner_t* wabi_combiner;
 
+
 #define WABI_COMBINER_BUILTIN_SIZE 2
 #define WABI_COMBINER_DERIVED_SIZE 4
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_store store, wabi_binary cname, void* cfun);
+wabi_combiner_builtin_new(wabi_store store, wabi_binary cname, wabi_builtin_fun cfun);
 
 wabi_combiner
 wabi_combiner_new(wabi_store store,
@@ -58,7 +62,6 @@ wabi_combiner_unwrap(wabi_store store, wabi_combiner combiner);
 
 wabi_val
 wabi_combiner_is_operative(wabi_combiner combiner);
-
 
 wabi_val
 wabi_combiner_is_applicative(wabi_combiner combiner);

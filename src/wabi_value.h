@@ -27,7 +27,6 @@ typedef enum wabi_tag_enum {
   wabi_tag_bt_oper        = 0x7000000000000000, // 1011 0
 
   wabi_tag_env            = 0x7800000000000000,
-  // ---------------------------
 
   wabi_tag_var            = 0x8000000000000000,
   wabi_tag_alien          = 0x8800000000000000,
@@ -38,13 +37,13 @@ typedef enum wabi_tag_enum {
   wabi_tag_cont_call      = 0xa000000000000000,
   wabi_tag_cont_sel       = 0xa800000000000000,
   wabi_tag_cont_prog      = 0xb000000000000000,
-  wabi_tag_cont_eval_all  = 0xb800000000000000,
-  wabi_tag_cont_eval_more = 0xc000000000000000,
-  wabi_tag_cont_eval_rev  = 0xc800000000000000,
-  wabi_tag_cont_def       = 0xd000000000000000,
+  wabi_tag_cont_eval_more = 0xb800000000000000,
+  wabi_tag_cont_def       = 0xc000000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;
+
+typedef wabi_val wabi_expr;
 
 #define WABI_WORD_TAG(word) ((word) & wabi_word_tag_mask)
 

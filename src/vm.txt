@@ -1,0 +1,103 @@
+control: (f . as)
+stack: ((eval e0) . s)
+--------------------------------------
+control: f
+stack: ((eval e0) (apply e0 as) . s)
+
+
+control: c when (sym? c)
+stack: ((eval e0) . s)
+--------------------------------------
+control: (lookup c e0)
+stack s
+
+control: c
+stack: ((eval e0) . s)
+--------------------------------------
+control: c
+stack s
+
+control: c
+stack: ((apply e0 nil) . s)
+--------------------------------------
+control: nil
+stack: ((call e0 c) . s)
+
+
+control: c when (oper? c)
+stack: ((apply e0 as) . s)
+--------------------------------------
+control: as
+stack: ((call e0 c) . s)
+
+
+control: c when (app? c)
+stack: ((apply e0 (a . as)) . s)
+--------------------------------------
+control: a
+stack: ((eval-more e0 as nil) (call e0 c) . s)
+
+
+control: x
+stack: ((eval-more e0 nil xs) . s)
+--------------------------------------
+control: (reverse (cons x xs))
+stack: s
+
+
+control: x
+stack: ((eval-more e0 (a . as) xs) . s)
+--------------------------------------
+control: a
+stack: ((eval e0) (eval-more e0 as (cons x xs)) . s)
+
+
+control: as
+stack: ((call e0 (fx e1 ex ps b)) . s)
+--------------------------------------
+control b
+stack: ((eval (bind ex e0 ps as)) . s)
+
+
+control: as
+stack: ((call e0 #builtin) . s)
+--------------------------------------
+control: (btcall bt as &s)
+stack: s
+
+
+control: false | nil
+stack: ((sel e0 l r) . s)
+--------------------------------------
+control: r
+stack: ((eval e0) . s)
+
+
+control: _
+stack: ((sel e0 l r) . s)
+--------------------------------------
+control: l
+stack: ((eval e0) . s)
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+control: x0
+stack: ((prog e0 nil) . s)
+--------------------------------------
+control: x0
+stack: s
+
+
+control: x0
+stack: ((prog e0 (x . xs)) . s)
+--------------------------------------
+control: x
+stack: ((prog e0 xs) . s)
+
+
+control x0
+stack: nil
+--------------------------------------
+WIN!

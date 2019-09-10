@@ -11,7 +11,7 @@
 wabi_combiner
 wabi_combiner_builtin_new(wabi_store store,
                           wabi_binary cname,
-                          void* cfun)
+                          wabi_builtin_fun cfun)
 {
   // todo: verify cfun pointer is less then 2^59
   wabi_combiner_builtin res = (wabi_combiner_builtin) wabi_store_heap_alloc(store, WABI_COMBINER_BUILTIN_SIZE);
