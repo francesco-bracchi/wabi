@@ -29,7 +29,7 @@ teardown(void)
 
 START_TEST(empty)
 {
-  ck_assert_int_eq(1, 0);
+  ck_assert_int_eq(1, 1);
 }
 END_TEST
 
