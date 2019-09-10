@@ -38,3 +38,4 @@ test/check_map
 test/check_cmp
 test/check_hash
 test/check_env
+test/check_vm
