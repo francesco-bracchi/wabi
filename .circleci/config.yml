@@ -14,3 +14,19 @@ jobs:
       - run:
           name: Print the Current Time
           command: date
+
+      - run:
+          name: Autoconf
+          command: autoreconf --install
+
+      - run:
+          name: Configure
+          command: ./configure
+
+      - run:
+          name: Build
+          command: make
+
+      - run:
+          name: Check
+          command: make check
