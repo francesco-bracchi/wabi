@@ -9,7 +9,7 @@ jobs:
 
       - run:
           name: Prepare
-          command: apk upgrade; apk update; apk add autoconf gcc libev-dev
+          command: apk add -u --no-progress autoconf automake gcc libev-dev
 
       - run:
           name: Greeting
