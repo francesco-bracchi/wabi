@@ -237,27 +237,6 @@ wabi_vm_run(wabi_vm vm)
       /* stack: ((eval e0) . s) */
       vm->control = (wabi_val) ((wabi_cont_sel) cont)->left;
       continue;
-    /* case wabi_tag_cont_prog: */
-    /*   e0 = (wabi_env) ((wabi_cont_prog) cont)->env; */
-    /*   cs = (wabi_val) ((wabi_cont_prog) cont)->controls; */
-    /*   if (WABI_IS(wabi_tag_pair, cs)) { */
-    /*     /\* control: x0 *\/ */
-    /*     /\* stack: ((prog e0 (x . xs)) . s) *\/ */
-    /*     /\* -------------------------------------- *\/ */
-    /*     /\* control: x *\/ */
-    /*     /\* stack: ((prog e0 xs) . s) *\/ */
-    /*     wabi_vm_push_prog( */
-    /*     cont = wabi_cont_prog_new(store, e0, wabi_cdr((wabi_pair) cs), prev); */
-    /*     vm->control = wabi_car((wabi_pair) cs); */
-    /*     continue; */
-    /*   } */
-    /*   /\* control: x0 *\/ */
-    /*   /\* stack: ((prog e0 nil) . s) *\/ */
-    /*   /\* -------------------------------------- *\/ */
-    /*   /\* control: x0 *\/ */
-    /*   /\* stack: s *\/ */
-    /*   continue; */
-      // -------------------------------------------- HERE --------------------------------------------
     case wabi_tag_cont_def:
       /* control: as */
       /* stack: ((def e0 sym) . s) */
