@@ -141,8 +141,8 @@ START_TEST(combiners)
 {
   wabi_combiner c0, c;
   wabi_binary cname0, cname;
-  cname0 = wabi_binary_leaf_new_from_cstring(&store, "cname0");
-  cname = wabi_binary_leaf_new_from_cstring(&store, "cname");
+  cname0 = (wabi_binary) wabi_binary_leaf_new_from_cstring(&store, "cname0");
+  cname = (wabi_binary) wabi_binary_leaf_new_from_cstring(&store, "cname");
 
   c0 = wabi_combiner_builtin_new(&store, cname0, NULL);
   c = wabi_combiner_builtin_new(&store, cname, NULL);

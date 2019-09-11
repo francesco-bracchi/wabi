@@ -66,17 +66,17 @@ wabi_cont_eval_more_new(wabi_store store, wabi_env env, wabi_val data, wabi_val 
   return (wabi_cont) cont;
 }
 
-wabi_cont
-wabi_cont_prog_new(wabi_store store, wabi_env env, wabi_val controls, wabi_cont prev)
-{
-  wabi_cont_prog cont;
-  cont = (wabi_cont_prog) wabi_store_stack_alloc(store, WABI_CONT_PROG_SIZE);
-  cont->prev = (wabi_word) prev;
-  cont->env = (wabi_word) env;
-  cont->controls = (wabi_word) controls;
-  WABI_SET_TAG(cont, wabi_tag_cont_prog);
-  return (wabi_cont) cont;
-}
+/* wabi_cont */
+/* wabi_cont_prog_new(wabi_store store, wabi_env env, wabi_val controls, wabi_cont prev) */
+/* { */
+/*   wabi_cont_prog cont; */
+/*   cont = (wabi_cont_prog) wabi_store_stack_alloc(store, WABI_CONT_PROG_SIZE); */
+/*   cont->prev = (wabi_word) prev; */
+/*   cont->env = (wabi_word) env; */
+/*   cont->controls = (wabi_word) controls; */
+/*   WABI_SET_TAG(cont, wabi_tag_cont_prog); */
+/*   return (wabi_cont) cont; */
+/* } */
 
 wabi_cont
 wabi_cont_def_new(wabi_store store, wabi_env env, wabi_val pattern, wabi_cont prev)
@@ -86,6 +86,6 @@ wabi_cont_def_new(wabi_store store, wabi_env env, wabi_val pattern, wabi_cont pr
   cont->prev = (wabi_word) prev;
   cont->env = (wabi_word) env;
   cont->pattern = (wabi_word) pattern;
-  WABI_SET_TAG(cont, wabi_tag_cont_prog);
+  WABI_SET_TAG(cont, wabi_tag_cont_def);
   return (wabi_cont) cont;
 }

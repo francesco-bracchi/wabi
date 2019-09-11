@@ -13,8 +13,9 @@
 #include "wabi_store.h"
 #include "wabi_binary.h"
 #include "wabi_cont.h"
+#include "wabi_vm.h"
 
-typedef void (*wabi_builtin_fun)(wabi_val*, wabi_store*, wabi_env*, wabi_cont*);
+typedef void (*wabi_builtin_fun)(wabi_vm);
 
 typedef struct wabi_combiner_derived_struct {
   wabi_word static_env;

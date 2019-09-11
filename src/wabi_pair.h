@@ -24,4 +24,6 @@ wabi_car(wabi_pair pair);
 wabi_val
 wabi_cdr(wabi_pair pair);
 
+wabi_val
+wabi_nil(wabi_store store);
 #endif

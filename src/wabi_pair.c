@@ -32,3 +32,12 @@ wabi_cons(wabi_store store, wabi_val car, wabi_val cdr)
   WABI_SET_TAG(pair, wabi_tag_pair);
   return pair;
 }
+
+wabi_val
+wabi_nil(wabi_store store)
+{
+  wabi_val nil;
+  nil = (wabi_val) wabi_store_heap_alloc(store, 1);
+  *nil = wabi_val_nil;
+  return nil;
+}

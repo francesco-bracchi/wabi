@@ -1,5 +1,9 @@
 #ifndef wabi_cont_h
 
+/**
+ * TODO: remove prog?
+ */
+
 #define wabi_cont_h
 
 #include "wabi_value.h"
@@ -38,13 +42,13 @@ typedef struct wabi_cont_sel_struct {
 
 typedef wabi_cont_sel_t* wabi_cont_sel;
 
-typedef struct wabi_cont_prog_struct {
-  wabi_word prev;
-  wabi_word env;
-  wabi_word controls;
-} wabi_cont_prog_t;
+/* typedef struct wabi_cont_prog_struct { */
+/*   wabi_word prev; */
+/*   wabi_word env; */
+/*   wabi_word controls; */
+/* } wabi_cont_prog_t; */
 
-typedef wabi_cont_prog_t* wabi_cont_prog;
+/* typedef wabi_cont_prog_t* wabi_cont_prog; */
 
 typedef struct wabi_cont_eval_more_struct {
   wabi_word prev;
@@ -69,7 +73,7 @@ typedef union wabi_cont_union {
   wabi_cont_apply_t apply;
   wabi_cont_call_t call;
   wabi_cont_sel_t sel;
-  wabi_cont_prog_t prog;
+  /* wabi_cont_prog_t prog; */
   wabi_cont_eval_more_t eval_more;
 } wabi_cont_t;
 
@@ -80,7 +84,7 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_CALL_SIZE 3
 #define WABI_CONT_SEL_SIZE 4
 #define WABI_CONT_EVAL_MORE_SIZE 4
-#define WABI_CONT_PROG_SIZE 2
+/* #define WABI_CONT_PROG_SIZE 2 */
 #define WABI_CONT_DEF_SIZE 3
 
 wabi_cont
@@ -98,8 +102,8 @@ wabi_cont_sel_new(wabi_store store, wabi_env env, wabi_val left, wabi_val right,
 wabi_cont
 wabi_cont_eval_more_new(wabi_store store, wabi_env env, wabi_val data, wabi_val done, wabi_cont prev);
 
-wabi_cont
-wabi_cont_prog_new(wabi_store store, wabi_env env, wabi_val ctrls, wabi_cont prev);
+/* wabi_cont */
+/* wabi_cont_prog_new(wabi_store store, wabi_env env, wabi_val ctrls, wabi_cont prev); */
 
 wabi_cont
 wabi_cont_def_new(wabi_store store, wabi_env env, wabi_val val, wabi_cont prev);
