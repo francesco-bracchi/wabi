@@ -30,6 +30,8 @@ libwabi_la_SOURCES = \
 	wabi_io.c \
 	wabi_cont.h \
 	wabi_cont.c \
+	wabi_builtin.c \
+	wabi_builtin.h \
 	wabi_vm.h \
 	wabi_vm.c \
 	wabi_pr.h \

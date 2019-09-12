@@ -17,15 +17,13 @@
 
 
 int
-wabi_vm_init(wabi_vm vm, wabi_control control, wabi_env env)
+wabi_vm_init(wabi_vm vm)
 {
-  vm->control = control;
-  vm->env = env;
   vm->errno = 0;
   vm->errval = NULL;
   vm->fuel = 100000;
   if(wabi_store_init(vm->store, 1000000)) {
-    vm->continuation = wabi_cont_eval_new(vm->store, env, NULL);
+    vm->continuation = wabi_cont_eval_new(vm->store, vm->env, NULL);
     return 1;
   }
   return 0;
@@ -106,7 +104,7 @@ wabi_vm_pop(wabi_vm vm)
   return res;
 }
 
-int
+wabi_vm_result
 wabi_vm_run(wabi_vm vm)
 {
   wabi_cont cont;

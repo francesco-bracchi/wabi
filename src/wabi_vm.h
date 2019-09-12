@@ -32,11 +32,11 @@ typedef struct wabi_vm_struct {
 
 typedef wabi_vm_t* wabi_vm;
 
-int
+wabi_vm_result
 wabi_vm_run(wabi_vm vm);
 
 int
-wabi_vm_init(wabi_vm vm, wabi_control control, wabi_env env);
+wabi_vm_init(wabi_vm vm);
 
 void
 wabi_vm_destroy(wabi_vm vm);
