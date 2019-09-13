@@ -1,4 +1,5 @@
-version: 2
+version: 2.0
+
 jobs:
   build:
     docker:
@@ -26,3 +27,30 @@ jobs:
       - run:
           name: Check
           command: make check
+
+  publish:
+    docker:
+      - image: alpine:3.10.2
+
+    steps:
+      - checkout
+
+      - run:
+          name: Command
+          command: |
+            echo "I'll publish the artifact"
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^version-\d+\.\d+\.\d+$/
