@@ -16,7 +16,7 @@ wabi_store_t store;
 void
 setup(void)
 {
-  wabi_store_init(&store, 100000);
+  wabi_store_init(&store, 400000);
 }
 
 void
@@ -43,7 +43,7 @@ START_TEST(assoc_many)
   wabi_binary_leaf k, v, v0;
   int j, size;
 
-  size = 200;
+  size = 2000;
   m = wabi_map_empty(&store);
   for(j = 0; j < size; j++) {
     sprintf(str, "%iK", j);
@@ -52,13 +52,13 @@ START_TEST(assoc_many)
     v = wabi_binary_leaf_new_from_cstring(&store, str);
     m = wabi_map_assoc(&store, m, (wabi_val) k, (wabi_val) v);
   }
-
   for(j = 0; j < size; j++) {
     sprintf(str, "%iK", j);
     k = wabi_binary_leaf_new_from_cstring(&store, str);
     sprintf(str, "%iV", j);
     v0 = wabi_binary_leaf_new_from_cstring(&store, str);
     v = (wabi_binary_leaf) wabi_map_get(m, (wabi_val) k);
+
     ck_assert_int_eq(wabi_cmp((wabi_val) v, (wabi_val) v0), 0);
   }
 }
