@@ -20,7 +20,7 @@ START_TEST(test_store_create)
 }
 END_TEST
 
-START_TEST(test_store_heap_allocate)
+START_TEST(test_store_allocate)
 {
   wabi_store_t s;
   wabi_word *v;
@@ -29,46 +29,12 @@ START_TEST(test_store_heap_allocate)
   res = wabi_store_init(&s, 1000);
   ck_assert_int_eq(res, 1);
   ck_assert_ptr_nonnull(s.space);
-  v = wabi_store_heap_alloc(&s, 2U);
+  v = wabi_store_alloc(&s, 2U);
   ck_assert_ptr_eq(s.heap, v + 2U);
   wabi_store_destroy(&s);
 }
 END_TEST
 
-START_TEST(test_store_stack_allocate)
-{
-  wabi_store_t s;
-  wabi_word *v, *s0;
-  int res;
-
-  res = wabi_store_init(&s, 1000);
-  ck_assert_int_eq(res, 1);
-  ck_assert_ptr_nonnull(s.space);
-  s0 = s.stack;
-  v = wabi_store_stack_alloc(&s, 2U);
-  ck_assert_ptr_eq(s.stack, v);
-  ck_assert_ptr_eq(s0, v + 2U);
-  wabi_store_destroy(&s);
-}
-END_TEST
-
-
-START_TEST(test_store_fail_to_allocate)
-{
-  wabi_store_t s;
-  wabi_word *v, *s0;
-  int res;
-
-  res = wabi_store_init(&s, 20);
-  ck_assert_int_eq(res, 1);
-  v = wabi_store_stack_alloc(&s, 20U);
-  ck_assert_ptr_nonnull(v);
-  v = wabi_store_heap_alloc(&s, 1U);
-  ck_assert_ptr_null(v);
-
-  wabi_store_destroy(&s);
-}
-END_TEST
 
 Suite *
 store_suite(void)
@@ -82,9 +48,7 @@ store_suite(void)
   tc_core = tcase_create("Core");
 
   tcase_add_test(tc_core, test_store_create);
-  tcase_add_test(tc_core, test_store_heap_allocate);
-  tcase_add_test(tc_core, test_store_stack_allocate);
-  tcase_add_test(tc_core, test_store_fail_to_allocate);
+  tcase_add_test(tc_core, test_store_allocate);
   suite_add_tcase(s, tc_core);
 
   return s;

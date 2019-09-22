@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wabi_store.h"
-#include "wabi_word.hxs"
+#include "wabi_word.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
 
@@ -17,7 +17,7 @@ wabi_store_init(wabi_store store,
   if(mem && (mem + size <= wabi_store_limit)) {
     store->space = mem;
     store->limit = mem + size;
-    store->heap = store->space;
+    store->heap = mem;
     store->size = size;
     return 1;
   }

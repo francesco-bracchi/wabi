@@ -17,13 +17,12 @@
 
 
 int
-wabi_vm_init(wabi_vm vm)
+wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
   vm->errno = 0;
   vm->errval = NULL;
   vm->fuel = 100000;
-  if(wabi_store_init(vm->store, 1000000)) {
-    vm->continuation = (wabi_val) wabi_cont_eval_new(vm, (wabi_env) vm->env, NULL);
+  if(wabi_store_init(&(vm->store), store_size)) {
     return 1;
   }
   return 0;
@@ -33,7 +32,8 @@ wabi_vm_init(wabi_vm vm)
 void
 wabi_vm_destroy(wabi_vm vm)
 {
-  wabi_store_destroy(vm->store);
+  wabi_store_destroy(&(vm->store));
+  // free(vm->store);
 }
 
 
@@ -258,7 +258,7 @@ wabi_word*
 wabi_vm_alloc(wabi_vm vm, wabi_size size)
 {
   wabi_store store;
-  store = vm->store;
+  store = &(vm->store);
   if(wabi_store_has_rooms(store, size)) {
     return wabi_store_alloc(store, size);
   }
@@ -274,7 +274,7 @@ int
 wabi_vm_prepare(wabi_vm vm, wabi_size size)
 {
   wabi_store store;
-  store = vm->store;
+  store = &(vm->store);
   if(wabi_store_has_rooms(store, size)) {
     return 1;
   }

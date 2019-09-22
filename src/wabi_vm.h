@@ -18,7 +18,7 @@ typedef struct wabi_vm_struct {
   wabi_val control;
   wabi_val env;
   wabi_val continuation;
-  wabi_store store;
+  wabi_store_t store;
   int errno;
   wabi_val errval;
   int fuel;
@@ -32,7 +32,7 @@ wabi_vm_result
 wabi_vm_run(wabi_vm vm);
 
 int
-wabi_vm_init(wabi_vm vm);
+wabi_vm_init(wabi_vm vm, wabi_size store_size);
 
 void
 wabi_vm_destroy(wabi_vm vm);

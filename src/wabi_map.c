@@ -734,9 +734,6 @@ wabi_map_empty(wabi_vm vm)
 {
   wabi_map_array map;
   map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE);
-
-  if(!map) return NULL;
-
   map->size = 0UL;
   map->table = 0UL;
   WABI_SET_TAG(map, wabi_tag_map_array);

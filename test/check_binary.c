@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include "../src/wabi_store.h"
 #include "../src/wabi_value.h"
 #include "../src/wabi_binary.h"
 

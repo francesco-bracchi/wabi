@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #include <check.h>
-#include "../src/wabi_store.h"
+#include "../src/wabi_vm.h"
 #include "../src/wabi_value.h"
 #include "../src/wabi_symbol.h"
 #include "../src/wabi_binary.h"
@@ -15,24 +15,24 @@
 
 #include "../src/wabi_env.h"
 
-wabi_store_t store;
+wabi_vm_t vm;
 
 void
 setup(void)
 {
-  wabi_store_init(&store, 100000);
+  wabi_vm_init(&vm, 100000);
 }
 
 void
 teardown(void)
 {
-  wabi_store_destroy(&store);
+  wabi_vm_destroy(&vm);
 }
 
 START_TEST(empty)
 {
   wabi_env env;
-  env = wabi_env_new(&store);
+  env = wabi_env_new(&vm);
   ck_assert_ptr_nonnull(env);
 }
 END_TEST
@@ -43,10 +43,10 @@ START_TEST(insert)
   wabi_env env;
   wabi_symbol k;
   wabi_val v, v0;
-  env = wabi_env_new(&store);
-  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
-  v0 = wabi_fixnum_new(&store, 12U);
-  wabi_env_set(&store, env, k, v0);
+  env = wabi_env_new(&vm);
+  k = wabi_symbol_new(&vm, (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "key"));
+  v0 = wabi_fixnum_new(&vm, 12U);
+  wabi_env_set(&vm, env, k, v0);
   v = wabi_env_lookup(env, k);
 
   ck_assert_int_eq(0, wabi_cmp(v, v0));
@@ -58,11 +58,11 @@ START_TEST(extend)
   wabi_env env;
   wabi_symbol k;
   wabi_val v, v0;
-  env = wabi_env_new(&store);
-  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
-  v0 = wabi_fixnum_new(&store, 12U);
-  wabi_env_set(&store, env, k, v0);
-  env = wabi_env_extend(&store, env);
+  env = wabi_env_new(&vm);
+  k = wabi_symbol_new(&vm, (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "key"));
+  v0 = wabi_fixnum_new(&vm, 12U);
+  wabi_env_set(&vm, env, k, v0);
+  env = wabi_env_extend(&vm, env);
   v = wabi_env_lookup(env, k);
 
   ck_assert_int_eq(0, wabi_cmp(v, v0));
@@ -74,13 +74,13 @@ START_TEST(shadow)
   wabi_env env, env0;
   wabi_symbol k;
   wabi_val v, v0, v1;
-  env0 = wabi_env_new(&store);
-  k = wabi_symbol_new(&store, (wabi_val) wabi_binary_leaf_new_from_cstring(&store, "key"));
-  v0 = wabi_fixnum_new(&store, 12U);
-  wabi_env_set(&store, env0, k, v0);
-  env = wabi_env_extend(&store, env0);
-  v = wabi_fixnum_new(&store, 42U);
-  wabi_env_set(&store, env, k, v);
+  env0 = wabi_env_new(&vm);
+  k = wabi_symbol_new(&vm, (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "key"));
+  v0 = wabi_fixnum_new(&vm, 12U);
+  wabi_env_set(&vm, env0, k, v0);
+  env = wabi_env_extend(&vm, env0);
+  v = wabi_fixnum_new(&vm, 42U);
+  wabi_env_set(&vm, env, k, v);
 
   ck_assert_int_eq(0, wabi_cmp(wabi_env_lookup(env0, k), v0));
   ck_assert_int_eq(0, wabi_cmp(wabi_env_lookup(env, k), v));
