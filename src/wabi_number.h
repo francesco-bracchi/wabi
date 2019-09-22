@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 
 typedef wabi_val wabi_fixnum;
 
@@ -17,7 +17,7 @@ static const wabi_word wabi_fixnum_sign_mask = 1UL << wabi_fixnum_sign_offset;
 #define WABI_CAST_INT64(v) ((int64_t) (FIXNUM_NEG(*v) ? *v | 0xF800000000000000 : WABI_WORD_VAL(*v)))
 
 wabi_fixnum
-wabi_fixnum_new(wabi_store store,
+wabi_fixnum_new(wabi_vm vm,
                 int64_t val);
 
 #endif

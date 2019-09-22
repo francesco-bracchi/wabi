@@ -14,16 +14,18 @@
 #include <string.h>
 
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 #include "wabi_map.h"
+
+#define WABI_MAP_HALLOC 400
 
 /**
  * Assoc operation
  */
 wabi_map
-wabi_map_hash_assoc_rec(wabi_store store,
+wabi_map_hash_assoc_rec(wabi_vm vm,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word hash,
@@ -31,7 +33,7 @@ wabi_map_hash_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_array_assoc_rec(wabi_store store,
+wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word hash,
@@ -39,7 +41,7 @@ wabi_map_array_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_assoc_rec(wabi_store store,
+wabi_map_assoc_rec(wabi_vm vm,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word hash,
@@ -47,7 +49,7 @@ wabi_map_assoc_rec(wabi_store store,
 
 
 wabi_map_hash
-wabi_map_array_promote(wabi_store store,
+wabi_map_array_promote(wabi_vm vm,
                        wabi_map_array map,
                        wabi_word hash_offset)
 {
@@ -56,7 +58,7 @@ wabi_map_array_promote(wabi_store store,
   wabi_val key;
   wabi_word hash;
 
-  new_map = (wabi_map_hash) wabi_store_heap_alloc(store, WABI_MAP_SIZE);
+  new_map = (wabi_map_hash) wabi_vm_alloc(vm, WABI_MAP_SIZE);
   if(! new_map) return NULL;
   new_map->bitmap = 0UL;
   new_map->table = 0UL;
@@ -68,7 +70,7 @@ wabi_map_array_promote(wabi_store store,
   while(row < limit) {
     key = (wabi_val) WABI_MAP_ENTRY_KEY((wabi_map_entry) row);
     hash = wabi_hash(key);
-    new_map = (wabi_map_hash) wabi_map_hash_assoc_rec(store, new_map, (wabi_map_entry) row, hash, hash_offset);
+    new_map = (wabi_map_hash) wabi_map_hash_assoc_rec(vm, new_map, (wabi_map_entry) row, hash, hash_offset);
     if(!new_map) return NULL;
     row++;
   }
@@ -77,7 +79,7 @@ wabi_map_array_promote(wabi_store store,
 
 // todo split in a couple of subroutines
 wabi_map
-wabi_map_array_assoc_rec(wabi_store store,
+wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
                          wabi_map_entry entry,
                          wabi_word hash,
@@ -105,7 +107,7 @@ wabi_map_array_assoc_rec(wabi_store store,
     } else if(cmp == 0) {
       // key found => replace
       pos = row - table;
-      new_map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (size + 1));
+      new_map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE * (size + 1));
       if(! new_map) return NULL;
 
       new_table = (wabi_map) (new_map + 1);
@@ -121,12 +123,12 @@ wabi_map_array_assoc_rec(wabi_store store,
   }
   // if not found and the hash is exhausted and the array map is bigger than the limit
   if(hash_offset > 0 && size >= WABI_MAP_ARRAY_LIMIT) {
-    hash_map = wabi_map_array_promote(store, map, hash_offset);
+    hash_map = wabi_map_array_promote(vm, map, hash_offset);
     if(!hash_map) return NULL;
-    return wabi_map_hash_assoc_rec(store, hash_map, entry, hash, hash_offset);
+    return wabi_map_hash_assoc_rec(vm, hash_map, entry, hash, hash_offset);
   }
   // if not found and hash is exhausted, or the array map has more free entries
-  new_map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (size + 2));
+  new_map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE * (size + 2));
   if(! new_map) return NULL;
 
   new_table = (wabi_map) (new_map + 1);
@@ -144,7 +146,7 @@ wabi_map_array_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_hash_assoc_rec(wabi_store store,
+wabi_map_hash_assoc_rec(wabi_vm vm,
                         wabi_map_hash map,
                         wabi_map_entry entry,
                         wabi_word hash,
@@ -162,10 +164,10 @@ wabi_map_hash_assoc_rec(wabi_store store,
 
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     row = table + offset;
-    new_map = (wabi_map_hash) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (size + 1));
+    new_map = (wabi_map_hash) wabi_vm_alloc(vm, WABI_MAP_SIZE * (size + 1));
     if(! new_map) return NULL;
 
-    sub_map = wabi_map_assoc_rec(store, row, entry, hash, hash_offset - 6);
+    sub_map = wabi_map_assoc_rec(vm, row, entry, hash, hash_offset - 6);
     if(! sub_map) return NULL;
 
     new_table = (wabi_map) (new_map + 1);
@@ -177,7 +179,7 @@ wabi_map_hash_assoc_rec(wabi_store store,
     return (wabi_map) new_map;
   }
   // offset: %lu index: %lu\n", offset, index);
-  new_map = (wabi_map_hash) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (size + 2));
+  new_map = (wabi_map_hash) wabi_vm_alloc(vm, WABI_MAP_SIZE * (size + 2));
   if(! new_map) return NULL;
   new_table = (wabi_map) (new_map + 1);
   memcpy(new_table, table, WABI_MAP_BYTE_SIZE * offset);
@@ -192,7 +194,7 @@ wabi_map_hash_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_entry_assoc_rec(wabi_store store,
+wabi_map_entry_assoc_rec(wabi_vm vm,
                          wabi_map_entry entry0,
                          wabi_map_entry entry,
                          wabi_word hash,
@@ -205,7 +207,7 @@ wabi_map_entry_assoc_rec(wabi_store store,
   cmp = wabi_cmp(WABI_MAP_ENTRY_KEY(entry0), WABI_MAP_ENTRY_KEY(entry));
   if(! cmp) return (wabi_map) entry;
 
-  map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE * 3);
+  map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE * 3);
   if(! map) return NULL;
   table = (wabi_map) (map + 1);
   if(cmp > 0) {
@@ -223,7 +225,7 @@ wabi_map_entry_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_assoc_rec(wabi_store store,
+wabi_map_assoc_rec(wabi_vm vm,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word hash,
@@ -233,13 +235,13 @@ wabi_map_assoc_rec(wabi_store store,
   tag = WABI_TAG((wabi_val) map);
 
   if(tag == wabi_tag_map_hash) {
-    return (wabi_map) wabi_map_hash_assoc_rec(store, (wabi_map_hash) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_hash_assoc_rec(vm, (wabi_map_hash) map, entry, hash, hash_offset);
   }
   if(tag == wabi_tag_map_array) {
-    return (wabi_map) wabi_map_array_assoc_rec(store, (wabi_map_array) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_array_assoc_rec(vm, (wabi_map_array) map, entry, hash, hash_offset);
   }
   if(tag == wabi_tag_map_entry) {
-    return (wabi_map) wabi_map_entry_assoc_rec(store, (wabi_map_entry) map, entry, hash, hash_offset);
+    return (wabi_map) wabi_map_entry_assoc_rec(vm, (wabi_map_entry) map, entry, hash, hash_offset);
   }
 
   return NULL;
@@ -247,7 +249,7 @@ wabi_map_assoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_assoc(wabi_store store,
+wabi_map_assoc(wabi_vm vm,
                wabi_map map,
                wabi_val key,
                wabi_val value)
@@ -256,14 +258,15 @@ wabi_map_assoc(wabi_store store,
   wabi_map_entry entry;
 
   hash = wabi_hash(key);
-  entry = (wabi_map_entry) wabi_store_heap_alloc(store, WABI_MAP_SIZE);
+  wabi_vm_prepare(vm, WABI_MAP_HALLOC);
+  entry = (wabi_map_entry) wabi_vm_alloc(vm, WABI_MAP_SIZE);
 
   if(! entry) return NULL;
   entry->key = (wabi_word) key;
   entry->value = (wabi_word) value;
   WABI_SET_TAG(entry, wabi_tag_map_entry);
 
-  return wabi_map_assoc_rec(store, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+  return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
 
@@ -272,7 +275,7 @@ wabi_map_assoc(wabi_store store,
  */
 
  wabi_map
-wabi_map_dissoc_rec(wabi_store store,
+wabi_map_dissoc_rec(wabi_vm vm,
                     wabi_map map,
                     wabi_val key,
                     wabi_word hash,
@@ -280,7 +283,7 @@ wabi_map_dissoc_rec(wabi_store store,
 
 
 wabi_map
-wabi_map_entry_dissoc_rec(wabi_store store,
+wabi_map_entry_dissoc_rec(wabi_vm vm,
                       wabi_map_entry entry,
                       wabi_val key,
                       wabi_word hash,
@@ -290,7 +293,7 @@ wabi_map_entry_dissoc_rec(wabi_store store,
 }
 
 wabi_map
-wabi_map_array_dissoc_rec(wabi_store store,
+wabi_map_array_dissoc_rec(wabi_vm vm,
                       wabi_map_array map,
                       wabi_val key,
                       wabi_word hash,
@@ -315,7 +318,7 @@ wabi_map_array_dissoc_rec(wabi_store store,
     } else if(cmp == 0) {
       // key found
       offset = row - table;
-      new_map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE * size);
+      new_map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE * size);
       if(! new_map) return NULL;
 
       new_table = (wabi_map) (new_map + 1);
@@ -363,7 +366,7 @@ wabi_map_insert_sort(wabi_map_entry table,
 
 
 wabi_map
-wabi_map_hash_demote(wabi_store store,
+wabi_map_hash_demote(wabi_vm vm,
                      wabi_map_hash map)
 {
   wabi_word bitmap, size, tag, len;
@@ -393,7 +396,7 @@ wabi_map_hash_demote(wabi_store store,
     }
     row++;
   }
-  new_map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (1 + len));
+  new_map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE * (1 + len));
   if(! new_map) return NULL;
   new_table = (wabi_map) (new_map + 1);
 
@@ -413,7 +416,7 @@ wabi_map_hash_demote(wabi_store store,
 }
 
 wabi_map
-wabi_map_hash_dissoc_rec(wabi_store store,
+wabi_map_hash_dissoc_rec(wabi_vm vm,
                          wabi_map_hash map,
                          wabi_val key,
                          wabi_word hash,
@@ -431,9 +434,9 @@ wabi_map_hash_dissoc_rec(wabi_store store,
 
   if(WABI_MAP_BITMAP_CONTAINS(bitmap, index)) {
     row = table + offset;
-    sub_map = wabi_map_dissoc_rec(store, row, key, hash, hash_offset - 6);
+    sub_map = wabi_map_dissoc_rec(vm, row, key, hash, hash_offset - 6);
     if(!sub_map) {
-      new_map = (wabi_map_hash) wabi_store_heap_alloc(store, WABI_MAP_SIZE * size);
+      new_map = (wabi_map_hash) wabi_vm_alloc(vm, WABI_MAP_SIZE * size);
       if(! new_map) return NULL;
       new_table = (wabi_map) (new_map + 1);
 
@@ -444,7 +447,7 @@ wabi_map_hash_dissoc_rec(wabi_store store,
       WABI_SET_TAG(new_map, wabi_tag_map_hash);
     }
     else {
-      new_map = (wabi_map_hash) wabi_store_heap_alloc(store, WABI_MAP_SIZE * (size + 1));
+      new_map = (wabi_map_hash) wabi_vm_alloc(vm, WABI_MAP_SIZE * (size + 1));
       if(! new_map) return NULL;
       new_table = (wabi_map) (new_map + 1);
       memcpy(new_table, table, size * WABI_MAP_BYTE_SIZE);
@@ -454,7 +457,7 @@ wabi_map_hash_dissoc_rec(wabi_store store,
       WABI_SET_TAG(new_map, wabi_tag_map_hash);
     }
     if(size - 1 <= WABI_MAP_ARRAY_LIMIT) {
-      return wabi_map_hash_demote(store, (wabi_map_hash) new_map);
+      return wabi_map_hash_demote(vm, (wabi_map_hash) new_map);
     }
     return (wabi_map) new_map;
   }
@@ -463,7 +466,7 @@ wabi_map_hash_dissoc_rec(wabi_store store,
 
 
  wabi_map
-wabi_map_dissoc_rec(wabi_store store,
+wabi_map_dissoc_rec(wabi_vm vm,
                     wabi_map map,
                     wabi_val key,
                     wabi_word hash,
@@ -473,26 +476,26 @@ wabi_map_dissoc_rec(wabi_store store,
 
   tag = WABI_TAG((wabi_val) map);
   if(tag == wabi_tag_map_entry) {
-    return wabi_map_entry_dissoc_rec(store, (wabi_map_entry) map, key, hash, hash_offset);
+    return wabi_map_entry_dissoc_rec(vm, (wabi_map_entry) map, key, hash, hash_offset);
   }
   if(tag == wabi_tag_map_array) {
-    return wabi_map_array_dissoc_rec(store, (wabi_map_array) map, key, hash, hash_offset);
+    return wabi_map_array_dissoc_rec(vm, (wabi_map_array) map, key, hash, hash_offset);
   }
   if(tag == wabi_tag_map_hash) {
-    return wabi_map_hash_dissoc_rec(store, (wabi_map_hash) map, key, hash, hash_offset);
+    return wabi_map_hash_dissoc_rec(vm, (wabi_map_hash) map, key, hash, hash_offset);
   }
   return NULL;
 }
 
 
 wabi_map
-wabi_map_dissoc(wabi_store store,
+wabi_map_dissoc(wabi_vm vm,
                 wabi_map map,
                 wabi_val key)
 {
   wabi_word hash;
   hash = wabi_hash(key);
-  return wabi_map_dissoc_rec(store, map, key, hash, WABI_MAP_INITIAL_OFFSET);
+  return wabi_map_dissoc_rec(vm, map, key, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
 
@@ -727,10 +730,10 @@ wabi_map_iterator_next(wabi_map_iter iter) {
  */
 
 wabi_map
-wabi_map_empty(wabi_store store)
+wabi_map_empty(wabi_vm vm)
 {
   wabi_map_array map;
-  map = (wabi_map_array) wabi_store_heap_alloc(store, WABI_MAP_SIZE);
+  map = (wabi_map_array) wabi_vm_alloc(vm, WABI_MAP_SIZE);
 
   if(!map) return NULL;
 

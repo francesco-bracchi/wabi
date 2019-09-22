@@ -7,14 +7,16 @@
 #include "wabi_combiner.h"
 #include "wabi_env.h"
 #include "wabi_value.h"
+#include "wabi_vm.h"
+
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_store store,
+wabi_combiner_builtin_new(wabi_vm vm,
                           wabi_binary cname,
                           wabi_builtin_fun cfun)
 {
   // todo: verify cfun pointer is less then 2^59
-  wabi_combiner_builtin res = (wabi_combiner_builtin) wabi_store_heap_alloc(store, WABI_COMBINER_BUILTIN_SIZE);
+  wabi_combiner_builtin res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
   if(res) {
     res->c_ptr = (wabi_word) cfun;
     res->c_name = (wabi_word) cname;
@@ -24,14 +26,15 @@ wabi_combiner_builtin_new(wabi_store store,
   return NULL;
 }
 
+
 wabi_combiner
-wabi_combiner_new(wabi_store store,
+wabi_combiner_new(wabi_vm vm,
                   wabi_env static_env,
                   wabi_val dynamic_env_name,
                   wabi_val parameters,
                   wabi_val body)
 {
-  wabi_combiner_derived res = (wabi_combiner_derived) wabi_store_heap_alloc(store, WABI_COMBINER_DERIVED_SIZE);
+  wabi_combiner_derived res = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
   if(res) {
     res->static_env = (wabi_word) static_env;
     res->caller_env_name = (wabi_word) dynamic_env_name;
@@ -43,18 +46,19 @@ wabi_combiner_new(wabi_store store,
   return NULL;
 }
 
+
 wabi_combiner
-wabi_combiner_wrap(wabi_store store, wabi_combiner combiner)
+wabi_combiner_wrap(wabi_vm vm, wabi_combiner combiner)
 {
   wabi_combiner res;
   switch(WABI_TAG(combiner)) {
   case wabi_tag_oper:
-    res = (wabi_combiner) wabi_store_heap_alloc(store, WABI_COMBINER_DERIVED_SIZE);
+    res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
     memcpy(res, combiner, 8 * WABI_COMBINER_DERIVED_SIZE);
     WABI_SET_TAG(res, wabi_tag_app);
     return res;
   case wabi_tag_bt_oper:
-    res = (wabi_combiner) wabi_store_heap_alloc(store, WABI_COMBINER_BUILTIN_SIZE);
+    res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
     *res = *combiner;
     WABI_SET_TAG(res, wabi_tag_app);
     return res;
@@ -65,18 +69,19 @@ wabi_combiner_wrap(wabi_store store, wabi_combiner combiner)
   return NULL;
 }
 
+
 wabi_combiner
-wabi_combiner_unwrap(wabi_store store, wabi_combiner combiner)
+wabi_combiner_unwrap(wabi_vm vm, wabi_combiner combiner)
 {
   wabi_combiner res;
   switch(WABI_TAG(combiner)) {
   case wabi_tag_app:
-    res = (wabi_combiner) wabi_store_heap_alloc(store, WABI_COMBINER_DERIVED_SIZE);
+    res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
     memcpy(res, combiner, 8 * WABI_COMBINER_DERIVED_SIZE);
     WABI_SET_TAG(res, wabi_tag_oper);
     return res;
   case wabi_tag_bt_app:
-    res = (wabi_combiner) wabi_store_heap_alloc(store, WABI_COMBINER_BUILTIN_SIZE);
+    res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
     *res = *combiner;
     WABI_SET_TAG(res, wabi_tag_bt_oper);
     return res;

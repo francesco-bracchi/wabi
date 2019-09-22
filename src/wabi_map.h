@@ -1,8 +1,8 @@
 #ifndef wabi_map_h
 #define wabi_map_h
 
+#include "wabi_vm.h"
 #include "wabi_value.h"
-#include "wabi_store.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 
@@ -79,18 +79,19 @@ typedef wabi_map_iter_t* wabi_map_iter;
 
 
 wabi_map
-wabi_map_assoc(wabi_store store,
+wabi_map_assoc(wabi_vm vm,
                wabi_map map,
                wabi_val key,
                wabi_val value);
 
 wabi_map
-wabi_map_dissoc(wabi_store store,
+wabi_map_dissoc(wabi_vm vm,
                 wabi_map map,
                 wabi_val key);
 
+
 wabi_map
-wabi_map_empty(wabi_store store);
+wabi_map_empty(wabi_vm vm);
 
 
 wabi_val

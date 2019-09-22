@@ -4,7 +4,7 @@
 
 #include "wabi_pair.h"
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 
 /**
  * TODO: these can be macros
@@ -23,9 +23,9 @@ wabi_cdr(wabi_pair pair)
 }
 
 wabi_pair
-wabi_cons(wabi_store store, wabi_val car, wabi_val cdr)
+wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr)
 {
-  wabi_pair pair = (wabi_pair) wabi_store_heap_alloc(store, WABI_PAIR_SIZE);
+  wabi_pair pair = (wabi_pair) wabi_vm_alloc(vm, WABI_PAIR_SIZE);
   if(!pair) return NULL;
   pair->car = (wabi_word) car;
   pair->cdr = (wabi_word) cdr;
@@ -34,10 +34,10 @@ wabi_cons(wabi_store store, wabi_val car, wabi_val cdr)
 }
 
 wabi_val
-wabi_nil(wabi_store store)
+wabi_nil(wabi_vm vm)
 {
   wabi_val nil;
-  nil = (wabi_val) wabi_store_heap_alloc(store, 1);
+  nil = (wabi_val) wabi_vm_alloc(vm, 1);
   *nil = wabi_val_nil;
   return nil;
 }

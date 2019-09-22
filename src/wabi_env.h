@@ -2,8 +2,7 @@
 
 #define wabi_env_h
 
-#include "wabi_map.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 #include "wabi_symbol.h"
 
 typedef struct wabi_env_struct {
@@ -13,15 +12,12 @@ typedef struct wabi_env_struct {
 
 typedef wabi_env_t* wabi_env;
 
-#define WABI_ENV_SIZE 2
-#define WABI_ENV_BYTE_SIZE (WABI_ENV_SIZE * 64)
-
 wabi_env
-wabi_env_extend(wabi_store store, wabi_env prev);
+wabi_env_extend(wabi_vm vm, wabi_env prev);
 
 
 wabi_env
-wabi_env_new(wabi_store store);
+wabi_env_new(wabi_vm vm);
 
 
 wabi_val
@@ -29,6 +25,6 @@ wabi_env_lookup(wabi_env env, wabi_symbol k);
 
 
 int
-wabi_env_set(wabi_store store, wabi_env env, wabi_symbol k, wabi_val v);
+wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
 #endif

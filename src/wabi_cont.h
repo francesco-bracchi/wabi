@@ -7,8 +7,8 @@
 #define wabi_cont_h
 
 #include "wabi_value.h"
-#include "wabi_store.h"
 #include "wabi_env.h"
+#include "wabi_vm.h"
 
 typedef struct wabi_cont_eval_struct {
   wabi_word prev;
@@ -78,21 +78,21 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_DEF_SIZE 3
 
 wabi_cont
-wabi_cont_eval_new(wabi_store store, wabi_env env, wabi_cont prev);
+wabi_cont_eval_new(wabi_vm vm, wabi_env env, wabi_cont prev);
 
 wabi_cont
-wabi_cont_apply_new(wabi_store store, wabi_env env, wabi_val args, wabi_cont prev);
+wabi_cont_apply_new(wabi_vm vm, wabi_env env, wabi_val args, wabi_cont prev);
 
 wabi_cont
-wabi_cont_call_new(wabi_store store, wabi_env env, wabi_val combiner, wabi_cont prev);
+wabi_cont_call_new(wabi_vm vm, wabi_env env, wabi_val combiner, wabi_cont prev);
 
 wabi_cont
-wabi_cont_sel_new(wabi_store store, wabi_env env, wabi_val left, wabi_val right, wabi_cont prev);
+wabi_cont_sel_new(wabi_vm vm, wabi_env env, wabi_val left, wabi_val right, wabi_cont prev);
 
 wabi_cont
-wabi_cont_eval_more_new(wabi_store store, wabi_env env, wabi_val data, wabi_val done, wabi_cont prev);
+wabi_cont_eval_more_new(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, wabi_cont prev);
 
 wabi_cont
-wabi_cont_def_new(wabi_store store, wabi_env env, wabi_val val, wabi_cont prev);
+wabi_cont_def_new(wabi_vm vm, wabi_env env, wabi_val val, wabi_cont prev);
 
 #endif

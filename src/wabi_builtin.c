@@ -4,7 +4,6 @@
 #include "wabi_pair.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
-#include "wabi_store.h"
 #include "wabi_cont.h"
 #include "wabi_number.h"
 #include "wabi_vm.h"
@@ -26,10 +25,10 @@ wabi_builtin_sum(wabi_vm vm)
       continue;
     }
     vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm->store, "sum not a number");
+    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
     return;
   }
-  vm->control = wabi_fixnum_new(vm->store, res);
+  vm->control = wabi_fixnum_new(vm, res);
 }
 
 void
@@ -48,13 +47,13 @@ wabi_builtin_fx(wabi_vm vm)
         b = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {
-          vm->control = (wabi_val) wabi_combiner_new(vm->store, vm->env, e, fs, b);
+          vm->control = (wabi_val) wabi_combiner_new(vm, (wabi_env) vm->env, e, fs, b);
           return;
         }
       }
     }
     vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm->store, "fexpr error");
+    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "fexpr error");
   }
 }
 
@@ -64,7 +63,7 @@ wabi_builtin_wrap(wabi_vm vm)
   wabi_val ctrl;
   ctrl = vm->control;
   if(WABI_IS(wabi_tag_oper, ctrl) || WABI_IS(wabi_tag_bt_oper, ctrl)) {
-    vm->control = (wabi_val) wabi_combiner_wrap(vm->store, (wabi_combiner) ctrl);
+    vm->control = (wabi_val) wabi_combiner_wrap(vm, (wabi_combiner) ctrl);
   }
   return;
 }
@@ -83,15 +82,15 @@ wabi_builtin_def(wabi_vm vm)
       e = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
       if(*ctrl == wabi_val_nil) {
-        vm->continuation = wabi_cont_def_new(vm->store, vm->env, fs, vm->continuation);
-        vm->continuation = wabi_cont_eval_new(vm->store, vm->env, vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_def_new(vm, (wabi_env) vm->env, fs, (wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_eval_new(vm, (wabi_env) vm->env, (wabi_cont) vm->continuation);
         vm->control = e;
         return;
       }
     }
   }
   vm->errno = 1;
-  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm->store, "def error");
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "def error");
 }
 
 
@@ -111,8 +110,8 @@ wabi_builtin_if(wabi_vm vm)
         r = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {
-          vm->continuation = wabi_cont_sel_new(vm->store, vm->env, l, r, vm->continuation);
-          vm->continuation = wabi_cont_eval_new(vm->store, vm->env, vm->continuation);
+          vm->continuation = (wabi_val) wabi_cont_sel_new(vm, (wabi_env) vm->env, l, r, (wabi_cont) vm->continuation);
+          vm->continuation = (wabi_val) wabi_cont_eval_new(vm, (wabi_env) vm->env, (wabi_cont) vm->continuation);
           vm->control = t;
           return;
         }
@@ -120,24 +119,24 @@ wabi_builtin_if(wabi_vm vm)
     }
   }
   vm->errno = 1;
-  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm->store, "if error");
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "if error");
 }
 
-#define SYM(store, str)                                                 \
-  wabi_symbol_new(store,                                                \
-                  (wabi_val) wabi_binary_leaf_new_from_cstring(store, str))
+#define SYM(vm, str)                                                    \
+  wabi_symbol_new(vm,                                                   \
+                  (wabi_val) wabi_binary_leaf_new_from_cstring(vm, str))
 
-#define BTFUN(store, str, fun)                                          \
-  wabi_combiner_builtin_new(store,                            \
-                            (wabi_binary) wabi_binary_leaf_new_from_cstring(store, str), \
+#define BTFUN(vm, str, fun)                                             \
+  wabi_combiner_builtin_new(vm,                                         \
+                            (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, str), \
                             fun)                                        \
 
 
-#define WABI_DEF(store, env, name, btname, fun) \
-  wabi_env_set(store,                                                   \
+#define WABI_DEF(vm, env, name, btname, fun)                            \
+  wabi_env_set(vm,                                                      \
                env,                                                     \
-               SYM(store, name),                                        \
-               (wabi_val) BTFUN(store, btname, fun)                     \
+               SYM(vm, name),                                           \
+               (wabi_val) BTFUN(vm, btname, fun)                        \
                );
 
 wabi_env
@@ -147,37 +146,13 @@ wabi_builtin_stdenv(wabi_vm vm)
   wabi_symbol sym;
   wabi_val val;
 
-  env = wabi_env_new(vm->store);
+  env = wabi_env_new(vm);
 
 
-  WABI_DEF(vm->store, env, "def", "wabi/def", wabi_builtin_sum);
-  WABI_DEF(vm->store, env, "fx", "wabi/fx", wabi_builtin_fx);
-  WABI_DEF(vm->store, env, "wrap", "wabi/wrap", wabi_builtin_wrap);
-  WABI_DEF(vm->store, env, "+", "wabi/+", wabi_builtin_sum);
-
-  /* wabi_en_set(store, */
-  /*             env, */
-  /*             wabi_symbol_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "wrap")), */
-  /*             wabi_combiner_builtin_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "wabi/wrap"), &wabi_builtin_wrap) */
-  /*             ); */
-
-  /* wabi_en_set(store, */
-  /*             env, */
-  /*             wabi_symbol_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "fx")), */
-  /*             wabi_combiner_builtin_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "wabi/fx"), &wabi_builtin_fx) */
-  /*             ); */
-
-  /* wabi_en_set(store, */
-  /*             env, */
-  /*             wabi_symbol_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "+")), */
-  /*             wabi_combiner_builtin_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "wabi/+"), &wabi_builtin_sum) */
-  /*             ); */
-
-  /* wabi_en_set(store, */
-  /*             env, */
-  /*             wabi_symbol_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "def")), */
-  /*             wabi_combiner_builtin_new(vm->store, wabi_binary_leaf_new_from_cstring(vm->store, "wabi/def"), &wabi_builtin_def) */
-  /*             ); */
+  WABI_DEF(vm, env, "def", "wabi/def", wabi_builtin_sum);
+  WABI_DEF(vm, env, "fx", "wabi/fx", wabi_builtin_fx);
+  WABI_DEF(vm, env, "wrap", "wabi/wrap", wabi_builtin_wrap);
+  WABI_DEF(vm, env, "+", "wabi/+", wabi_builtin_sum);
 
   return env;
 }

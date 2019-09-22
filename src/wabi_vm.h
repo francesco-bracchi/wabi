@@ -2,11 +2,8 @@
 
 #define wabi_vm_h
 
-
 #include "wabi_value.h"
-#include "wabi_system.h"
-#include "wabi_env.h"
-#include "wabi_cont.h"
+#include "wabi_store.h"
 
 typedef wabi_val wabi_control;
 
@@ -17,11 +14,10 @@ typedef enum wabi_vm_result_enum
    wabi_vm_result_error = 2
   } wabi_vm_result;
 
-// rename to state?
 typedef struct wabi_vm_struct {
   wabi_val control;
-  wabi_env env;
-  wabi_cont continuation;
+  wabi_val env;
+  wabi_val continuation;
   wabi_store store;
   int errno;
   wabi_val errval;
@@ -40,5 +36,11 @@ wabi_vm_init(wabi_vm vm);
 
 void
 wabi_vm_destroy(wabi_vm vm);
+
+wabi_val
+wabi_vm_alloc(wabi_vm vm, wabi_size size);
+
+int
+wabi_vm_prepare(wabi_vm vm, wabi_size size);
 
 #endif

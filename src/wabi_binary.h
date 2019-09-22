@@ -3,7 +3,7 @@
 #define wabi_binary_h
 
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 
 typedef struct wabi_binary_leaf_struct
 {
@@ -36,12 +36,22 @@ typedef wabi_binary_t* wabi_binary;
 #define WABI_BINARY_NODE_SIZE 3
 
 
-wabi_binary_leaf
-wabi_binary_leaf_new(wabi_store store, wabi_size size);
+static inline wabi_size
+wabi_binary_word_size(wabi_size size)
+{
+  wabi_size word_size;
+  word_size = size >> 2;
+  if(size & 3) word_size++;
+  return word_size;
+}
 
 
 wabi_binary_leaf
-wabi_binary_leaf_new_from_cstring(wabi_store store, char* cstring);
+wabi_binary_leaf_new(wabi_vm vm, wabi_size size);
+
+
+wabi_binary_leaf
+wabi_binary_leaf_new_from_cstring(wabi_vm vm, char* cstring);
 
 
 wabi_size
@@ -49,11 +59,11 @@ wabi_binary_length(wabi_binary bin);
 
 
 wabi_binary_node
-wabi_binary_concat(wabi_store store, wabi_binary left, wabi_binary right);
+wabi_binary_concat(wabi_vm vm, wabi_binary left, wabi_binary right);
 
 
 wabi_binary
-wabi_binary_sub(wabi_store store, wabi_binary bin, wabi_size from, wabi_size len);
+wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
 
 void

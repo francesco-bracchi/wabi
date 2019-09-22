@@ -9,12 +9,13 @@ int
 wabi_system_init(wabi_system sys)
 {
   int res;
-  res = wabi_store_init(sys->global_store, sys->config->store_initial_size);
-  if(!res) return 0;
+  /* res = wabi_store_init(sys->global_store, sys->config->store_initial_size); */
+  /* if(!res) return 0; */
 
-  sys->nil = (wabi_val) wabi_store_heap_alloc(sys->global_store, 1);
-  *(sys->nil) = wabi_val_nil;
-  sys->symbol_table = (wabi_map) wabi_map_empty(sys->global_store);
+  /* sys->nil = (wabi_val) wabi_store_alloc(sys->global_store, 1); */
+  /* if(! sys->nil) return 0; */
+
+  /* *(sys->nil) = wabi_val_nil; */
   return 1;
 }
 

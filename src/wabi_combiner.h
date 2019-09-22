@@ -10,10 +10,13 @@
 
 #include "wabi_env.h"
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_vm.h"
 #include "wabi_binary.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
+
+#define WABI_COMBINER_DERIVED_SIZE 4
+#define WABI_COMBINER_BUILTIN_SIZE 2
 
 typedef void (*wabi_builtin_fun)(wabi_vm);
 
@@ -46,20 +49,20 @@ typedef wabi_combiner_t* wabi_combiner;
 #define WABI_COMBINER_DERIVED_SIZE 4
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_store store, wabi_binary cname, wabi_builtin_fun cfun);
+wabi_combiner_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
 
 wabi_combiner
-wabi_combiner_new(wabi_store store,
+wabi_combiner_new(wabi_vm vm,
                   wabi_env static_env,
                   wabi_val caller_env_name,
                   wabi_val parameters,
                   wabi_val body);
 
 wabi_combiner
-wabi_combiner_wrap(wabi_store store, wabi_combiner combiner);
+wabi_combiner_wrap(wabi_vm vm, wabi_combiner combiner);
 
 wabi_combiner
-wabi_combiner_unwrap(wabi_store store, wabi_combiner combiner);
+wabi_combiner_unwrap(wabi_vm vm, wabi_combiner combiner);
 
 wabi_val
 wabi_combiner_is_operative(wabi_combiner combiner);

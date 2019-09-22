@@ -2,10 +2,9 @@
 
 #define  wabi_system_h
 
-#include "wabi_word.h"
-#include "wabi_store.h"
 #include "wabi_value.h"
-#include "wabi_map.h"
+#include "wabi_store.h"
+
 #include <stdint.h>
 
 
@@ -23,7 +22,7 @@ typedef struct wabi_system_struct
 {
   wabi_system_config config;
   wabi_store global_store;
-  wabi_map symbol_table;
+  wabi_val symbol_table;
   wabi_val nil;
 } wabi_system_t;
 
