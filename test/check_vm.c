@@ -54,7 +54,6 @@ START_TEST(run)
                                                         (wabi_val) wabi_nil(&vm))));
 
   vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
-  vm.env = e0;
 
   int res = wabi_vm_run(&vm);
   ck_assert_int_eq(res, wabi_vm_result_done);

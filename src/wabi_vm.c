@@ -109,7 +109,7 @@ wabi_vm_run(wabi_vm vm)
 {
   wabi_cont cont;
   wabi_val ctrl, xs, as, nil, cs;
-  wabi_env e0;
+  wabi_env e0, e1;
   wabi_combiner c0;
 
   nil = wabi_nil(vm);
@@ -119,14 +119,15 @@ wabi_vm_run(wabi_vm vm)
 
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
+      e0 = (wabi_env) ((wabi_cont_eval) cont)->env;
       if(WABI_IS(wabi_tag_pair, vm->control)) {
         /* control: (f . as) */
         /* stack: ((eval e0) . s) */
         /* -------------------------------------- */
         /* control: f */
         /* stack: ((eval e0) (apply e0 as) . s) */
-        wabi_vm_push_apply(vm, (wabi_env) vm->env, wabi_cdr((wabi_pair) ctrl));
-        wabi_vm_push_eval(vm, (wabi_env) vm->env);
+        wabi_vm_push_apply(vm, e0, wabi_cdr((wabi_pair) ctrl));
+        wabi_vm_push_eval(vm, e0);
         vm->control = wabi_car((wabi_pair) ctrl);
         break;
       }
@@ -136,7 +137,7 @@ wabi_vm_run(wabi_vm vm)
         /* -------------------------------------- */
         /* control: (lookup c e0) */
         /* stack s */
-        vm->control = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
+        vm->control = wabi_env_lookup(e0, (wabi_symbol) ctrl);
         break;
       }
       /* control: c */
@@ -156,7 +157,7 @@ wabi_vm_run(wabi_vm vm)
         /* control: a */
         /* stack: ((eval-more e0 as nil) (call e0 c) . s) */
         wabi_vm_push_call(vm, e0, ctrl);
-        wabi_vm_push_eval_more(vm, (wabi_env) vm->env, wabi_cdr((wabi_pair) as), (wabi_val) nil);
+        wabi_vm_push_eval_more(vm, e0, wabi_cdr((wabi_pair) as), (wabi_val) nil);
         vm->control = wabi_car((wabi_pair) as);
         break;
       }
@@ -202,10 +203,10 @@ wabi_vm_run(wabi_vm vm)
         /* -------------------------------------- */
         /* control b */
         /* stack: ((eval (bind ex e0 ps as)) . s) */
-        e0 = wabi_env_extend(vm, e0);
-        wabi_env_set(vm, e0, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) vm->env);
-        if(wabi_vm_bind(vm, e0, (wabi_val) ((wabi_combiner_derived) c0)->parameters, ctrl)) {
-          wabi_vm_push_eval(vm, e0);
+        e1 = wabi_env_extend(vm, e0);
+        wabi_env_set(vm, e1, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) e0);
+        if(wabi_vm_bind(vm, e1, (wabi_val) ((wabi_combiner_derived) c0)->parameters, ctrl)) {
+          wabi_vm_push_eval(vm, e1);
           vm->control = (wabi_val) ((wabi_combiner_derived) c0)->body;
           break;
         }
@@ -218,7 +219,7 @@ wabi_vm_run(wabi_vm vm)
       /* -------------------------------------- */
       /* control (funcall fx control store env)  */
       /* stack: s */
-      ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm);
+      ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm, e0);
       break;
     case wabi_tag_cont_sel:
       e0 = (wabi_env) ((wabi_cont_sel) cont)->env;

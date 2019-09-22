@@ -9,7 +9,7 @@
 #include "wabi_vm.h"
 
 void
-wabi_builtin_sum(wabi_vm vm)
+wabi_builtin_sum(wabi_vm vm, wabi_env env)
 {
   // todo: check types (arguments and intes)
   // todo: handle overlflows
@@ -32,7 +32,7 @@ wabi_builtin_sum(wabi_vm vm)
 }
 
 void
-wabi_builtin_fx(wabi_vm vm)
+wabi_builtin_fx(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, fs, e, b;
 
@@ -43,11 +43,11 @@ wabi_builtin_fx(wabi_vm vm)
     if(WABI_IS(wabi_tag_pair, ctrl)) {
       e = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
-      if(WABI_IS(wabi_tag_env, e) && WABI_IS(wabi_tag_pair, ctrl)) {
+      if(WABI_IS(wabi_tag_symbol, e) && WABI_IS(wabi_tag_pair, ctrl)) {
         b = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {
-          vm->control = (wabi_val) wabi_combiner_new(vm, (wabi_env) vm->env, e, fs, b);
+          vm->control = (wabi_val) wabi_combiner_new(vm, env, e, fs, b);
           return;
         }
       }
@@ -58,7 +58,7 @@ wabi_builtin_fx(wabi_vm vm)
 }
 
 void
-wabi_builtin_wrap(wabi_vm vm)
+wabi_builtin_wrap(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl;
   ctrl = vm->control;
@@ -70,7 +70,7 @@ wabi_builtin_wrap(wabi_vm vm)
 
 
 void
-wabi_builtin_def(wabi_vm vm)
+wabi_builtin_def(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, fs, e;
 
@@ -82,8 +82,8 @@ wabi_builtin_def(wabi_vm vm)
       e = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
       if(*ctrl == wabi_val_nil) {
-        vm->continuation = (wabi_val) wabi_cont_def_new(vm, (wabi_env) vm->env, fs, (wabi_cont) vm->continuation);
-        vm->continuation = (wabi_val) wabi_cont_eval_new(vm, (wabi_env) vm->env, (wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_def_new(vm, env, fs, (wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_eval_new(vm, env, (wabi_cont) vm->continuation);
         vm->control = e;
         return;
       }
@@ -95,7 +95,7 @@ wabi_builtin_def(wabi_vm vm)
 
 
 void
-wabi_builtin_if(wabi_vm vm)
+wabi_builtin_if(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, t, l, r;
 
@@ -110,8 +110,8 @@ wabi_builtin_if(wabi_vm vm)
         r = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {
-          vm->continuation = (wabi_val) wabi_cont_sel_new(vm, (wabi_env) vm->env, l, r, (wabi_cont) vm->continuation);
-          vm->continuation = (wabi_val) wabi_cont_eval_new(vm, (wabi_env) vm->env, (wabi_cont) vm->continuation);
+          vm->continuation = (wabi_val) wabi_cont_sel_new(vm, env, l, r, (wabi_cont) vm->continuation);
+          vm->continuation = (wabi_val) wabi_cont_eval_new(vm, env, (wabi_cont) vm->continuation);
           vm->control = t;
           return;
         }

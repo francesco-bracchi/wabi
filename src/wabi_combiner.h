@@ -14,11 +14,12 @@
 #include "wabi_binary.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
+#include "wabi_env.h"
 
 #define WABI_COMBINER_DERIVED_SIZE 4
 #define WABI_COMBINER_BUILTIN_SIZE 2
 
-typedef void (*wabi_builtin_fun)(wabi_vm);
+typedef void (*wabi_builtin_fun)(wabi_vm, wabi_env);
 
 typedef struct wabi_combiner_derived_struct {
   wabi_word static_env;

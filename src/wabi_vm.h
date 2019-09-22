@@ -16,7 +16,6 @@ typedef enum wabi_vm_result_enum
 
 typedef struct wabi_vm_struct {
   wabi_val control;
-  wabi_val env;
   wabi_val continuation;
   wabi_store_t store;
   int errno;
