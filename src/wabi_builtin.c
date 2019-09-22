@@ -148,11 +148,9 @@ wabi_builtin_stdenv(wabi_vm vm)
 
   env = wabi_env_new(vm);
 
-
   WABI_DEF(vm, env, "def", "wabi/def", wabi_builtin_sum);
   WABI_DEF(vm, env, "fx", "wabi/fx", wabi_builtin_fx);
   WABI_DEF(vm, env, "wrap", "wabi/wrap", wabi_builtin_wrap);
   WABI_DEF(vm, env, "+", "wabi/+", wabi_builtin_sum);
-
   return env;
 }

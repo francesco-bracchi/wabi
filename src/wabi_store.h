@@ -7,11 +7,10 @@
 
 typedef struct wabi_store_struct
 {
-  wabi_word* heap;
-
   wabi_word* space;
   wabi_word* limit;
   wabi_word size;
+  wabi_word* heap;
   short int low_threshold;
   short int high_threshold;
 } wabi_store_t;

@@ -10,7 +10,7 @@
 #include "wabi_number.h"
 #include "wabi_symbol.h"
 /* #include "wabi_symbol.h" */
-/* #include "wabi_combiner.h" */
+#include "wabi_combiner.h"
 /* #include "wabi_env.h" */
 
 void
@@ -234,6 +234,18 @@ wabi_pr(wabi_val val) {
     wabi_pr_map((wabi_map) val);
     putchar('}');
     break;
+  case wabi_tag_app:
+    printf("fn");
+    break;
+  case wabi_tag_oper:
+    printf("fx");
+    break;
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    printf("~B");
+    wabi_pr((wabi_val) ((wabi_combiner_builtin) val)->c_name);
+    break;
+
     /* case WABI_TYPE_SYMBOL: */
     /*   wabi_pr_binary((wabi_val) WABI_SYMBOL_BINARY((wabi_symbol) val)); */
     /*   break; */

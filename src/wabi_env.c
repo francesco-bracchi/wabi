@@ -44,6 +44,7 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
   wabi_val v = NULL;
   do {
     v = wabi_map_get((wabi_map) env->data, (wabi_val) k);
+
     if(v) return v;
     env = (wabi_env) WABI_WORD_VAL(env->prev);
 

@@ -2,12 +2,15 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "wabi_store.h"
 #include "wabi_word.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
+
+static const double wabi_low_threshold = 0.2;
 
 int
 wabi_store_init(wabi_store store,
@@ -302,24 +305,33 @@ wabi_store_collect_heap(wabi_store store)
 void
 wabi_store_collect_resize(wabi_store store)
 {
-  return;
-}
+  wabi_size used, new_size;
+  wabi_word *new_space;
 
+  used = store->heap - store->space;
+
+  new_size = (wabi_size) ceil(used / wabi_low_threshold);
+
+  store->space = realloc(store->space, new_size);
+  store->limit = store->space + new_size;
+  store->size = new_size;
+  store->heap = store->space + used;
+}
 
 int
 wabi_store_collect(wabi_store store, wabi_word* root)
 {
   wabi_word *new_space, *old_space;
-  wabi_size size2;
+  wabi_size size3;
 
-  size2 = store->size * 2;
+  size3 = store->size * 3;
   old_space = store->space;
-  new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size2);
-  if(new_space && (new_space + size2 <= wabi_store_limit)) {
+  new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
+  if(new_space && (new_space + size3 <= wabi_store_limit)) {
     store->space = new_space;
-    store->limit = new_space + size2;
+    store->limit = new_space + size3;
     store->heap = new_space;
-    store->size = size2;
+    store->size = size3;
 
     wabi_store_copy_val(store, root);
     wabi_store_collect_heap(store);
