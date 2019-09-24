@@ -3,12 +3,9 @@
 #define wabi_reader_h
 
 #include "wabi_vm.h"
+#include "wabi_value.h"
 
-typedef struct wabi_reader_state_struct {
-  wabi_vm vm;
-  wabi_pair stack;
-} wabi_reader_state_t
-
-typedef wabi_reader_state_t* wabi_reader_state;
+wabi_val
+wabi_reader_read(wabi_vm vm, char* c);
 
 #endif

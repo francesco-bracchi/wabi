@@ -37,7 +37,7 @@ wabi_vm_destroy(wabi_vm vm)
 }
 
 
-wabi_control
+wabi_val
 wabi_vm_reverse(wabi_vm vm,
                 wabi_val done,
                 wabi_val res)
@@ -107,6 +107,7 @@ wabi_vm_pop(wabi_vm vm)
 wabi_vm_result
 wabi_vm_run(wabi_vm vm)
 {
+  // todo: reduce registers?
   wabi_cont cont;
   wabi_val ctrl, xs, as, nil, cs;
   wabi_env e0, e1;
