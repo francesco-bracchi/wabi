@@ -63,6 +63,7 @@ wabi_binary_concat(wabi_vm vm, wabi_binary left, wabi_binary right)
   return node;
 }
 
+
 wabi_binary
 wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
@@ -79,6 +80,7 @@ wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size from, wabi_siz
 
   return (wabi_binary) new_leaf;
 }
+
 
 wabi_binary
 wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size from, wabi_size len)
@@ -105,6 +107,7 @@ wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size from, wabi_siz
     return (wabi_binary) new_node;
   }
 }
+
 
 wabi_binary
 wabi_binary_sub_aux(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len)

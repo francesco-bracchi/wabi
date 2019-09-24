@@ -17,6 +17,7 @@
 #include "../src/wabi_builtin.h"
 #include "../src/wabi_cont.h"
 #include "../src/wabi_pr.h"
+#include "../src/wabi_reader.h"
 
 wabi_vm_t vm;
 
@@ -32,34 +33,35 @@ teardown(void)
   wabi_vm_destroy(&vm);
 }
 
-START_TEST(empty)
-{
-  ck_assert_int_eq(1, 1);
-}
-END_TEST
 
-
-START_TEST(run)
+START_TEST(function_call)
 {
   wabi_env e0;
   e0 = wabi_builtin_stdenv(&vm);
-  vm.control = (wabi_val)
-    wabi_cons(&vm,
-              (wabi_val) wabi_symbol_new(&vm,
-                                         (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "+")),
-              (wabi_val) wabi_cons(&vm,
-                                   (wabi_val) wabi_fixnum_new(&vm, 10),
-                                   (wabi_val) wabi_cons(&vm,
-                                                        (wabi_val) wabi_fixnum_new(&vm, 20),
-                                                        (wabi_val) wabi_nil(&vm))));
-
+  vm.control = wabi_reader_read(&vm, "(+ 20 30)");
   vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
 
   int res = wabi_vm_run(&vm);
   ck_assert_int_eq(res, wabi_vm_result_done);
-  ck_assert_int_eq(wabi_cmp(vm.control, wabi_fixnum_new(&vm, 30)), 0);
+  ck_assert_int_eq(wabi_cmp(vm.control, wabi_fixnum_new(&vm, 50)), 0);
 }
 END_TEST
+
+
+START_TEST(composite_call)
+{
+  wabi_env e0;
+  e0 = wabi_builtin_stdenv(&vm);
+  vm.control = wabi_reader_read(&vm, "(+ (+ 20 30) 2)");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+
+  int res = wabi_vm_run(&vm);
+
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(vm.control, wabi_fixnum_new(&vm, 52)), 0);
+}
+END_TEST
+
 
 Suite *
 map_suite(void)
@@ -73,8 +75,8 @@ map_suite(void)
   tc_core = tcase_create("Core");
   tcase_add_checked_fixture(tc_core, setup, teardown);
 
-  tcase_add_test(tc_core, empty);
-  tcase_add_test(tc_core, run);
+  tcase_add_test(tc_core, function_call);
+  tcase_add_test(tc_core, composite_call);
   suite_add_tcase(s, tc_core);
 
   return s;

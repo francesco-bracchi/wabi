@@ -55,11 +55,10 @@ wabi_reader_is_num(char c)
   return c >= '0' && c <= '9';
 }
 
-static inline char*
-wabi_reader_ws(char* c)
+static inline char**
+wabi_reader_ws(char** c)
 {
-  while(wabi_reader_is_ws(*c)) c++;
-  return c;
+  while(wabi_reader_is_ws(**c)) (*c)++;
 }
 
 static inline wabi_val
@@ -76,66 +75,112 @@ wabi_reader_reverse(wabi_vm vm,
 }
 
 wabi_val
-wabi_reader_read(wabi_vm vm, char* c)
+wabi_reader_read_val(wabi_vm vm, char** c);
+
+
+static inline wabi_val
+wabi_reader_read_list(wabi_vm vm, char** c)
 {
-  wabi_pair stack;
-  wabi_val nil, sub;
+  wabi_val a, d;
+  wabi_reader_ws(c);
+  a = wabi_reader_read_val(vm, c);
+  wabi_reader_ws(c);
+  if(**c == ')') {
+    (*c)++;
+    d = wabi_nil(vm);
+  }
+  else if(**c == '.') {
+    (*c)++;
+    wabi_reader_ws(c);
+    d = wabi_reader_read_val(vm, c);
+  }
+  else {
+    wabi_reader_ws(c);
+    d = wabi_reader_read_list(vm, c);
+  }
+  return (wabi_val) wabi_cons(vm, a, d);
+}
+
+
+static inline wabi_val
+wabi_reader_read_num(wabi_vm vm, char** c)
+{
   long num;
-  char *buff, *bptr;
-
-  nil = wabi_nil(vm);
-  stack = wabi_cons(vm, nil, nil);
-
+  num = 0;
   do {
-    c = wabi_reader_ws(c);
-    if(*c == '(') {
-      c++;
-      stack = wabi_cons(vm, nil, (wabi_val) stack);
-      continue;
-    }
-    if(*c == ')') {
-      c++;
-      sub = wabi_reader_reverse(vm, wabi_car(stack));
-      stack = (wabi_pair) wabi_cdr(stack);
-      stack = wabi_cons(vm, (wabi_val) wabi_cons(vm, wabi_car(stack), sub), wabi_cdr(stack));
-      continue;
-    }
-    if(wabi_reader_is_num(*c)) {
-      num = 0;
-      do {
-        num = 10 * num + (*c - '0');
-        c++;
-      } while(wabi_reader_is_num(*c));
-      stack = wabi_cons(vm, (wabi_val) wabi_cons(vm, (wabi_val) wabi_fixnum_new(vm, num), wabi_car(stack)), wabi_cdr(stack));
-    }
-    if(*c == '"') {
-      c++;
-      buff = malloc(1024);
-      bptr = buff;
-      do {
-        if(*c == '\\') c++;
-        *bptr = *c;
-        bptr++;
-        c++;
-      } while(*c != '"' && bptr - buff < 1023);
-      c++;
-      *bptr = '\0';
-      stack = wabi_cons(vm, (wabi_val) wabi_cons(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff), wabi_car(stack)), wabi_cdr(stack));
-      free(buff);
-    }
-    if (*c >= 'a') {
-      buff = malloc(1024);
-      bptr = buff;
-      do {
-        *bptr = *c;
-        bptr++;
-        c++;
-      } while(!wabi_reader_is_ws(*c));
-      c++;
-      *bptr = '\0';
-      stack = wabi_cons(vm, (wabi_val) wabi_cons(vm, (wabi_val) wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff)), wabi_car(stack)), wabi_cdr(stack));
-      free(buff);
-    }
-  } while(*c != '\0');
-  return wabi_car((wabi_pair) wabi_reader_reverse(vm, (wabi_val) stack));
+    num = 10 * num + (**c - '0');
+    (*c)++;
+  } while(wabi_reader_is_num(**c));
+
+  printf("num: %li\n", num);
+  return wabi_fixnum_new(vm, num);
+}
+
+
+static inline wabi_val
+wabi_reader_read_string(wabi_vm vm, char** c)
+{
+  char *buff, *bptr;
+  wabi_val res;
+  buff = malloc(1024);
+  bptr = buff;
+
+  while(**c != '"' && **c != '\0' && (bptr - buff) < 1023) {
+    if(**c == '\\') (*c)++;
+    *bptr = **c;
+    bptr++;
+    (*c)++;
+  }
+  *bptr = '\0';
+  res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
+  free(buff);
+  wabi_pr(res);
+  return res;
+}
+
+
+static inline wabi_val
+wabi_reader_read_symbol(wabi_vm vm, char** c)
+{
+  char *buff, *bptr;
+  wabi_val res;
+  buff = malloc(1024);
+  bptr = buff;
+  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '(') && (**c != '"')) {
+    if(**c == '\\') (*c)++;
+    *bptr = **c;
+    bptr++;
+    (*c)++;
+  }
+  *bptr = '\0';
+  res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
+  free(buff);
+  return wabi_symbol_new(vm, res);
+}
+
+
+wabi_val
+wabi_reader_read_val(wabi_vm vm, char** c)
+{
+  wabi_reader_ws(c);
+  if(**c == '(') {
+    (*c)++;
+    return wabi_reader_read_list(vm, c);
+  }
+  if(wabi_reader_is_num(**c)) {
+    return wabi_reader_read_num(vm, c);
+  }
+  if(**c == '"') {
+    (*c)++;
+    return wabi_reader_read_string(vm, c);
+  }
+  if(**c == '\0') {
+    return NULL;
+  }
+  return wabi_reader_read_symbol(vm, c);
+}
+
+wabi_val
+wabi_reader_read(wabi_vm vm, char* c) {
+  return wabi_reader_read_val(vm, &c);
 }
