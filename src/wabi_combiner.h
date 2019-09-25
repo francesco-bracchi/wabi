@@ -65,10 +65,14 @@ wabi_combiner_wrap(wabi_vm vm, wabi_combiner combiner);
 wabi_combiner
 wabi_combiner_unwrap(wabi_vm vm, wabi_combiner combiner);
 
-wabi_val
-wabi_combiner_is_operative(wabi_combiner combiner);
+inline static int
+wabi_combiner_is_operative(wabi_combiner combiner) {
+  return WABI_IS(wabi_tag_oper, combiner) || WABI_IS(wabi_tag_bt_oper, combiner);
+}
 
-wabi_val
-wabi_combiner_is_applicative(wabi_combiner combiner);
+static inline int
+wabi_combiner_is_applicative(wabi_combiner combiner) {
+  return WABI_IS(wabi_tag_app, combiner) || WABI_IS(wabi_tag_bt_app, combiner);
+}
 
 #endif

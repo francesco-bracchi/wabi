@@ -112,7 +112,6 @@ wabi_reader_read_num(wabi_vm vm, char** c)
     (*c)++;
   } while(wabi_reader_is_num(**c));
 
-  printf("num: %li\n", num);
   return wabi_fixnum_new(vm, num);
 }
 
@@ -134,7 +133,6 @@ wabi_reader_read_string(wabi_vm vm, char** c)
   *bptr = '\0';
   res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
   free(buff);
-  wabi_pr(res);
   return res;
 }
 

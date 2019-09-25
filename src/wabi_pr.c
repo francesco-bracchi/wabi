@@ -193,6 +193,51 @@ wabi_pr_map(wabi_map map)
 /* } */
 
 void
+wabi_pr_cont(wabi_cont val) {
+  do {
+    switch(WABI_TAG(val)) {
+    case wabi_tag_cont_eval:
+      printf("eval");
+      break;
+    case wabi_tag_cont_apply:
+      printf("(apply ");
+      wabi_pr((wabi_val) ((wabi_cont_apply) val)->args);
+      printf(")");
+      break;
+    case wabi_tag_cont_call:
+      printf("(call ");
+      wabi_pr((wabi_val) ((wabi_cont_call) val)->combiner);
+      printf(")");
+      break;
+    case wabi_tag_cont_sel:
+      printf("(sel ");
+      wabi_pr((wabi_val) ((wabi_cont_sel) val)->left);
+      printf(" ");
+      wabi_pr((wabi_val) ((wabi_cont_sel) val)->right);
+      printf(")");
+      break;
+    case wabi_tag_cont_eval_more:
+      printf("(eval-more ");
+      wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->data);
+      printf(" ");
+      wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->done);
+      printf(")");
+      break;
+    case wabi_tag_cont_def:
+      printf("(def ");
+      wabi_pr((wabi_val) ((wabi_cont_def) val)->pattern);
+      printf(")");
+      break;
+    default:
+      printf("BOH");
+      break;
+    }
+    val = (wabi_cont) WABI_WORD_VAL(val->prev);
+    if(val) printf(" ");
+  } while(val != NULL);
+}
+
+void
 wabi_pr(wabi_val val) {
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
@@ -210,6 +255,7 @@ wabi_pr(wabi_val val) {
       printf("_");
       break;
     }
+    break;
   case wabi_tag_fixnum:
     printf("%ld", WABI_CAST_INT64(val));
     break;
@@ -244,6 +290,16 @@ wabi_pr(wabi_val val) {
   case wabi_tag_bt_oper:
     printf("~B");
     wabi_pr((wabi_val) ((wabi_combiner_builtin) val)->c_name);
+    break;
+  case wabi_tag_cont_eval:
+  case wabi_tag_cont_apply:
+  case wabi_tag_cont_call:
+  case wabi_tag_cont_sel:
+  case wabi_tag_cont_eval_more:
+  case wabi_tag_cont_def:
+    printf("<");
+    wabi_pr_cont((wabi_cont) val);
+    printf(">");
     break;
 
     /* case WABI_TYPE_SYMBOL: */

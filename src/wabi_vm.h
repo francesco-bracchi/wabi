@@ -15,9 +15,10 @@ typedef enum wabi_vm_result_enum
   } wabi_vm_result;
 
 typedef struct wabi_vm_struct {
-  wabi_val control;
-  wabi_val continuation;
   wabi_store_t store;
+  wabi_val control;
+  wabi_val env;
+  wabi_val continuation;
   int errno;
   wabi_val errval;
   int fuel;
