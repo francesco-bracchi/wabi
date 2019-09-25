@@ -121,11 +121,13 @@ wabi_vm_run(wabi_vm vm)
   do {
     ctrl = vm->control;
     cont = wabi_vm_pop(vm);
-    printf("control: ");
-    wabi_pr(ctrl);
-    printf(", cont: ");
-    wabi_pr((wabi_val) cont);
-    printf("\n");
+
+    /* printf("control: "); */
+    /* wabi_pr(ctrl); */
+    /* printf("\ncont:    "); */
+    /* wabi_pr((wabi_val) cont); */
+    /* printf("\n\n"); */
+
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
       vm->env = (wabi_val) ((wabi_cont_eval) cont)->env;

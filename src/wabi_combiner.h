@@ -50,7 +50,12 @@ typedef wabi_combiner_t* wabi_combiner;
 #define WABI_COMBINER_DERIVED_SIZE 4
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
+wabi_operator_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
+
+
+wabi_combiner
+wabi_application_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
+
 
 wabi_combiner
 wabi_combiner_new(wabi_vm vm,

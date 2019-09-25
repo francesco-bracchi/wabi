@@ -11,19 +11,34 @@
 
 
 wabi_combiner
-wabi_combiner_builtin_new(wabi_vm vm,
+wabi_operator_builtin_new(wabi_vm vm,
                           wabi_binary cname,
                           wabi_builtin_fun cfun)
 {
   // todo: verify cfun pointer is less then 2^59
-  wabi_combiner_builtin res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-  if(res) {
-    res->c_ptr = (wabi_word) cfun;
-    res->c_name = (wabi_word) cname;
-    WABI_SET_TAG(res, wabi_tag_bt_oper);
-    return (wabi_combiner) res;
-  }
-  return NULL;
+  wabi_combiner_builtin res;
+  res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+
+  res->c_ptr = (wabi_word) cfun;
+  res->c_name = (wabi_word) cname;
+  WABI_SET_TAG(res, wabi_tag_bt_oper);
+  return (wabi_combiner) res;
+}
+
+
+wabi_combiner
+wabi_application_builtin_new(wabi_vm vm,
+                             wabi_binary cname,
+                             wabi_builtin_fun cfun)
+{
+  // todo: verify cfun pointer is less then 2^59
+  wabi_combiner_builtin res;
+  res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+
+  res->c_ptr = (wabi_word) cfun;
+  res->c_name = (wabi_word) cname;
+  WABI_SET_TAG(res, wabi_tag_bt_app);
+  return (wabi_combiner) res;
 }
 
 

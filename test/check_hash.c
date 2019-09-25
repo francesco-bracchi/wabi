@@ -108,7 +108,7 @@ END_TEST
 START_TEST(combiners)
 {
   wabi_binary cname = (wabi_binary) wabi_binary_leaf_new_from_cstring(&vm, "builtin_name");
-  wabi_combiner c = wabi_combiner_builtin_new(&vm, cname, NULL);
+  wabi_combiner c = wabi_operator_builtin_new(&vm, cname, NULL);
   ck_assert_int_ne(wabi_hash((wabi_val) c), 0);
   ck_assert_int_ne(wabi_hash((wabi_val) c), wabi_hash((wabi_val) cname));
 }

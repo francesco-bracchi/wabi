@@ -197,7 +197,7 @@ wabi_pr_cont(wabi_cont val) {
   do {
     switch(WABI_TAG(val)) {
     case wabi_tag_cont_eval:
-      printf("eval");
+      printf("(eval)");
       break;
     case wabi_tag_cont_apply:
       printf("(apply ");

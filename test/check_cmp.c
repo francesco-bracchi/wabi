@@ -144,8 +144,8 @@ START_TEST(combiners)
   cname0 = (wabi_binary) wabi_binary_leaf_new_from_cstring(&vm, "cname0");
   cname = (wabi_binary) wabi_binary_leaf_new_from_cstring(&vm, "cname");
 
-  c0 = wabi_combiner_builtin_new(&vm, cname0, NULL);
-  c = wabi_combiner_builtin_new(&vm, cname, NULL);
+  c0 = wabi_operator_builtin_new(&vm, cname0, NULL);
+  c = wabi_operator_builtin_new(&vm, cname, NULL);
   ck_assert_int_lt(wabi_cmp((wabi_val) c, (wabi_val) c0), 0);
 }
 END_TEST
