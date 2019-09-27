@@ -77,6 +77,8 @@ START_TEST(bind)
 }
 END_TEST
 
+
+/*** builtin test ***/
 START_TEST(operative)
 {
   wabi_env e0;
@@ -107,6 +109,7 @@ START_TEST(invoke_derived)
 END_TEST
 
 
+/*** builtin test ***/
 START_TEST(wrap_fx)
 {
   wabi_env e0;
@@ -118,6 +121,55 @@ START_TEST(wrap_fx)
   ck_assert_int_eq(res, wabi_vm_result_done);
   ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "30"), vm.control), 0);
 
+}
+END_TEST
+
+/*** builtin test ***/
+START_TEST(unwrap)
+{
+  wabi_env e0;
+  e0 = wabi_builtin_stdenv(&vm);
+  vm.control = wabi_reader_read(&vm, "((unwrap (wrap (fx e (a) a))) (+ 10 20))");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+
+  int res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "(+ 10 20)"), vm.control), 0);
+
+}
+END_TEST
+
+START_TEST(branch)
+{
+  wabi_env e0;
+  int res;
+
+  e0 = wabi_builtin_stdenv(&vm);
+
+  vm.control = wabi_reader_read(&vm, "(if true 0 20)");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+  res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "0"), vm.control), 0);
+
+  vm.control = wabi_reader_read(&vm, "(if 0 0 20)");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+  res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "0"), vm.control), 0);
+
+  vm.control = wabi_reader_read(&vm, "(if false 0 20)");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+  res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "20"), vm.control), 0);
+
+  vm.control = wabi_reader_read(&vm, "(if nil 0 20)");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+  res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  wabi_pr(vm.control);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "20"), vm.control), 0);
 }
 END_TEST
 
@@ -134,12 +186,15 @@ map_suite(void)
   tc_core = tcase_create("Core");
   tcase_add_checked_fixture(tc_core, setup, teardown);
 
-  /* tcase_add_test(tc_core, function_call); */
-  /* tcase_add_test(tc_core, composite_call); */
-  /* tcase_add_test(tc_core, bind); */
-  /* tcase_add_test(tc_core, operative); */
-  /* tcase_add_test(tc_core, invoke_derived); */
+  tcase_add_test(tc_core, function_call);
+  tcase_add_test(tc_core, composite_call);
+  tcase_add_test(tc_core, bind);
+  tcase_add_test(tc_core, operative);
+  tcase_add_test(tc_core, invoke_derived);
   tcase_add_test(tc_core, wrap_fx);
+  tcase_add_test(tc_core, unwrap);
+  tcase_add_test(tc_core, branch);
+
   suite_add_tcase(s, tc_core);
 
   return s;

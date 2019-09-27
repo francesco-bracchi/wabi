@@ -171,6 +171,22 @@ wabi_builtin_wrap(wabi_vm vm, wabi_env env)
 
 
 void
+wabi_builtin_unwrap(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, comb;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    comb = wabi_car((wabi_pair) ctrl);
+    if(WABI_IS(wabi_tag_app, comb) || WABI_IS(wabi_tag_bt_app, comb)) {
+      vm->control = (wabi_val) wabi_combiner_unwrap(vm, (wabi_combiner) comb);
+      return;
+    }
+    vm->control = (wabi_val) comb;
+  }
+}
+
+
+void
 wabi_builtin_def(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, fs, e;
@@ -199,7 +215,6 @@ void
 wabi_builtin_if(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, t, l, r;
-
   ctrl = vm->control;
   if(WABI_IS(wabi_tag_pair, ctrl)) {
     t = wabi_car((wabi_pair) ctrl);
@@ -222,6 +237,7 @@ wabi_builtin_if(wabi_vm vm, wabi_env env)
   vm->errno = 1;
   vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "if error");
 }
+
 
 #define SYM(vm, str)                                                    \
   wabi_symbol_new(vm,                                                   \
@@ -252,6 +268,13 @@ wabi_builtin_if(wabi_vm vm, wabi_env env)
                (wabi_val) BTAPP(vm, btname, fun)                        \
                );
 
+#define WABI_DEF(vm, env, name, val)                                    \
+  wabi_env_set(vm,                                                      \
+               env,                                                     \
+               SYM(vm, name),                                           \
+               (wabi_val) val                                           \
+               );
+
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -261,12 +284,36 @@ wabi_builtin_stdenv(wabi_vm vm)
 
   env = wabi_env_new(vm);
 
+  val = (wabi_val) wabi_vm_alloc(vm, 5);
+
+  *val = wabi_val_nil;
+  WABI_DEF(vm, env, "nil", val);
+  val++;
+
+  *val = wabi_val_true;
+  WABI_DEF(vm, env, "true", val);
+  val++;
+
+  *val = wabi_val_false;
+  WABI_DEF(vm, env, "false", val);
+  val++;
+
+  *val = wabi_val_ignore;
+  WABI_DEF(vm, env, "ignore", val);
+  val++;
+
+  *val = wabi_val_zero;
+  WABI_DEF(vm, env, "zero", val);
+
   WABI_DEFX(vm, env, "def", "wabi:def", wabi_builtin_def);
   WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_builtin_fx);
   WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap);
+  WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_builtin_unwrap);
+  WABI_DEFN(vm, env, "if", "wabi:if", wabi_builtin_if);
   WABI_DEFN(vm, env, "+", "wabi:+", wabi_builtin_sum);
   WABI_DEFN(vm, env, "-", "wabi:-", wabi_builtin_diff);
   WABI_DEFN(vm, env, "*", "wabi:*", wabi_builtin_mul);
   WABI_DEFN(vm, env, "/", "wabi:/", wabi_builtin_div);
+
   return env;
 }

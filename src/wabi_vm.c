@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include "wabi_pr.h"
 
+// #define WABI_VM_DEBUG 1
+
 int
 wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
@@ -116,17 +118,22 @@ wabi_vm_run(wabi_vm vm)
   wabi_val ctrl, xs, as, nil, cs;
   wabi_env e1;
   wabi_combiner c0;
+  wabi_size counter;
 
   nil = wabi_nil(vm);
+  counter = 0;
   do {
     ctrl = vm->control;
     cont = wabi_vm_pop(vm);
 
-    /* printf("control: "); */
-    /* wabi_pr(ctrl); */
-    /* printf("\ncont:    "); */
-    /* wabi_pr((wabi_val) cont); */
-    /* printf("\n\n"); */
+    #ifdef WABI_VM_DEBUG
+    printf("reucts:  %lu\n", counter);
+    printf("control: ");
+    wabi_pr(ctrl);
+    printf("\ncont:    ");
+    wabi_pr((wabi_val) cont);
+    printf("\n\n");
+    #endif
 
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
@@ -149,6 +156,10 @@ wabi_vm_run(wabi_vm vm)
         /* control: (lookup c e0) */
         /* stack s */
         vm->control = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
+        if(vm->control == NULL) {
+          vm->errno = 3;
+          vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "Undefined variable");
+        }
         break;
       }
       /* control: c */
@@ -169,6 +180,8 @@ wabi_vm_run(wabi_vm vm)
         /* -------------------------------------- */
         /* control: a */
         /* stack: ((eval-more e0 as nil) (call e0 c) . s) */
+
+        // TODO: optimize the case of single argument?
         wabi_vm_push_eval_more(vm, (wabi_env) vm->env, wabi_cdr((wabi_pair) as), (wabi_val) nil);
         wabi_vm_push_eval(vm, (wabi_env) vm->env);
         vm->control = wabi_car((wabi_pair) as);
@@ -266,6 +279,7 @@ wabi_vm_run(wabi_vm vm)
       vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "generic error");
       return wabi_vm_result_error;
     }
+    counter++;
   } while (vm->continuation);
   return wabi_vm_result_done;
 }
