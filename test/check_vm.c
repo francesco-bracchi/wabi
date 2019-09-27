@@ -85,13 +85,39 @@ START_TEST(operative)
   vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
 
   int res = wabi_vm_run(&vm);
-  wabi_val sym0 = wabi_symbol_new(&vm, (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "a"));
-
+  wabi_val sym0 = wabi_symbol_new(&vm, (wabi_val) wabi_binary_leaf_new_from_cstring(&vm, "q"));
   ck_assert_int_eq(res, wabi_vm_result_done);
-  /* printf("_________________\n"); */
-  /* wabi_pr(vm.control); */
-  /* printf("\n_________________\n"); */
-  ck_assert_int_eq(wabi_cmp(wabi_env_lookup((wabi_env) vm.env, sym0), wabi_fixnum_new(&vm, 10)), 0);
+  ck_assert_ptr_nonnull(wabi_env_lookup((wabi_env) vm.env, sym0));
+}
+END_TEST
+
+
+START_TEST(invoke_derived)
+{
+  wabi_env e0;
+  e0 = wabi_builtin_stdenv(&vm);
+  vm.control = wabi_reader_read(&vm, "((fx e (a) a) (+ 10 20))");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+
+  int res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "(+ 10 20)"), vm.control), 0);
+
+}
+END_TEST
+
+
+START_TEST(wrap_fx)
+{
+  wabi_env e0;
+  e0 = wabi_builtin_stdenv(&vm);
+  vm.control = wabi_reader_read(&vm, "((wrap (fx e (a) a)) (+ 10 20))");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+
+  int res = wabi_vm_run(&vm);
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "30"), vm.control), 0);
+
 }
 END_TEST
 
@@ -108,10 +134,12 @@ map_suite(void)
   tc_core = tcase_create("Core");
   tcase_add_checked_fixture(tc_core, setup, teardown);
 
-  tcase_add_test(tc_core, function_call);
-  tcase_add_test(tc_core, composite_call);
-  tcase_add_test(tc_core, bind);
+  /* tcase_add_test(tc_core, function_call); */
+  /* tcase_add_test(tc_core, composite_call); */
+  /* tcase_add_test(tc_core, bind); */
   /* tcase_add_test(tc_core, operative); */
+  /* tcase_add_test(tc_core, invoke_derived); */
+  tcase_add_test(tc_core, wrap_fx);
   suite_add_tcase(s, tc_core);
 
   return s;

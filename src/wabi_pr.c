@@ -150,47 +150,29 @@ wabi_pr_map(wabi_map map)
 /* } */
 
 
-/* void */
-/* wabi_pr_applicative(wabi_combiner_derived val) */
-/* { */
-/*   printf("(fn "); */
-/*   wabi_pr((wabi_val) val->arguments); */
-/*   printf(" "); */
-/*   wabi_pr((wabi_val) val->body); */
-/*   printf(")"); */
-/* } */
+void
+wabi_pr_applicative(wabi_combiner_derived val)
+{
+  printf("(fn ");
+  wabi_pr((wabi_val) val->parameters);
+  printf(" ");
+  wabi_pr((wabi_val) val->body);
+  printf(")");
+}
 
 
-/* void */
-/* wabi_pr_operative(wabi_combiner_derived val) */
-/* { */
-/*   printf("(fx "); */
-/*   wabi_pr((wabi_val) val->caller_env_name); */
-/*   printf(" "); */
-/*   wabi_pr((wabi_val) val->arguments); */
-/*   printf(" "); */
-/*   wabi_pr((wabi_val) val->body); */
-/*   printf(")"); */
-/* } */
+void
+wabi_pr_operative(wabi_combiner_derived val)
+{
+  printf("(fx ");
+  wabi_pr((wabi_val) val->caller_env_name);
+  printf(" ");
+  wabi_pr((wabi_val) val->parameters);
+  printf(" ");
+  wabi_pr((wabi_val) val->body);
+  printf(")");
+}
 
-/* /\** todo: add a tag name to the builtin ds *\/ */
-/* void */
-/* wabi_pr_combiner(wabi_val val) { */
-/*   switch(wabi_val_tag(val)) { */
-/*   case WABI_TAG_OPERATIVE: */
-/*     wabi_pr_operative((wabi_combiner_derived) val); */
-/*     break; */
-/*   case WABI_TAG_APPLICATIVE: */
-/*     wabi_pr_applicative((wabi_combiner_derived) val); */
-/*     break; */
-/*   case WABI_TAG_BUILTIN_OP: */
-/*     printf("builtin operative"); */
-/*     break; */
-/*   case WABI_TAG_BUILTIN_APP: */
-/*     printf("builtin applicative"); */
-/*     break; */
-/*   } */
-/* } */
 
 void
 wabi_pr_cont(wabi_cont val) {
@@ -280,11 +262,11 @@ wabi_pr(wabi_val val) {
     wabi_pr_map((wabi_map) val);
     putchar('}');
     break;
-  case wabi_tag_app:
-    printf("fn");
-    break;
   case wabi_tag_oper:
-    printf("fx");
+    wabi_pr_operative((wabi_combiner_derived) val);
+    break;
+  case wabi_tag_app:
+    wabi_pr_applicative((wabi_combiner_derived) val);
     break;
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
@@ -302,15 +284,6 @@ wabi_pr(wabi_val val) {
     printf(">");
     break;
 
-    /* case WABI_TYPE_SYMBOL: */
-    /*   wabi_pr_binary((wabi_val) WABI_SYMBOL_BINARY((wabi_symbol) val)); */
-    /*   break; */
-    /* case WABI_TYPE_ENV: */
-    /*   wabi_pr_env((wabi_env) val); */
-    /*   break; */
-    /* case WABI_TYPE_COMBINER: */
-    /*   wabi_pr_combiner(val); */
-    /*   break; */
   default:
     printf("unknown %lx", *val);
   }

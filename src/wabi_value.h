@@ -21,10 +21,10 @@ typedef enum wabi_tag_enum {
   wabi_tag_map_entry      = 0x4800000000000000,
   wabi_tag_map_hash       = 0x5000000000000000,
 
-  wabi_tag_app            = 0x5800000000000000, // 1001 1
-  wabi_tag_bt_app         = 0x6000000000000000, // 1010 0
-  wabi_tag_oper           = 0x6800000000000000, // 1010 1
-  wabi_tag_bt_oper        = 0x7000000000000000, // 1011 0
+  wabi_tag_app            = 0x5800000000000000, // 0101 1
+  wabi_tag_bt_app         = 0x6000000000000000, // 0110 0
+  wabi_tag_oper           = 0x6800000000000000, // 0110 1
+  wabi_tag_bt_oper        = 0x7000000000000000, // 0111 0
 
   wabi_tag_env            = 0x7800000000000000,
 

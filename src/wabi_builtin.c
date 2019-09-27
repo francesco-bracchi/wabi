@@ -135,12 +135,12 @@ wabi_builtin_fx(wabi_vm vm, wabi_env env)
 
   ctrl = vm->control;
   if(WABI_IS(wabi_tag_pair, ctrl)) {
-    fs = wabi_car((wabi_pair) ctrl);
+    e = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_pair, ctrl)) {
-      e = wabi_car((wabi_pair) ctrl);
+    if(WABI_IS(wabi_tag_pair, ctrl) && WABI_IS(wabi_tag_pair, ctrl)) {
+      fs = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
-      if(WABI_IS(wabi_tag_symbol, e) && WABI_IS(wabi_tag_pair, ctrl)) {
+      if(WABI_IS(wabi_tag_symbol, e)) {
         b = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {

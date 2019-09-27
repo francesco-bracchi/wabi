@@ -69,16 +69,26 @@ wabi_combiner_wrap(wabi_vm vm, wabi_combiner combiner)
   switch(WABI_TAG(combiner)) {
   case wabi_tag_oper:
     res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-    memcpy(res, combiner, 8 * WABI_COMBINER_DERIVED_SIZE);
-    WABI_SET_TAG(res, wabi_tag_app);
+    memcpy(res, combiner, sizeof(wabi_combiner_derived_t));
+
+    /* shortcut for */
+    /* *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res)); */
+    /* WABI_SET_TAG(res, wabi_tag_app); */
+
+    *((wabi_word *) res) ^= 0x3000000000000000;
+
     return res;
   case wabi_tag_bt_oper:
     res = (wabi_combiner) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-    *res = *combiner;
-    WABI_SET_TAG(res, wabi_tag_app);
+    memcpy(res, combiner, sizeof(wabi_combiner_builtin_t));
+
+    /* shortcut for */
+    /* *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res)); */
+    /* WABI_SET_TAG(res, wabi_tag_bt_app); */
+
+    *((wabi_word *) res) ^= 0x9800000000000000;
     return res;
-  case wabi_tag_bt_app:
-  case wabi_tag_app:
+  default:
     return (wabi_combiner) combiner;
   }
   return NULL;

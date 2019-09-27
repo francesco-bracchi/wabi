@@ -156,6 +156,13 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   return wabi_symbol_new(vm, res);
 }
 
+static inline wabi_val
+wabi_vm_read_ignore(wabi_vm vm) {
+  wabi_val res;
+  res = wabi_vm_alloc(vm, 1);
+  *res = wabi_val_ignore;
+  return res;
+}
 
 wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)
@@ -171,6 +178,10 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   if(**c == '"') {
     (*c)++;
     return wabi_reader_read_string(vm, c);
+  }
+  if(**c == '_') {
+    (*c)++;
+    return wabi_vm_read_ignore(vm);
   }
   if(**c == '\0') {
     return NULL;
