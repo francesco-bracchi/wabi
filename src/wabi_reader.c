@@ -123,7 +123,6 @@ wabi_reader_read_string(wabi_vm vm, char** c)
   wabi_val res;
   buff = malloc(1024);
   bptr = buff;
-
   while(**c != '"' && **c != '\0' && (bptr - buff) < 1023) {
     if(**c == '\\') (*c)++;
     *bptr = **c;
@@ -132,6 +131,7 @@ wabi_reader_read_string(wabi_vm vm, char** c)
   }
   *bptr = '\0';
   res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
+  (*c)++;
   free(buff);
   return res;
 }

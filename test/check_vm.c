@@ -16,7 +16,7 @@
 #include "../src/wabi_number.h"
 #include "../src/wabi_builtin.h"
 #include "../src/wabi_cont.h"
-#include "../src/wabi_pr.h"
+#include "../src/wabi_map.h"
 #include "../src/wabi_reader.h"
 
 wabi_vm_t vm;
@@ -139,6 +139,22 @@ START_TEST(unwrap)
 }
 END_TEST
 
+/*** builtin test ***/
+START_TEST(map)
+{
+  wabi_env e0;
+  e0 = wabi_builtin_stdenv(&vm);
+  vm.control = wabi_reader_read(&vm, "(map \"one\" 1 \"two\" (+ 1 1))");
+  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+
+  int res = wabi_vm_run(&vm);
+
+  ck_assert_int_eq(res, wabi_vm_result_done);
+  ck_assert_int_eq(wabi_map_length((wabi_map) vm.control), 2);
+
+}
+END_TEST
+
 START_TEST(branch)
 {
   wabi_env e0;
@@ -168,7 +184,6 @@ START_TEST(branch)
   vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
   res = wabi_vm_run(&vm);
   ck_assert_int_eq(res, wabi_vm_result_done);
-  wabi_pr(vm.control);
   ck_assert_int_eq(wabi_cmp(wabi_reader_read(&vm, "20"), vm.control), 0);
 }
 END_TEST
@@ -194,6 +209,7 @@ map_suite(void)
   tcase_add_test(tc_core, wrap_fx);
   tcase_add_test(tc_core, unwrap);
   tcase_add_test(tc_core, branch);
+  tcase_add_test(tc_core, map);
 
   suite_add_tcase(s, tc_core);
 

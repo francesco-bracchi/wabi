@@ -6,6 +6,7 @@
 #include "wabi_combiner.h"
 #include "wabi_cont.h"
 #include "wabi_number.h"
+#include "wabi_map.h"
 #include "wabi_vm.h"
 
 void
@@ -239,6 +240,29 @@ wabi_builtin_if(wabi_vm vm, wabi_env env)
 }
 
 
+void
+wabi_builtin_map(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, k, v;
+  wabi_map res;
+  ctrl = vm->control;
+  res = wabi_map_empty(vm);
+  while(*ctrl != wabi_val_nil) {
+    k = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(WABI_IS(wabi_tag_pair, ctrl)) {
+      v = wabi_car((wabi_pair) ctrl);
+      ctrl = wabi_cdr((wabi_pair) ctrl);
+      res = wabi_map_assoc(vm, res, k, v);
+    } else {
+      vm->errno = 3;
+      vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "map odd number of arguments");
+    }
+  }
+  vm->control = (wabi_val) res;
+  return;
+}
+
 #define SYM(vm, str)                                                    \
   wabi_symbol_new(vm,                                                   \
                   (wabi_val) wabi_binary_leaf_new_from_cstring(vm, str))
@@ -314,6 +338,7 @@ wabi_builtin_stdenv(wabi_vm vm)
   WABI_DEFN(vm, env, "-", "wabi:-", wabi_builtin_diff);
   WABI_DEFN(vm, env, "*", "wabi:*", wabi_builtin_mul);
   WABI_DEFN(vm, env, "/", "wabi:/", wabi_builtin_div);
+  WABI_DEFN(vm, env, "map", "wabi:map", wabi_builtin_map);
 
   return env;
 }
