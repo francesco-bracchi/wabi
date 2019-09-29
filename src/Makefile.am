@@ -43,4 +43,5 @@ libwabi_la_LIBADD=$(LIBEV)
 
 bin_PROGRAMS = wabi
 wabi_SOURCES = wabi_main.c
+wabi_LDADD = libwabi.la
 wabi_LTLIBADD = libwabi.la

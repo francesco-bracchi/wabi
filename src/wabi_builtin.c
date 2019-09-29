@@ -1,5 +1,7 @@
 #define wabi_builtin_c
 
+#include <stdlib.h>
+
 #include "wabi_value.h"
 #include "wabi_pair.h"
 #include "wabi_env.h"
@@ -7,7 +9,10 @@
 #include "wabi_cont.h"
 #include "wabi_number.h"
 #include "wabi_map.h"
+#include "wabi_binary.h"
+#include "wabi_reader.h"
 #include "wabi_vm.h"
+
 
 void
 wabi_builtin_sum(wabi_vm vm, wabi_env env)
@@ -141,7 +146,7 @@ wabi_builtin_fx(wabi_vm vm, wabi_env env)
     if(WABI_IS(wabi_tag_pair, ctrl) && WABI_IS(wabi_tag_pair, ctrl)) {
       fs = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
-      if(WABI_IS(wabi_tag_symbol, e)) {
+      if(WABI_IS(wabi_tag_symbol, e) || *e == wabi_val_ignore) {
         b = wabi_car((wabi_pair) ctrl);
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(*ctrl == wabi_val_nil) {
@@ -241,7 +246,7 @@ wabi_builtin_if(wabi_vm vm, wabi_env env)
 
 
 void
-wabi_builtin_map(wabi_vm vm, wabi_env env)
+wabi_builtin_hmap(wabi_vm vm, wabi_env env)
 {
   wabi_val ctrl, k, v;
   wabi_map res;
@@ -260,7 +265,130 @@ wabi_builtin_map(wabi_vm vm, wabi_env env)
     }
   }
   vm->control = (wabi_val) res;
-  return;
+}
+
+
+void
+wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
+{
+  wabi_val exp;
+
+  for(;;) {
+    exp = wabi_reader_read_val(vm, &str);
+    if(exp == NULL) return;
+    vm->control = exp;
+    vm->continuation = (wabi_val) wabi_cont_eval_new(vm, env, (wabi_cont) vm->continuation);
+    wabi_vm_run(vm);
+    if(vm->errno) return;
+  }
+}
+
+
+void
+wabi_builtin_car(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, pair;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    pair = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(*ctrl == wabi_val_nil) {
+      if(WABI_IS(wabi_tag_pair, pair)) {
+        vm->control = (wabi_val) wabi_car((wabi_pair) pair);
+        return;
+      }
+      if(*pair == wabi_val_nil) {
+        vm->control = pair;
+        return;
+      }
+    }
+  }
+  vm->errno = 1;
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "car: wrong number of arguments");
+}
+
+
+void
+wabi_builtin_cdr(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, pair;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    pair = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(*ctrl == wabi_val_nil) {
+      if(WABI_IS(wabi_tag_pair, pair)) {
+        vm->control = (wabi_val) wabi_cdr((wabi_pair) pair);
+        return;
+      }
+      if(*pair == wabi_val_nil) {
+        vm->control = pair;
+        return;
+      }
+    }
+  }
+  vm->errno = 1;
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cdr: wrong number of arguments");
+}
+
+void
+wabi_builtin_cons(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, car, cdr;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    car = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(WABI_IS(wabi_tag_pair, ctrl)) {
+      cdr = wabi_car((wabi_pair) ctrl);
+      ctrl = wabi_cdr((wabi_pair) ctrl);
+      if(*ctrl == wabi_val_nil) {
+        vm->control = (wabi_val) wabi_cons(vm, car, cdr);
+        return;
+      }
+    }
+  }
+  vm->errno = 1;
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "Cons: wrong number of arguments");
+}
+
+
+void
+wabi_builtin_nil_q(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, val, res;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    val = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(*ctrl == wabi_val_nil) {
+      res = (wabi_val) wabi_vm_alloc(vm, 1);
+      *res = *val == wabi_val_nil ? wabi_val_true : wabi_val_false;
+      vm->control = res;
+      return;
+    }
+  }
+  vm->errno = 1;
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "nil?: wrong number of arguments");
+}
+
+void
+wabi_builtin_pair_q(wabi_vm vm, wabi_env env)
+{
+  wabi_val ctrl, val, res;
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    val = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(*ctrl == wabi_val_nil) {
+      res = (wabi_val) wabi_vm_alloc(vm, 1);
+      *res = WABI_IS(wabi_tag_pair, val) ? wabi_val_true : wabi_val_false;
+      vm->control = res;
+      return;
+    }
+  }
+  vm->errno = 1;
+  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "pair?: wrong number of arguments");
 }
 
 #define SYM(vm, str)                                                    \
@@ -338,7 +466,12 @@ wabi_builtin_stdenv(wabi_vm vm)
   WABI_DEFN(vm, env, "-", "wabi:-", wabi_builtin_diff);
   WABI_DEFN(vm, env, "*", "wabi:*", wabi_builtin_mul);
   WABI_DEFN(vm, env, "/", "wabi:/", wabi_builtin_div);
-  WABI_DEFN(vm, env, "map", "wabi:map", wabi_builtin_map);
+  WABI_DEFN(vm, env, "hmap", "wabi:hmap", wabi_builtin_hmap);
+  WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_builtin_cons);
+  WABI_DEFN(vm, env, "car", "wabi:car", wabi_builtin_car);
+  WABI_DEFN(vm, env, "cdr", "wabi:cdr", wabi_builtin_cdr);
+  WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_builtin_nil_q);
+  WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_builtin_pair_q);
 
   return env;
 }

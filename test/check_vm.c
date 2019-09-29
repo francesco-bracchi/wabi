@@ -18,6 +18,7 @@
 #include "../src/wabi_cont.h"
 #include "../src/wabi_map.h"
 #include "../src/wabi_reader.h"
+#include "../src/wabi_pr.h"
 
 wabi_vm_t vm;
 
@@ -144,7 +145,7 @@ START_TEST(map)
 {
   wabi_env e0;
   e0 = wabi_builtin_stdenv(&vm);
-  vm.control = wabi_reader_read(&vm, "(map \"one\" 1 \"two\" (+ 1 1))");
+  vm.control = wabi_reader_read(&vm, "(hmap \"one\" 1 \"two\" (+ 1 1))");
   vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
 
   int res = wabi_vm_run(&vm);
@@ -189,6 +190,38 @@ START_TEST(branch)
 END_TEST
 
 
+START_TEST(load)
+{
+  wabi_env e0;
+  int res;
+  char * buffer = 0;
+
+  long length;
+  FILE * f = fopen("test/test.wabi", "rb");
+
+  fseek(f, 0, SEEK_END);
+  length = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  buffer = malloc(length + 1);
+  fread(buffer, 1, length, f);
+  buffer[length] = '\0';
+  fclose (f);
+
+  e0 = wabi_builtin_stdenv(&vm);
+  wabi_builtin_load(&vm, e0, buffer);
+  if(vm.errno != 0) {
+    printf("------------------------- %i\n", vm.errno);
+    wabi_pr(vm.errval);
+    printf("\n");
+  }
+
+  printf("result\n");
+  wabi_pr(vm.control);
+  printf("\n");
+  ck_assert_int_eq(vm.errno, 0);
+}
+END_TEST
+
 Suite *
 map_suite(void)
 {
@@ -210,6 +243,7 @@ map_suite(void)
   tcase_add_test(tc_core, unwrap);
   tcase_add_test(tc_core, branch);
   tcase_add_test(tc_core, map);
+  tcase_add_test(tc_core, load);
 
   suite_add_tcase(s, tc_core);
 

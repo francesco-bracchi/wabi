@@ -34,19 +34,6 @@ wabi_store_destroy(wabi_store store)
 }
 
 void
-wabi_store_compact_binary_copy(char *dst, wabi_binary src) {
-  wabi_word pivot;
-
-  if(WABI_IS(wabi_tag_bin_leaf, src)) {
-    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
-  } else {
-    pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_store_compact_binary_copy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_store_compact_binary_copy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->left);
-  }
-}
-
-void
 wabi_store_compact_binary(wabi_store store, wabi_val src)
 {
   wabi_size len, word_size;
@@ -67,7 +54,7 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
   WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
 
-  wabi_store_compact_binary_copy((char*)(new_blob + 1), (wabi_binary) src);
+  wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
 }
 
 

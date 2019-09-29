@@ -1,15 +1,7 @@
-(def quote
-  (fx _ (p) p))
+(def q (fx _ (p) p))
 
-(def quotes
-  (fx _ p p))
+(def qs (fx _ p p))
 
-(def id
-  (wrap quote))
+(def id (wrap q))
 
-(def list
-  (wrap quotes))
-
-(def apply
-  (fn (e op . cs)
-    (eval e (cons op cs))))
+(def list (wrap qs))

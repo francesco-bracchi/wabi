@@ -46,6 +46,13 @@ wabi_binary_word_size(wabi_size size)
 }
 
 
+static inline wabi_size
+wabi_binary_length(wabi_binary bin)
+{
+  return WABI_WORD_VAL(bin->length);
+}
+
+
 wabi_binary_leaf
 wabi_binary_leaf_new(wabi_vm vm, wabi_size size);
 
@@ -67,7 +74,5 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
 
 void
-wabi_binary_compact(wabi_binary bin, char *dest);
-
-
+wabi_binary_memcopy(char *dst, wabi_binary src);
 #endif

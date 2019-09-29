@@ -55,10 +55,16 @@ wabi_reader_is_num(char c)
   return c >= '0' && c <= '9';
 }
 
-static inline char**
+static inline void
 wabi_reader_ws(char** c)
 {
-  while(wabi_reader_is_ws(**c)) (*c)++;
+  while(wabi_reader_is_ws(**c))
+    (*c)++;
+
+  if(**c == ';')
+    do {
+      (*c)++;
+    } while(**c == '\n');
 }
 
 static inline wabi_val
@@ -144,7 +150,7 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   wabi_val res;
   buff = malloc(1024);
   bptr = buff;
-  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '(') && (**c != '"')) {
+  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '(') && (**c != '"') && (**c != ';')) {
     if(**c == '\\') (*c)++;
     *bptr = **c;
     bptr++;
@@ -163,6 +169,7 @@ wabi_vm_read_ignore(wabi_vm vm) {
   *res = wabi_val_ignore;
   return res;
 }
+
 
 wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)

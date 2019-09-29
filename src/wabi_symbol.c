@@ -17,9 +17,3 @@ wabi_symbol_new(wabi_vm vm,
   }
   return NULL;
 }
-
-wabi_val
-wabi_symbol_to_binary(wabi_symbol sym)
-{
-  return WABI_DEREF(sym);
-}

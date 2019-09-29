@@ -72,6 +72,9 @@ wabi_vm_bind(wabi_vm vm,
     if(!partial) return 0;
     return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
   }
+  if(*params == wabi_val_ignore) {
+    return 1;
+  }
   if(wabi_cmp(params, args) == 0) {
     return 1;
   }
@@ -127,7 +130,7 @@ wabi_vm_run(wabi_vm vm)
     cont = wabi_vm_pop(vm);
 
     #ifdef WABI_VM_DEBUG
-    printf("reucts:  %lu\n", counter);
+    printf("reducts:  %lu\n", counter);
     printf("control: ");
     wabi_pr(ctrl);
     printf("\ncont:    ");
@@ -157,8 +160,12 @@ wabi_vm_run(wabi_vm vm)
         /* stack s */
         vm->control = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
         if(vm->control == NULL) {
+          wabi_pr(ctrl);
           vm->errno = 3;
-          vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "Undefined variable");
+          vm->errval = (wabi_val)
+            wabi_binary_concat(vm,
+                               (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, "Undefined variable: "),
+                               (wabi_binary) wabi_symbol_to_binary((wabi_symbol) ctrl));
         }
         break;
       }
