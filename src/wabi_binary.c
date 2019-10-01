@@ -16,7 +16,9 @@ wabi_binary_leaf_new(wabi_vm vm, wabi_size size)
   word_size = wabi_binary_word_size(size);
 
   blob = (wabi_word*) wabi_vm_alloc(vm, word_size + 1);
+  *blob = word_size + 1;
   WABI_SET_TAG(blob, wabi_tag_bin_blob);
+  printf("blob size: %lx\n", *blob);
 
   leaf = (wabi_binary_leaf) wabi_vm_alloc(vm, WABI_BINARY_LEAF_SIZE);
   leaf->length = size;

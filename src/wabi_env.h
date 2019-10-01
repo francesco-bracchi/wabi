@@ -24,7 +24,7 @@ wabi_val
 wabi_env_lookup(wabi_env env, wabi_symbol k);
 
 
-int
+wabi_val
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
 #endif

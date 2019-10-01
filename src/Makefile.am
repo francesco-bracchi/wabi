@@ -4,6 +4,8 @@ noinst_LTLIBRARIES = \
 libwabi_la_SOURCES = \
 	wabi_word.h \
 	wabi_value.h \
+	wabi_constant.h	\
+	wabi_constant.c \
 	wabi_binary.h \
 	wabi_binary.c \
 	wabi_number.h \

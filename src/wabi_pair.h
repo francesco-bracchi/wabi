@@ -18,11 +18,18 @@ typedef wabi_pair_t* wabi_pair;
 wabi_pair
 wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr);
 
-wabi_val
-wabi_car(wabi_pair pair);
 
-wabi_val
-wabi_cdr(wabi_pair pair);
+static inline wabi_val
+wabi_car(wabi_pair pair)
+{
+  return (wabi_val) pair->car;
+}
+
+static inline wabi_val
+wabi_cdr(wabi_pair pair)
+{
+  return (wabi_val) WABI_WORD_VAL(pair->cdr);
+}
 
 wabi_val
 wabi_nil(wabi_vm vm);

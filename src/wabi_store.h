@@ -26,7 +26,8 @@ wabi_store_destroy(wabi_store store);
 
 int
 wabi_store_collect(wabi_store store,
-                   wabi_word* root);
+                   wabi_word* roots,
+                   int size);
 
 static inline int
 wabi_store_has_rooms(wabi_store store, wabi_size size)

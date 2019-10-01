@@ -5,3 +5,23 @@
 (def id (wrap q))
 
 (def list (wrap qs))
+
+(pr (> 1 0) (> 0 0) (> (- 1) 0))
+
+(def fact
+  (wrap
+   (fx _ (n)
+     (if (= n 1)
+         1
+         (* n (fact (- n 1)))))))
+
+(def fib
+  (wrap
+   (fx _ (n)
+     (pr (if (= (pr n) 1)
+             1
+             (+ (fib (- n 1))
+                (fib (- n 2))))))))
+
+
+(fib 10)

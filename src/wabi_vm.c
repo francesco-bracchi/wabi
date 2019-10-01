@@ -50,6 +50,7 @@ wabi_vm_reverse(wabi_vm vm,
 {
   while(*done != wabi_val_nil) {
     res = (wabi_val) wabi_cons(vm, wabi_car((wabi_pair) done), res);
+    if(! res) return NULL;
     done = wabi_cdr((wabi_pair) done);
   }
   return res;
@@ -64,21 +65,22 @@ wabi_vm_bind(wabi_vm vm,
 {
   int partial;
   if(WABI_IS(wabi_tag_symbol, params)) {
-    wabi_env_set(vm, env, (wabi_symbol) params, args);
-    return 1;
+    partial = wabi_env_set(vm, env, (wabi_symbol) params, args);
+    if(!partial)
+      return partial;
   }
   if(WABI_IS(wabi_tag_pair, params) && WABI_IS(wabi_tag_pair, args)) {
     partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
-    if(!partial) return 0;
+    if(!partial) return partial;
     return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
   }
   if(*params == wabi_val_ignore) {
-    return 1;
+    return wabi_error_none;
   }
   if(wabi_cmp(params, args) == 0) {
-    return 1;
+    return wabi_error_none;
   }
-  return 0;
+  return wabi_error_bindings;
 }
 
 static inline void
@@ -122,6 +124,7 @@ wabi_vm_run(wabi_vm vm)
   wabi_env e1;
   wabi_combiner c0;
   wabi_size counter;
+  int err;
 
   nil = wabi_nil(vm);
   counter = 0;
@@ -236,7 +239,8 @@ wabi_vm_run(wabi_vm vm)
         /* stack: ((eval (bind ex e0 ps as)) . s) */
         e1 = wabi_env_extend(vm, (wabi_env) vm->env);
         wabi_env_set(vm, e1, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) vm->env);
-        if(wabi_vm_bind(vm, e1, ctrl, (wabi_val) ((wabi_combiner_derived) c0)->parameters)) {
+        vm->errno = wabi_vm_bind(vm, e1, ctrl, (wabi_val) ((wabi_combiner_derived) c0)->parameters);
+        if(!vm->errno) {
           wabi_vm_push_eval(vm, e1);
           vm->control = (wabi_val) ((wabi_combiner_derived) c0)->body;
           break;
@@ -251,6 +255,11 @@ wabi_vm_run(wabi_vm vm)
       /* control (funcall fx control store env)  */
       /* stack: s */
       ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm, (wabi_env) vm->env);
+      if(vm->errno == wabi_error_nomem) {
+        wabi_vm_collect(vm);
+        continue;
+        // retry
+      }
       break;
     case wabi_tag_cont_sel:
       vm->env = (wabi_val) ((wabi_cont_sel) cont)->env;
@@ -299,26 +308,14 @@ wabi_vm_alloc(wabi_vm vm, wabi_size size)
   if(wabi_store_has_rooms(store, size)) {
     return wabi_store_alloc(store, size);
   }
-  wabi_store_collect(store, vm->continuation);
-
-  if(wabi_store_has_rooms(store, size)) {
-    return wabi_store_alloc(store, size);
-  }
   return NULL;
 }
 
+
 int
-wabi_vm_prepare(wabi_vm vm, wabi_size size)
+wabi_vm_collect(wabi_vm vm)
 {
   wabi_store store;
   store = &(vm->store);
-  if(wabi_store_has_rooms(store, size)) {
-    return 1;
-  }
-  wabi_store_collect(store, vm->continuation);
-
-  if(wabi_store_has_rooms(store, size)) {
-    return 1;
-  }
-  return 0;
+  return wabi_store_collect(store, (wabi_word*) vm, 3);
 }

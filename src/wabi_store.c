@@ -50,7 +50,7 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
   store->heap += 1 + word_size;
   new_leaf->length = len;
   new_leaf->data_ptr = (wabi_word) new_blob;
-
+  *new_blob = 1 + word_size;
   WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
 
@@ -63,7 +63,6 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 {
   wabi_word* res;
   res = store->heap;
-
   switch(WABI_TAG(src)) {
 
   /* case wabi_tag_var: */
@@ -126,7 +125,7 @@ wabi_store_collect_heap(wabi_store store)
 {
   wabi_word *scan, size, bitmap;
 
-  scan = store->heap;
+  scan = store->space;
   do {
     switch(WABI_TAG(scan)) {
     /* case wabi_tag_var: */
@@ -135,37 +134,37 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_bin_blob:
       scan += WABI_WORD_VAL(*scan);
-      continue;
+      break;
 
     case wabi_tag_constant:
     case wabi_tag_fixnum:
       scan++;
-      continue;
+      break;
 
     case wabi_tag_symbol:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       WABI_SET_TAG(scan, wabi_tag_symbol);
       scan++;
-      continue;
+      break;
 
     case wabi_tag_bin_node:
     case wabi_tag_bin_leaf:
       scan+=2;
-      continue;
+      break;
 
     case wabi_tag_pair:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_pair);
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_map_entry:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_map_entry);
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_map_array:
       size = *(scan + 1);
@@ -174,7 +173,7 @@ wabi_store_collect_heap(wabi_store store)
       store->heap += 2 * size;
       WABI_SET_TAG(scan, wabi_tag_map_array);
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_map_hash:
       size = WABI_MAP_BITMAP_COUNT(*(scan + 1));
@@ -183,13 +182,13 @@ wabi_store_collect_heap(wabi_store store)
       store->heap += 2 * size;
       WABI_SET_TAG(scan, wabi_tag_map_hash);
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_oper:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
@@ -198,7 +197,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
       WABI_SET_TAG(scan, wabi_tag_oper);
       scan += 4;
-      continue;
+      break;
 
     case wabi_tag_app:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
@@ -207,7 +206,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
       WABI_SET_TAG(scan, wabi_tag_app);
       scan += 4;
-      continue;
+      break;
 
     case wabi_tag_env:
       if(WABI_WORD_VAL(*scan)) {
@@ -216,7 +215,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_env);
       scan += 2;
-      continue;
+      break;
 
     case wabi_tag_cont_eval:
       if(WABI_WORD_VAL(*scan)) {
@@ -225,7 +224,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_cont_eval);
       scan += 2;
-      continue;
+      break;
 
 
     case wabi_tag_cont_apply:
@@ -236,7 +235,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       WABI_SET_TAG(scan, wabi_tag_cont_apply);
       scan += 3;
-      continue;
+      break;
 
     case wabi_tag_cont_call:
       if(WABI_WORD_VAL(*scan)) {
@@ -246,7 +245,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       WABI_SET_TAG(scan, wabi_tag_cont_call);
       scan += 3;
-      continue;
+      break;
 
     case wabi_tag_cont_def:
       if(WABI_WORD_VAL(*scan)) {
@@ -256,7 +255,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       WABI_SET_TAG(scan, wabi_tag_cont_def);
       scan += 3;
-      continue;
+      break;
 
     case wabi_tag_cont_eval_more:
       if(WABI_WORD_VAL(*scan)) {
@@ -267,7 +266,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
       WABI_SET_TAG(scan, wabi_tag_cont_eval_more);
       scan += 4;
-      continue;
+      break;
 
     case wabi_tag_cont_sel:
       if(WABI_WORD_VAL(*scan)) {
@@ -278,8 +277,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
       WABI_SET_TAG(scan, wabi_tag_cont_sel);
       scan += 4;
-      continue;
-
+      break;
 
     case wabi_tag_forward:
       scan++;
@@ -305,25 +303,31 @@ wabi_store_collect_resize(wabi_store store)
   store->heap = store->space + used;
 }
 
+
 int
-wabi_store_collect(wabi_store store, wabi_word* root)
+wabi_store_collect(wabi_store store, wabi_word* roots, int size)
 {
   wabi_word *new_space, *old_space;
   wabi_size size3;
+  int j;
 
   size3 = store->size * 3;
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {
+    printf("COLLECTION START\n");
     store->space = new_space;
     store->limit = new_space + size3;
     store->heap = new_space;
     store->size = size3;
 
-    wabi_store_copy_val(store, root);
+    for(j = 0; j < size; j++)
+      wabi_store_copy_val(store, roots + j);
+
     wabi_store_collect_heap(store);
     wabi_store_collect_resize(store);
     free(old_space);
+    printf("FINISHED\n");
     return 1;
   }
   return 0;

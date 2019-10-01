@@ -262,10 +262,14 @@ wabi_map_assoc(wabi_vm vm,
   entry = (wabi_map_entry) wabi_vm_alloc(vm, WABI_MAP_SIZE);
 
   if(! entry) return NULL;
+  printf("\n---\n");
+  wabi_pr(key);
+  printf("\n---\n");
   entry->key = (wabi_word) key;
   entry->value = (wabi_word) value;
   WABI_SET_TAG(entry, wabi_tag_map_entry);
 
+  printf("PREPARED\n");
   return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
