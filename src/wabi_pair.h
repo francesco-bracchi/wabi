@@ -15,8 +15,19 @@ typedef struct wabi_pair_struct
 
 typedef wabi_pair_t* wabi_pair;
 
-wabi_pair
-wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr);
+
+/** CY775VF */
+/** CY775FV */
+
+static inline wabi_pair
+wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr)
+{
+  wabi_pair pair = (wabi_pair) wabi_vm_alloc(vm, WABI_PAIR_SIZE);
+  pair->car = (wabi_word) car;
+  pair->cdr = (wabi_word) cdr;
+  WABI_SET_TAG(pair, wabi_tag_pair);
+  return pair;
+}
 
 
 static inline wabi_val
@@ -25,12 +36,11 @@ wabi_car(wabi_pair pair)
   return (wabi_val) pair->car;
 }
 
+
 static inline wabi_val
 wabi_cdr(wabi_pair pair)
 {
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
 }
 
-wabi_val
-wabi_nil(wabi_vm vm);
 #endif

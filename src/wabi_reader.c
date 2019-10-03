@@ -31,7 +31,6 @@ typedef enum wabi_reader_state_enum
 typedef struct wabi_reader_struct {
   wabi_vm vm;
   wabi_val stack;
-  wabi_val nil;
   wabi_reader_state state;
   long number;
   wabi_binary bin;
@@ -67,19 +66,6 @@ wabi_reader_ws(char** c)
     } while(**c == '\n');
 }
 
-static inline wabi_val
-wabi_reader_reverse(wabi_vm vm,
-                    wabi_val done)
-{
-  wabi_val res;
-  res = wabi_nil(vm);
-  while(*done != wabi_val_nil) {
-    res = (wabi_val) wabi_cons(vm, wabi_car((wabi_pair) done), res);
-    done = wabi_cdr((wabi_pair) done);
-  }
-  return res;
-}
-
 wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c);
 
@@ -90,19 +76,25 @@ wabi_reader_read_list(wabi_vm vm, char** c)
   wabi_val a, d;
   wabi_reader_ws(c);
   a = wabi_reader_read_val(vm, c);
+  if(! a) return NULL;
   wabi_reader_ws(c);
   if(**c == ')') {
     (*c)++;
-    d = wabi_nil(vm);
+    if(!wabi_vm_has_rooms(vm, 1)) return NULL;
+
+    d = wabi_vm_alloc(vm, 1);
+    *d = wabi_val_nil;
   }
   else if(**c == '.') {
     (*c)++;
     wabi_reader_ws(c);
     d = wabi_reader_read_val(vm, c);
+    if(! d) return NULL;
   }
   else {
     wabi_reader_ws(c);
     d = wabi_reader_read_list(vm, c);
+    if(! d) return NULL;
   }
   return (wabi_val) wabi_cons(vm, a, d);
 }
@@ -159,15 +151,20 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   *bptr = '\0';
   res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
   free(buff);
+  if(! res) return NULL;
   return wabi_symbol_new(vm, res);
 }
 
 static inline wabi_val
-wabi_vm_read_ignore(wabi_vm vm) {
+wabi_reader_read_ignore(wabi_vm vm) {
   wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  *res = wabi_val_ignore;
-  return res;
+  if(wabi_vm_has_rooms(vm, 1)) {
+    res = wabi_vm_alloc(vm, 1);
+    *res = wabi_val_ignore;
+    vm->errno = wabi_error_nomem;
+    return res;
+  }
+  return NULL;
 }
 
 
@@ -188,7 +185,7 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   }
   if(**c == '_') {
     (*c)++;
-    return wabi_vm_read_ignore(vm);
+    return wabi_reader_read_ignore(vm);
   }
   if(**c == '\0') {
     return NULL;

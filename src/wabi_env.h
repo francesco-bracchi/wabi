@@ -4,6 +4,7 @@
 
 #include "wabi_vm.h"
 #include "wabi_symbol.h"
+#include "wabi_error.h"
 
 typedef struct wabi_env_struct {
   wabi_word prev;
@@ -24,7 +25,7 @@ wabi_val
 wabi_env_lookup(wabi_env env, wabi_symbol k);
 
 
-wabi_val
+wabi_error_type
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
 #endif

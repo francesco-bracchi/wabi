@@ -9,8 +9,9 @@ typedef struct wabi_store_struct
 {
   wabi_word* space;
   wabi_word* limit;
-  wabi_word size;
   wabi_word* heap;
+  wabi_word* old_space;
+  wabi_word size;
   short int low_threshold;
   short int high_threshold;
 } wabi_store_t;
@@ -24,10 +25,15 @@ wabi_store_init(wabi_store store,
 void
 wabi_store_destroy(wabi_store store);
 
+wabi_word*
+wabi_store_collect_prepare(wabi_store store);
+
+wabi_word*
+wabi_store_copy_val(wabi_store store, wabi_word *src);
+
 int
-wabi_store_collect(wabi_store store,
-                   wabi_word* roots,
-                   int size);
+wabi_store_collect(wabi_store store);
+
 
 static inline int
 wabi_store_has_rooms(wabi_store store, wabi_size size)

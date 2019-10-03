@@ -38,11 +38,23 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size);
 void
 wabi_vm_destroy(wabi_vm vm);
 
-wabi_val
-wabi_vm_alloc(wabi_vm vm, wabi_size size);
-
 int
 wabi_vm_prepare(wabi_vm vm, wabi_size size);
 
+static inline int
+wabi_vm_has_rooms(wabi_vm vm, wabi_size size)
+{
+  wabi_store store;
+  store = &(vm->store);
+  return wabi_store_has_rooms(store, size);
+}
+
+static inline wabi_word*
+wabi_vm_alloc(wabi_vm vm, wabi_size size)
+{
+  wabi_store store;
+  store = &(vm->store);
+  return wabi_store_alloc(store, size);
+}
 
 #endif

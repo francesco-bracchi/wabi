@@ -52,6 +52,15 @@ wabi_binary_length(wabi_binary bin)
   return WABI_WORD_VAL(bin->length);
 }
 
+static inline int
+wabi_binary_p(wabi_val v) {
+  switch(WABI_TAG(v)) {
+  case wabi_tag_bin_leaf:
+  case wabi_tag_bin_node:
+    return 1;
+  }
+  return 0;
+}
 
 wabi_binary_leaf
 wabi_binary_leaf_new(wabi_vm vm, wabi_size size);

@@ -6,17 +6,19 @@
 #include "wabi_env.h"
 #include "wabi_pair.h"
 
+
 #define WABI_BUILTIN_CONSTANT(name, val)                        \
   void                                                          \
   name(wabi_vm vm, wabi_env env)                                \
   {                                                             \
     wabi_val res;                                               \
-    res = wabi_vm_alloc(vm, 1);                                 \
-    if(res) {                                                   \
+    if(wabi_vm_has_rooms(vm, 1)) {                              \
+      res = wabi_vm_alloc(vm, 1);                               \
       *res = val;                                               \
       vm->control = res;                                        \
       return;                                                   \
     }                                                           \
+    vm->errno = wabi_error_nomem;                               \
   }                                                             \
 
 
@@ -109,6 +111,7 @@
 
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm);
+
 
 /*** this function doesn't belong to this header ***/
 void

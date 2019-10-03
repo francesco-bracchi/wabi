@@ -301,11 +301,13 @@ wabi_store_collect_resize(wabi_store store)
   store->limit = store->space + new_size;
   store->size = new_size;
   store->heap = store->space + used;
+  free(store->old_space);
+  store->old_space = NULL;
 }
 
 
-int
-wabi_store_collect(wabi_store store, wabi_word* roots, int size)
+wabi_word*
+wabi_store_collect_prepare(wabi_store store)
 {
   wabi_word *new_space, *old_space;
   wabi_size size3;
@@ -315,20 +317,21 @@ wabi_store_collect(wabi_store store, wabi_word* roots, int size)
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {
-    printf("COLLECTION START\n");
     store->space = new_space;
     store->limit = new_space + size3;
     store->heap = new_space;
     store->size = size3;
-
-    for(j = 0; j < size; j++)
-      wabi_store_copy_val(store, roots + j);
-
-    wabi_store_collect_heap(store);
-    wabi_store_collect_resize(store);
-    free(old_space);
-    printf("FINISHED\n");
-    return 1;
+    store->old_space = old_space;
+    return new_space;
   }
-  return 0;
+  return NULL;
+}
+
+
+int
+wabi_store_collect(wabi_store store)
+{
+  wabi_store_collect_heap(store);
+  wabi_store_collect_resize(store);
+  return 1;
 }

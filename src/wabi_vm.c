@@ -22,6 +22,36 @@
 
 // #define WABI_VM_DEBUG 1
 
+
+int
+wabi_vm_collect(wabi_vm vm)
+{
+  wabi_store store;
+  store = &(vm->store);
+
+  if(wabi_store_collect_prepare(store)) {
+    vm->control = wabi_store_copy_val(store, vm->control);
+    vm->env = wabi_store_copy_val(store, vm->env);
+    vm->continuation = wabi_store_copy_val(store, vm->continuation);
+    return wabi_store_collect(store);
+  }
+  return 0;
+}
+
+
+int
+wabi_vm_prepare(wabi_vm vm, wabi_size size) {
+  wabi_store store;
+  store = &(vm->store);
+
+  if(!wabi_vm_has_rooms(vm, size)) {
+    wabi_vm_collect(vm);
+    return wabi_vm_has_rooms(vm, size);
+  }
+  return 1;
+}
+
+
 int
 wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
@@ -126,20 +156,25 @@ wabi_vm_run(wabi_vm vm)
   wabi_size counter;
   int err;
 
-  nil = wabi_nil(vm);
+  if(!wabi_vm_has_rooms(vm, 1))
+    return wabi_vm_result_error;
+
+  nil = wabi_vm_alloc(vm, 1);
+  *nil = wabi_val_nil;
   counter = 0;
+
   do {
     ctrl = vm->control;
     cont = wabi_vm_pop(vm);
 
-    #ifdef WABI_VM_DEBUG
+#ifdef WABI_VM_DEBUG
     printf("reducts:  %lu\n", counter);
     printf("control: ");
     wabi_pr(ctrl);
     printf("\ncont:    ");
     wabi_pr((wabi_val) cont);
     printf("\n\n");
-    #endif
+#endif
 
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
@@ -164,11 +199,7 @@ wabi_vm_run(wabi_vm vm)
         vm->control = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
         if(vm->control == NULL) {
           wabi_pr(ctrl);
-          vm->errno = 3;
-          vm->errval = (wabi_val)
-            wabi_binary_concat(vm,
-                               (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, "Undefined variable: "),
-                               (wabi_binary) wabi_symbol_to_binary((wabi_symbol) ctrl));
+          vm->errno = wabi_error_unbound_name;
         }
         break;
       }
@@ -245,8 +276,6 @@ wabi_vm_run(wabi_vm vm)
           vm->control = (wabi_val) ((wabi_combiner_derived) c0)->body;
           break;
         }
-        vm->errno = 1;
-        vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "bind failure");
         return wabi_vm_result_error;
       }
       /* control: as */
@@ -256,9 +285,12 @@ wabi_vm_run(wabi_vm vm)
       /* stack: s */
       ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm, (wabi_env) vm->env);
       if(vm->errno == wabi_error_nomem) {
-        wabi_vm_collect(vm);
-        continue;
-        // retry
+        if(wabi_vm_collect(vm)) {
+          vm->errno = wabi_error_none;
+          // retry
+          continue;
+        }
+        return wabi_vm_result_error;
       }
       break;
     case wabi_tag_cont_sel:
@@ -292,30 +324,9 @@ wabi_vm_run(wabi_vm vm)
       }
 
       vm->errno = 1;
-      vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "generic error");
       return wabi_vm_result_error;
     }
     counter++;
   } while (vm->continuation);
   return wabi_vm_result_done;
-}
-
-wabi_word*
-wabi_vm_alloc(wabi_vm vm, wabi_size size)
-{
-  wabi_store store;
-  store = &(vm->store);
-  if(wabi_store_has_rooms(store, size)) {
-    return wabi_store_alloc(store, size);
-  }
-  return NULL;
-}
-
-
-int
-wabi_vm_collect(wabi_vm vm)
-{
-  wabi_store store;
-  store = &(vm->store);
-  return wabi_store_collect(store, (wabi_word*) vm, 3);
 }

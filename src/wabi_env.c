@@ -6,6 +6,7 @@
 #include "wabi_vm.h"
 #include "wabi_symbol.h"
 #include "wabi_map.h"
+#include "wabi_error.h"
 
 
 wabi_env
@@ -54,7 +55,7 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
 
 
 /*** OPTIONAL OVERWRITE ***/
-int
+wabi_error_type
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 {
   wabi_map data = wabi_map_assoc(vm, (wabi_map) env->data, (wabi_val) k, v);
@@ -62,5 +63,5 @@ wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
     env->data = (wabi_word) data;
     return wabi_error_none;
   }
-  return return wabi_error_nomem;
+  return wabi_error_nomem;
 }

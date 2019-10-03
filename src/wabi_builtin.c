@@ -17,125 +17,10 @@
 #include "wabi_error.h"
 #include "wabi_constant.h"
 
-void
-wabi_builtin_sum(wabi_vm vm, wabi_env env)
-{
-  // todo: check types (arguments and intes)
-  // todo: handle overlflows
-  long res;
-  wabi_val ctrl, c;
-  ctrl = vm->control;
-  res = 0;
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
-    c = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_fixnum, c)) {
-      res += WABI_CAST_INT64((wabi_fixnum) c);
-      continue;
-    }
-    vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-    return;
-  }
-  vm->control = wabi_fixnum_new(vm, res);
-}
 
-void
-wabi_builtin_diff(wabi_vm vm, wabi_env env)
-{
-  // todo: check types (arguments and intes)
-  // todo: handle overlflows
-  long res;
-  wabi_val ctrl, c;
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    c = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_fixnum, c)) {
-      res = WABI_CAST_INT64((wabi_fixnum) c);
-      while(WABI_IS(wabi_tag_pair, ctrl)) {
-        c = wabi_car((wabi_pair) ctrl);
-        ctrl = wabi_cdr((wabi_pair) ctrl);
-        if(WABI_IS(wabi_tag_fixnum, c)) {
-          res -= WABI_CAST_INT64((wabi_fixnum) c);
-          continue;
-        }
-        vm->errno = 1;
-        vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-        return;
-      }
-      vm->control = wabi_fixnum_new(vm, res);
-      return;
-    }
-    vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-    return;
-  }
-}
-
-
-void
-wabi_builtin_mul(wabi_vm vm, wabi_env env)
-{
-  // todo: check types (arguments and intes)
-  // todo: handle overlflows
-  long res;
-  wabi_val ctrl, c;
-  ctrl = vm->control;
-  res = 1;
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
-    c = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_fixnum, c)) {
-      res *= WABI_CAST_INT64((wabi_fixnum) c);
-      continue;
-    }
-    vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-    return;
-  }
-  vm->control = wabi_fixnum_new(vm, res);
-}
-
-
-void
-wabi_builtin_div(wabi_vm vm, wabi_env env)
-{
-  // todo: check types (arguments and intes)
-  // todo: handle overlflows
-  long res, x;
-  wabi_val ctrl, c;
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    c = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_fixnum, c)) {
-      res = WABI_CAST_INT64((wabi_fixnum) c);
-      while(WABI_IS(wabi_tag_pair, ctrl)) {
-        c = wabi_car((wabi_pair) ctrl);
-        ctrl = wabi_cdr((wabi_pair) ctrl);
-        if(WABI_IS(wabi_tag_fixnum, c)) {
-          x = WABI_CAST_INT64((wabi_fixnum) c);
-          if(x != 0) {
-            res /= WABI_CAST_INT64((wabi_fixnum) c);
-            continue;
-          }
-          vm->errno = 1;
-          vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "division by zero");
-        }
-        vm->errno = 1;
-        vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-        return;
-      }
-      vm->control = wabi_fixnum_new(vm, res);
-      return;
-    }
-    vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "sum not a number");
-    return;
-  }
-}
-
+// tmp
+#include <stdio.h>
+#include "wabi_pr.h"
 
 void
 wabi_builtin_fx(wabi_vm vm, wabi_env env)
@@ -456,10 +341,10 @@ wabi_builtin_stdenv(wabi_vm vm)
   WABI_DEFX(vm, env, "if", "wabi:if", wabi_builtin_if);
   WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap);
   WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_builtin_unwrap);
-  WABI_DEFN(vm, env, "+", "wabi:+", wabi_builtin_sum);
-  WABI_DEFN(vm, env, "-", "wabi:-", wabi_builtin_diff);
-  WABI_DEFN(vm, env, "*", "wabi:*", wabi_builtin_mul);
-  WABI_DEFN(vm, env, "/", "wabi:/", wabi_builtin_div);
+  WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_sum_builtin);
+  WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_diff_builtin);
+  WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_mul_builtin);
+  WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_div_builtin);
   WABI_DEFN(vm, env, "hmap", "wabi:hmap", wabi_builtin_hmap);
   /* WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_builtin_cons); */
   /* WABI_DEFN(vm, env, "car", "wabi:car", wabi_builtin_car); */
