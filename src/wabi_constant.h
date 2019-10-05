@@ -33,5 +33,7 @@ wabi_constant_builtin_ignore_p(wabi_vm vm, wabi_env env);
 void
 wabi_constant_builtin_boolean_p(wabi_vm vm, wabi_env env);
 
+void
+wabi_constant_builtins(wabi_vm vm, wabi_env env);
 
 #endif

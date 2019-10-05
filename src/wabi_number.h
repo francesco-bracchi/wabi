@@ -21,20 +21,7 @@ wabi_fixnum
 wabi_fixnum_new(wabi_vm vm,
                 int64_t val);
 
-
 void
-wabi_number_sum_builtin(wabi_vm vm, wabi_env env);
-
-
-void
-wabi_number_diff_builtin(wabi_vm vm, wabi_env env);
-
-
-void
-wabi_number_mul_builtin(wabi_vm vm, wabi_env env);
-
-
-void
-wabi_number_div_builtin(wabi_vm vm, wabi_env env);
+wabi_number_builtins(wabi_vm vm, wabi_env env);
 
 #endif

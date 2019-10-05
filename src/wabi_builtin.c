@@ -16,6 +16,9 @@
 #include "wabi_vm.h"
 #include "wabi_error.h"
 #include "wabi_constant.h"
+#include "wabi_builtin.h"
+#include "wabi_cont.h"
+#include "wabi_error.h"
 
 
 // tmp
@@ -23,86 +26,18 @@
 #include "wabi_pr.h"
 
 void
-wabi_builtin_fx(wabi_vm vm, wabi_env env)
+wabi_builtin_def_bt(wabi_vm vm, wabi_env env, wabi_val ps, wabi_val e)
 {
-  wabi_val ctrl, fs, e, b;
-
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    e = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_pair, ctrl) && WABI_IS(wabi_tag_pair, ctrl)) {
-      fs = wabi_car((wabi_pair) ctrl);
-      ctrl = wabi_cdr((wabi_pair) ctrl);
-      if(WABI_IS(wabi_tag_symbol, e) || *e == wabi_val_ignore) {
-        b = wabi_car((wabi_pair) ctrl);
-        ctrl = wabi_cdr((wabi_pair) ctrl);
-        if(*ctrl == wabi_val_nil) {
-          vm->control = (wabi_val) wabi_combiner_new(vm, env, e, fs, b);
-          return;
-        }
-      }
-    }
-    vm->errno = 1;
-    vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "fexpr error");
+  if(wabi_vm_has_rooms(vm, sizeof(wabi_cont_eval_t) + sizeof(wabi_cont_def_t))) {
+    vm->continuation = (wabi_val) wabi_cont_def_new(vm, env, ps, (wabi_cont) vm->continuation);
+    vm->continuation = (wabi_val) wabi_cont_eval_new(vm, env, (wabi_cont) vm->continuation);
+    vm->control = e;
+    return;
   }
+  vm->errno = wabi_error_nomem;
 }
 
-void
-wabi_builtin_wrap(wabi_vm vm, wabi_env env)
-{
-  wabi_val ctrl, comb;
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    comb = wabi_car((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_oper, comb) || WABI_IS(wabi_tag_bt_oper, comb)) {
-      vm->control = (wabi_val) wabi_combiner_wrap(vm, (wabi_combiner) comb);
-      return;
-    }
-    vm->control = (wabi_val) comb;
-  }
-}
-
-
-void
-wabi_builtin_unwrap(wabi_vm vm, wabi_env env)
-{
-  wabi_val ctrl, comb;
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    comb = wabi_car((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_app, comb) || WABI_IS(wabi_tag_bt_app, comb)) {
-      vm->control = (wabi_val) wabi_combiner_unwrap(vm, (wabi_combiner) comb);
-      return;
-    }
-    vm->control = (wabi_val) comb;
-  }
-}
-
-
-void
-wabi_builtin_def(wabi_vm vm, wabi_env env)
-{
-  wabi_val ctrl, fs, e;
-
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    fs = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_pair, ctrl)) {
-      e = wabi_car((wabi_pair) ctrl);
-      ctrl = wabi_cdr((wabi_pair) ctrl);
-      if(*ctrl == wabi_val_nil) {
-        vm->continuation = (wabi_val) wabi_cont_def_new(vm, env, fs, (wabi_cont) vm->continuation);
-        vm->continuation = (wabi_val) wabi_cont_eval_new(vm, env, (wabi_cont) vm->continuation);
-        vm->control = e;
-        return;
-      }
-    }
-  }
-  vm->errno = 1;
-  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "def error");
-}
+WABI_BUILTIN_WRAP2(wabi_builtin_def, wabi_builtin_def_bt)
 
 
 void
@@ -172,26 +107,6 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
 }
 
 
-
-
-void
-wabi_builtin_nil_q(wabi_vm vm, wabi_env env)
-{
-  wabi_val ctrl, val, res;
-  ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    val = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(*ctrl == wabi_val_nil) {
-      res = (wabi_val) wabi_vm_alloc(vm, 1);
-      *res = *val == wabi_val_nil ? wabi_val_true : wabi_val_false;
-      vm->control = res;
-      return;
-    }
-  }
-  vm->errno = 1;
-  vm->errval = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "nil?: wrong number of arguments");
-}
 
 void
 wabi_builtin_eq(wabi_vm vm, wabi_env env)
@@ -270,42 +185,6 @@ wabi_builtin_pr(wabi_vm vm, wabi_env env)
 }
 
 
-#define SYM(vm, str)                                                    \
-  wabi_symbol_new(vm,                                                   \
-                  (wabi_val) wabi_binary_leaf_new_from_cstring(vm, str))
-
-#define BTOPER(vm, str, fun)                                            \
-  wabi_operator_builtin_new(vm,                                         \
-                            (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, str), \
-                            fun)                                        \
-
-#define BTAPP(vm, str, fun)                                             \
-  wabi_application_builtin_new(vm,                                      \
-                               (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, str), \
-                               fun)                                     \
-
-
-#define WABI_DEFX(vm, env, name, btname, fun)                           \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               SYM(vm, name),                                           \
-               (wabi_val) BTOPER(vm, btname, fun)                       \
-               );
-
-#define WABI_DEFN(vm, env, name, btname, fun)                           \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               SYM(vm, name),                                           \
-               (wabi_val) BTAPP(vm, btname, fun)                        \
-               );
-
-#define WABI_DEF(vm, env, name, val)                                    \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               SYM(vm, name),                                           \
-               (wabi_val) val                                           \
-               );
-
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -315,46 +194,30 @@ wabi_builtin_stdenv(wabi_vm vm)
 
   env = wabi_env_new(vm);
 
-  val = (wabi_val) wabi_vm_alloc(vm, 5);
-
-  *val = wabi_val_nil;
-  WABI_DEF(vm, env, "nil", val);
-  val++;
-
-  *val = wabi_val_true;
-  WABI_DEF(vm, env, "true", val);
-  val++;
-
-  *val = wabi_val_false;
-  WABI_DEF(vm, env, "false", val);
-  val++;
-
-  *val = wabi_val_ignore;
-  WABI_DEF(vm, env, "ignore", val);
-  val++;
-
-  *val = wabi_val_zero;
-  WABI_DEF(vm, env, "zero", val);
-
   WABI_DEFX(vm, env, "def", "wabi:def", wabi_builtin_def);
-  WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_builtin_fx);
   WABI_DEFX(vm, env, "if", "wabi:if", wabi_builtin_if);
-  WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap);
-  WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_builtin_unwrap);
-  WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_sum_builtin);
-  WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_diff_builtin);
-  WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_mul_builtin);
-  WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_div_builtin);
   WABI_DEFN(vm, env, "hmap", "wabi:hmap", wabi_builtin_hmap);
+  WABI_DEFN(vm, env, "=", "wabi:=", wabi_builtin_eq);
+  WABI_DEFN(vm, env, ">", "wabi:>", wabi_builtin_gt);
+  WABI_DEFN(vm, env, "pr", "wabi:pr", wabi_builtin_pr);
+
+  wabi_constant_builtins(vm, env);
+  wabi_combiner_builtins(vm, env);
+  wabi_pair_builtins(vm, env);
+  wabi_number_builtins(vm, env);
+
+  /* WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx); */
+  /* WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap); */
+  /* WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_builtin_unwrap); */
+  /* WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum); */
+  /* WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_builtin_diff); */
+  /* WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mmul); */
+  /* WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_builtin_div); */
   /* WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_builtin_cons); */
   /* WABI_DEFN(vm, env, "car", "wabi:car", wabi_builtin_car); */
   /* WABI_DEFN(vm, env, "cdr", "wabi:cdr", wabi_builtin_cdr); */
-  WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_builtin_nil_q);
+  /* WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_builtin_nil_q); */
   // WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_builtin_pair_q);
-  WABI_DEFN(vm, env, "=", "wabi:=", wabi_builtin_eq);
-  WABI_DEFN(vm, env, ">", "wabi:>", wabi_builtin_gt);
-  // not primitive
-  WABI_DEFN(vm, env, "pr", "wabi:pr", wabi_builtin_pr);
-
+  // wabi_pr((wabi_val) env);
   return env;
 }

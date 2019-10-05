@@ -5,6 +5,7 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_number.h"
+#include "wabi_combiner.h"
 #include "wabi_builtin.h"
 #include "wabi_error.h"
 
@@ -22,86 +23,144 @@ wabi_fixnum_new(wabi_vm vm,
 }
 
 
-static inline wabi_val
-wabi_number_sum_bt(wabi_vm vm, wabi_env env, wabi_val x, wabi_val y)
+void
+wabi_number_builtin_sum(wabi_vm vm, wabi_env env)
 {
-  wabi_val res;
-  if(WABI_IS(wabi_tag_fixnum, x) && WABI_IS(wabi_tag_fixnum, y)) {
-    // do bound checks
+  long ac;
+  wabi_val a, ctrl;
+
+  ac = 0L;
+  ctrl = vm->control;
+
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    ac += WABI_CAST_INT64(a);
+  }
+  if(*ctrl == wabi_val_nil) {
     if(wabi_vm_has_rooms(vm, 1)) {
-      *res = WABI_CAST_INT64(x) + WABI_CAST_INT64(y);
-      WABI_SET_TAG(res, wabi_tag_fixnum);
-      return  res;
+      a = wabi_vm_alloc(vm, 1);
+      *a = ac & wabi_word_value_mask;
+      WABI_SET_TAG(a, wabi_tag_fixnum);
+      vm->control = a;
+      return;
     }
     vm->errno = wabi_error_nomem;
-    return vm->control;
+    return;
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  vm->errno = wabi_error_bindings;
+  return;
 }
 
 
-static inline wabi_val
-wabi_number_diff_bt(wabi_vm vm, wabi_env env, wabi_val x, wabi_val y)
+void
+wabi_number_builtin_mul(wabi_vm vm, wabi_env env)
 {
-  wabi_val res;
-  if(WABI_IS(wabi_tag_fixnum, x) && WABI_IS(wabi_tag_fixnum, y)) {
-    // do bound checks
+  long ac;
+  wabi_val a, ctrl;
+
+  ac = 1L;
+  ctrl = vm->control;
+
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    ac *= WABI_CAST_INT64(a);
+  }
+  if(*ctrl == wabi_val_nil) {
     if(wabi_vm_has_rooms(vm, 1)) {
-      *res = WABI_CAST_INT64(x) - WABI_CAST_INT64(y);
-      WABI_SET_TAG(res, wabi_tag_fixnum);
-      return  res;
+      a = wabi_vm_alloc(vm, 1);
+      *a = ac& wabi_word_value_mask;
+      WABI_SET_TAG(a, wabi_tag_fixnum);
+      vm->control = a;
+      return;
     }
     vm->errno = wabi_error_nomem;
-    return vm->control;
+    return;
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  vm->errno = wabi_error_bindings;
+  return;
 }
 
 
-static inline wabi_val
-wabi_number_div_bt(wabi_vm vm, wabi_env env, wabi_val x, wabi_val y)
+void
+wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
 {
-  wabi_val res;
-  if(WABI_IS(wabi_tag_fixnum, x) && WABI_IS(wabi_tag_fixnum, y)) {
-    // do bound checks
-    if(WABI_CAST_INT64(x)) {
-      if(wabi_vm_has_rooms(vm, 1)) {
-        *res = WABI_CAST_INT64(x) / WABI_CAST_INT64(y);
-        WABI_SET_TAG(res, wabi_tag_fixnum);
-        return  res;
-      }
-      vm->errno = wabi_error_nomem;
-      return vm->control;
-    }
-    vm->errno = wabi_error_division_by_zero;
-    return vm->control;
-  }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
-}
+  long ac;
+  wabi_val a, ctrl;
 
-static inline wabi_val
-wabi_number_mul_bt(wabi_vm vm, wabi_env env, wabi_val x, wabi_val y)
-{
-  wabi_val res;
-  if(WABI_IS(wabi_tag_fixnum, x) && WABI_IS(wabi_tag_fixnum, y)) {
-    // do bound checks
+  ctrl = vm->control;
+
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    ac = WABI_CAST_INT64(a);
+  }
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    ac -= WABI_CAST_INT64(a);
+  }
+  if(*ctrl == wabi_val_nil) {
     if(wabi_vm_has_rooms(vm, 1)) {
-      *res = WABI_CAST_INT64(x) * WABI_CAST_INT64(y);
-      WABI_SET_TAG(res, wabi_tag_fixnum);
-      return  res;
+      a = wabi_vm_alloc(vm, 1);
+      *a = ac & wabi_word_value_mask;
+      WABI_SET_TAG(a, wabi_tag_fixnum);
+      vm->control = a;
+      return;
     }
     vm->errno = wabi_error_nomem;
-    return vm->control;
+    return;
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  vm->errno = wabi_error_bindings;
+  return;
 }
 
 
-WABI_BUILTIN_WRAP1_PLUS(wabi_number_sum_builtin, wabi_number_sum_bt)
-WABI_BUILTIN_WRAP1_PLUS(wabi_number_diff_builtin, wabi_number_diff_bt)
-WABI_BUILTIN_WRAP1_PLUS(wabi_number_mul_builtin, wabi_number_sum_bt)
-WABI_BUILTIN_WRAP1_PLUS(wabi_number_div_builtin, wabi_number_div_bt)
+void
+wabi_number_builtin_div(wabi_vm vm, wabi_env env)
+{
+  long x, ac;
+  wabi_val a, ctrl;
+
+  ctrl = vm->control;
+
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    ac = WABI_CAST_INT64(a);
+  }
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    x = WABI_CAST_INT64(a);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(x == 0) {
+      vm->errno = wabi_error_division_by_zero;
+      return;
+    }
+    ac /= x;
+  }
+  if(*ctrl == wabi_val_nil) {
+    if(wabi_vm_has_rooms(vm, 1)) {
+      a = wabi_vm_alloc(vm, 1);
+      *a = ac & wabi_word_value_mask;
+      WABI_SET_TAG(a, wabi_tag_fixnum);
+      vm->control = a;
+      return;
+    }
+    vm->errno = wabi_error_nomem;
+    return;
+  }
+  vm->errno = wabi_error_bindings;
+  return;
+}
+
+
+void
+wabi_number_builtins(wabi_vm vm, wabi_env env)
+{
+  WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum);
+  WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mul);
+  WABI_DEFN(vm, env, "-", "wabi:+", wabi_number_builtin_diff);
+  WABI_DEFN(vm, env, "/", "wabi:*", wabi_number_builtin_div);
+}

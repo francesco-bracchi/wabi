@@ -161,9 +161,9 @@ wabi_reader_read_ignore(wabi_vm vm) {
   if(wabi_vm_has_rooms(vm, 1)) {
     res = wabi_vm_alloc(vm, 1);
     *res = wabi_val_ignore;
-    vm->errno = wabi_error_nomem;
     return res;
   }
+  vm->errno = wabi_error_nomem;
   return NULL;
 }
 

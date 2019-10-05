@@ -1,5 +1,5 @@
 /**
- * 1. an empty map is an array map 0 length
+q * 1. an empty map is an array map 0 length
  * 3. a map with less than `WABI_MAP_ARRAY_LIMIT` elements is an array map
  * 4. a map with more than `WABI_MAP_ARRAY_LIMIT` elements is a hash map
  * 5. Each node of a hash map can be:

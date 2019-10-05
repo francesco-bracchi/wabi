@@ -54,7 +54,7 @@ void wabi_pr_pair(wabi_pair val) {
     car = wabi_car(val);
     cdr = wabi_cdr(val);
 
-    if(wabi_tag_pair == WABI_TAG(cdr)) {
+    if(WABI_IS(wabi_tag_pair, cdr)) {
       wabi_pr(car);
       putchar(' ');
       val = (wabi_pair) cdr;
@@ -70,7 +70,7 @@ void wabi_pr_pair(wabi_pair val) {
     printf(" . ");
     wabi_pr(cdr);
     return;
-  } while(wabi_tag_pair == WABI_TAG(val));
+  } while(1);
 }
 
 
@@ -135,19 +135,17 @@ wabi_pr_map(wabi_map map)
 }
 
 
-/* void */
-/* wabi_pr_env(wabi_env env) */
-/* { */
-/*   printf("#env{"); */
-/*   do { */
-/*     wabi_pr_map((wabi_map) env->data); */
-/*     env = (wabi_env) (env->prev & WABI_VALUE_MASK); */
-/*     if(env == NULL) break; */
-/*     printf(";"); */
-/*     break; */
-/*   } while(1); */
-/*   printf("}"); */
-/* } */
+void
+wabi_pr_env(wabi_env env)
+{
+  printf("#env");
+  do {
+    wabi_pr((wabi_val) env->data);
+    env = (wabi_env) WABI_WORD_VAL(env->prev);
+    if(env == NULL) break;
+    printf("+");
+  } while(1);
+}
 
 
 void
@@ -284,6 +282,9 @@ wabi_pr(wabi_val val) {
     printf(">");
     break;
 
+  case wabi_tag_env:
+    wabi_pr_env((wabi_env) val);
+    break;
   default:
     printf("unknown %lx", *val);
   }

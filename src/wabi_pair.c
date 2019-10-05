@@ -67,3 +67,12 @@ WABI_BUILTIN_WRAP1(wabi_pair_builtin_car, wabi_pair_car_bt);
 WABI_BUILTIN_WRAP1(wabi_pair_builtin_cdr, wabi_pair_cdr_bt);
 WABI_BUILTIN_WRAP2(wabi_pair_builtin_cons, wabi_pair_cons_bt);
 WABI_BUILTIN_WRAP1(wabi_pair_builtin_pair_p, wabi_pair_p_bt);
+
+void
+wabi_pair_builtins(wabi_vm vm, wabi_env env)
+{
+  WABI_DEFN(vm, env, "car", "wabi:car", wabi_pair_builtin_car);
+  WABI_DEFN(vm, env, "cdr", "wabi:cdr", wabi_pair_builtin_cdr);
+  WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_pair_builtin_cons);
+  WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_pair_builtin_pair_p);
+}

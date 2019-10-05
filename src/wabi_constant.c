@@ -52,11 +52,37 @@ wabi_constant_boolean_p(wabi_vm vm,
   vm->errno = wabi_error_nomem;
 }
 
-WABI_BUILTIN_CONSTANT(wabi_constant_builtin_nil, wabi_val_nil)
-WABI_BUILTIN_CONSTANT(wabi_constant_builtin_true, wabi_val_true)
-WABI_BUILTIN_CONSTANT(wabi_constant_builtin_false, wabi_val_false)
-WABI_BUILTIN_CONSTANT(wabi_constant_builtin_ignore, wabi_val_ignore)
-
 WABI_BUILTIN_WRAP1(wabi_constant_builtin_nil_p, wabi_constant_nil_p)
 WABI_BUILTIN_WRAP1(wabi_constant_builtin_ignore_p, wabi_constant_ignore_p)
 WABI_BUILTIN_WRAP1(wabi_constant_builtin_boolean_p, wabi_constant_boolean_p)
+
+
+void
+wabi_constant_builtins(wabi_vm vm, wabi_env env)
+{
+  wabi_val val;
+  val = (wabi_val) wabi_vm_alloc(vm, 5);
+
+  *val = wabi_val_nil;
+  WABI_DEF(vm, env, "nil", val);
+  val++;
+
+  *val = wabi_val_true;
+  WABI_DEF(vm, env, "true", val);
+  val++;
+
+  *val = wabi_val_false;
+  WABI_DEF(vm, env, "false", val);
+  val++;
+
+  *val = wabi_val_ignore;
+  WABI_DEF(vm, env, "ignore", val);
+  val++;
+
+  *val = wabi_val_zero;
+  WABI_DEF(vm, env, "zero", val);
+
+  WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_constant_builtin_nil_p);
+  WABI_DEFN(vm, env, "ignore?", "wabi:nil?", wabi_constant_builtin_ignore_p);
+  WABI_DEFN(vm, env, "bool?", "wabi:bool?", wabi_constant_builtin_boolean_p);
+}

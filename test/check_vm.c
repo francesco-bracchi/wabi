@@ -22,11 +22,13 @@
 
 wabi_vm_t vm;
 
+
 void
 setup(void)
 {
   wabi_vm_init(&vm, 50000);
 }
+
 
 void
 teardown(void)
@@ -62,6 +64,7 @@ START_TEST(composite_call)
   ck_assert_int_eq(wabi_cmp(vm.control, wabi_fixnum_new(&vm, 25)), 0);
 }
 END_TEST
+
 
 START_TEST(bind)
 {
@@ -125,6 +128,7 @@ START_TEST(wrap_fx)
 }
 END_TEST
 
+
 /*** builtin test ***/
 START_TEST(unwrap)
 {
@@ -139,6 +143,7 @@ START_TEST(unwrap)
 
 }
 END_TEST
+
 
 /*** builtin test ***/
 START_TEST(map)
@@ -155,6 +160,7 @@ START_TEST(map)
 
 }
 END_TEST
+
 
 START_TEST(branch)
 {
@@ -210,9 +216,7 @@ START_TEST(load)
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
   if(vm.errno != 0) {
-    printf("------------------------- %i\n", vm.errno);
-    wabi_pr(vm.errval);
-    printf("\n");
+    printf("error\n");
   }
 
   printf("result\n");
@@ -234,15 +238,15 @@ map_suite(void)
   tc_core = tcase_create("Core");
   tcase_add_checked_fixture(tc_core, setup, teardown);
 
-  tcase_add_test(tc_core, function_call);
-  tcase_add_test(tc_core, composite_call);
-  tcase_add_test(tc_core, bind);
-  tcase_add_test(tc_core, operative);
-  tcase_add_test(tc_core, invoke_derived);
-  tcase_add_test(tc_core, wrap_fx);
-  tcase_add_test(tc_core, unwrap);
-  tcase_add_test(tc_core, branch);
-  tcase_add_test(tc_core, map);
+  /* tcase_add_test(tc_core, function_call); */
+  /* tcase_add_test(tc_core, composite_call); */
+  /* tcase_add_test(tc_core, bind); */
+  /* tcase_add_test(tc_core, operative); */
+  /* tcase_add_test(tc_core, invoke_derived); */
+  /* tcase_add_test(tc_core, wrap_fx); */
+  /* tcase_add_test(tc_core, unwrap); */
+  /* tcase_add_test(tc_core, branch); */
+  /* tcase_add_test(tc_core, map); */
   tcase_add_test(tc_core, load);
 
   suite_add_tcase(s, tc_core);

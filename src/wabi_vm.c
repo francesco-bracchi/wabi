@@ -15,12 +15,13 @@
 #include "wabi_number.h"
 #include "wabi_combiner.h"
 #include "wabi_store.h"
+#include "wabi_error.h"
 
 /*** TMP ***/
 #include <stdio.h>
 #include "wabi_pr.h"
 
-// #define WABI_VM_DEBUG 1
+#define WABI_VM_DEBUG 1
 
 
 int
@@ -55,7 +56,7 @@ wabi_vm_prepare(wabi_vm vm, wabi_size size) {
 int
 wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
-  vm->errno = 0;
+  vm->errno = wabi_error_none;
   vm->errval = NULL;
   vm->fuel = 100000;
   if(wabi_store_init(&(vm->store), store_size)) {
@@ -173,6 +174,8 @@ wabi_vm_run(wabi_vm vm)
     wabi_pr(ctrl);
     printf("\ncont:    ");
     wabi_pr((wabi_val) cont);
+    printf("\nerror:   %i", vm->errno);
+
     printf("\n\n");
 #endif
 
@@ -196,12 +199,13 @@ wabi_vm_run(wabi_vm vm)
         /* -------------------------------------- */
         /* control: (lookup c e0) */
         /* stack s */
-        vm->control = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
-        if(vm->control == NULL) {
-          wabi_pr(ctrl);
-          vm->errno = wabi_error_unbound_name;
+        cs = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
+        if(cs) {
+          vm->control = cs;
+          break;
         }
-        break;
+        vm->errno = wabi_error_unbound_name;
+        return wabi_vm_result_error;
       }
       /* control: c */
       /* stack: ((eval e0) . s) */
@@ -261,7 +265,6 @@ wabi_vm_run(wabi_vm vm)
     case wabi_tag_cont_call:
       c0 = (wabi_combiner) ((wabi_cont_call) cont)->combiner;
       vm->env = (wabi_val) ((wabi_cont_eval_more) cont)->env;
-
       if(WABI_IS(wabi_tag_oper, c0) || WABI_IS(wabi_tag_app, c0)) {
         /* control: as */
         /* stack: ((call e0 (fx e1 ex ps b)) . s) */
@@ -271,19 +274,21 @@ wabi_vm_run(wabi_vm vm)
         e1 = wabi_env_extend(vm, (wabi_env) vm->env);
         wabi_env_set(vm, e1, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) vm->env);
         vm->errno = wabi_vm_bind(vm, e1, ctrl, (wabi_val) ((wabi_combiner_derived) c0)->parameters);
-        if(!vm->errno) {
-          wabi_vm_push_eval(vm, e1);
-          vm->control = (wabi_val) ((wabi_combiner_derived) c0)->body;
-          break;
+        if(vm->errno) {
+          return wabi_vm_result_error;
         }
-        return wabi_vm_result_error;
+        wabi_vm_push_eval(vm, e1);
+        vm->control = (wabi_val) ((wabi_combiner_derived) c0)->body;
+        break;
       }
       /* control: as */
       /* stack: ((call e0 fx) . s) when (builtin? fx) */
       /* -------------------------------------- */
       /* control (funcall fx control store env)  */
       /* stack: s */
+
       ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm, (wabi_env) vm->env);
+
       if(vm->errno == wabi_error_nomem) {
         if(wabi_vm_collect(vm)) {
           vm->errno = wabi_error_none;
@@ -319,12 +324,9 @@ wabi_vm_run(wabi_vm vm)
       /* control: as */
       /* stack: s */
       vm->env = (wabi_val) ((wabi_cont_def) cont)->env;
-      if(wabi_vm_bind(vm, (wabi_env) vm->env, ctrl, (wabi_val) ((wabi_cont_def) cont)->pattern)) {
-        break;
-      }
-
-      vm->errno = 1;
-      return wabi_vm_result_error;
+      vm->errno = wabi_vm_bind(vm, (wabi_env) vm->env, ctrl, (wabi_val) ((wabi_cont_def) cont)->pattern);
+      if(vm->errno) return wabi_vm_result_error;
+      break;
     }
     counter++;
   } while (vm->continuation);
