@@ -331,6 +331,7 @@ wabi_store_collect_prepare(wabi_store store)
 int
 wabi_store_collect(wabi_store store)
 {
+  printf("Collecting ...\n");
   wabi_store_collect_heap(store);
   wabi_store_collect_resize(store);
   return 1;

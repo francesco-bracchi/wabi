@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "wabi_pr.h"
 
+
 #define WABI_VM_DEBUG 1
 
 
@@ -96,17 +97,18 @@ wabi_vm_bind(wabi_vm vm,
 {
   int partial;
   if(WABI_IS(wabi_tag_symbol, params)) {
-    partial = wabi_env_set(vm, env, (wabi_symbol) params, args);
-    if(!partial)
-      return partial;
-  }
-  if(WABI_IS(wabi_tag_pair, params) && WABI_IS(wabi_tag_pair, args)) {
-    partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
-    if(!partial) return partial;
-    return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+    printf("BINDING: ");
+    wabi_pr(params);
+    printf("\n");
+    return wabi_env_set(vm, env, (wabi_symbol) params, args);
   }
   if(*params == wabi_val_ignore) {
     return wabi_error_none;
+  }
+  if(WABI_IS(wabi_tag_pair, params) && WABI_IS(wabi_tag_pair, args)) {
+    partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
+    if(partial != wabi_error_none) return partial;
+    return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
   }
   if(wabi_cmp(params, args) == 0) {
     return wabi_error_none;
@@ -169,9 +171,13 @@ wabi_vm_run(wabi_vm vm)
     cont = wabi_vm_pop(vm);
 
 #ifdef WABI_VM_DEBUG
-    printf("reducts:  %lu\n", counter);
+    // printf("reducts:  %lu\n", counter);
     printf("control: ");
-    wabi_pr(ctrl);
+    wabi_pr(vm->control);
+    if(vm->env) {
+      printf("\nenv:     ");
+      wabi_pr((wabi_val) vm->env);
+    }
     printf("\ncont:    ");
     wabi_pr((wabi_val) cont);
     printf("\nerror:   %i", vm->errno);
@@ -182,6 +188,7 @@ wabi_vm_run(wabi_vm vm)
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
       vm->env = (wabi_val) ((wabi_cont_eval) cont)->env;
+
       if(WABI_IS(wabi_tag_pair, vm->control)) {
         /* control: (f . as) */
         /* stack: ((eval e0) . s) */
@@ -200,6 +207,7 @@ wabi_vm_run(wabi_vm vm)
         /* control: (lookup c e0) */
         /* stack s */
         cs = wabi_env_lookup((wabi_env) vm->env, (wabi_symbol) ctrl);
+
         if(cs) {
           vm->control = cs;
           break;
@@ -264,16 +272,20 @@ wabi_vm_run(wabi_vm vm)
       break;
     case wabi_tag_cont_call:
       c0 = (wabi_combiner) ((wabi_cont_call) cont)->combiner;
-      vm->env = (wabi_val) ((wabi_cont_eval_more) cont)->env;
       if(WABI_IS(wabi_tag_oper, c0) || WABI_IS(wabi_tag_app, c0)) {
         /* control: as */
         /* stack: ((call e0 (fx e1 ex ps b)) . s) */
         /* -------------------------------------- */
         /* control b */
         /* stack: ((eval (bind ex e0 ps as)) . s) */
-        e1 = wabi_env_extend(vm, (wabi_env) vm->env);
-        wabi_env_set(vm, e1, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) vm->env);
+        e1 = wabi_env_extend(vm, (wabi_env) ((wabi_cont_eval_more) cont)->env);
+
+        if( *((wabi_word*) ((wabi_combiner_derived) c0)->caller_env_name) != wabi_val_ignore) {
+          wabi_env_set(vm, e1, (wabi_symbol) ((wabi_combiner_derived) c0)->caller_env_name, (wabi_val) vm->env);
+        }
+
         vm->errno = wabi_vm_bind(vm, e1, ctrl, (wabi_val) ((wabi_combiner_derived) c0)->parameters);
+
         if(vm->errno) {
           return wabi_vm_result_error;
         }

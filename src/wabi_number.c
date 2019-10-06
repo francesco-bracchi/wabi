@@ -9,6 +9,7 @@
 #include "wabi_builtin.h"
 #include "wabi_error.h"
 
+
 wabi_fixnum
 wabi_fixnum_new(wabi_vm vm,
                 int64_t val)

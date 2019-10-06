@@ -9,8 +9,10 @@
 #include "wabi_symbol.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
-
+#include "wabi_error.h"
+#include "wabi_builtin.h"
 #include "wabi_cmp.h"
+
 
 int
 wabi_cmp_leaves(wabi_binary_leaf left,
@@ -134,56 +136,19 @@ wabi_cmp_env(wabi_env left, wabi_env right) {
 }
 
 
-/* int */
-/* wabi_cmp_derived_combiner(wabi_combiner_derived a, wabi_combiner_derived b) */
-/* { */
-/*   int cmp; */
-
-/*   cmp = wabi_cmp_raw((wabi_val) a->body, (wabi_val) b->body); */
-/*   if(cmp) return cmp; */
-
-/*   cmp = wabi_cmp_raw((wabi_val) a->arguments, (wabi_val) b->arguments); */
-/*   if(cmp) return cmp; */
-
-/*   cmp = wabi_cmp_raw((wabi_val) a->caller_env_name, (wabi_val) b->caller_env_name); */
-/*   if(cmp) return cmp; */
-
-/*   return wabi_cmp_raw((wabi_val) (a->caller_env_name & WABI_VALUE_MASK), */
-/*                       (wabi_val) (b->caller_env_name & WABI_VALUE_MASK)); */
-/* } */
-
-
-/* int */
-/* wabi_cmp_combiner(wabi_combiner a, wabi_combiner b) */
-/* { */
-/*   wabi_word tag_a = wabi_val_tag((wabi_val) a); */
-/*   wabi_word tag_b = wabi_val_tag((wabi_val) b); */
-/*   wabi_word tag_d = tag_b - tag_a; */
-
-/*   if(tag_d) return tag_d >> 56; */
-
-/*   switch(tag_a) { */
-/*   case WABI_TAG_OPERATIVE: */
-/*   case WABI_TAG_APPLICATIVE: */
-/*     return wabi_cmp_derived_combiner((wabi_combiner_derived) a, (wabi_combiner_derived) b); */
-/*   case WABI_TAG_BUILTIN_OP: */
-/*   case WABI_TAG_BUILTIN_APP: */
-/*     return (*((wabi_val) b) & WABI_VALUE_MASK) - (*((wabi_val) a) & WABI_VALUE_MASK); */
-/*   } */
-/*   return -1; */
-/* } */
-
 int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
   long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
   return d ? (d > 0L ? 1 : -1) : 0;
 }
 
+
 int
 wabi_cmp_builtin_combiner(wabi_combiner_builtin a, wabi_combiner_builtin b)
 {
   return wabi_cmp_binary((wabi_binary) a->c_name, (wabi_binary) b->c_name);
 }
+
 
 int
 wabi_cmp_combiner_derived(wabi_combiner_derived a, wabi_combiner_derived b)
@@ -203,6 +168,61 @@ wabi_cmp_combiner_derived(wabi_combiner_derived a, wabi_combiner_derived b)
                     (wabi_val) WABI_WORD_VAL(b->static_env));
 }
 
+
+int
+wabi_cmp_cont(wabi_cont a, wabi_cont b)
+{
+  int cmp;
+  // todo short circuit check wabi_cmp_cont over prev
+
+  switch(WABI_TAG(a)) {
+  case wabi_tag_cont_eval:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval) a)->env, (wabi_val) ((wabi_cont_eval) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_eval) a)->prev, (wabi_val) ((wabi_cont_eval) b)->prev);
+
+  case wabi_tag_cont_apply:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->args, (wabi_val) ((wabi_cont_apply) b)->args);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->env, (wabi_val) ((wabi_cont_apply) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_apply) a)->prev, (wabi_val) ((wabi_cont_apply) b)->prev);
+
+  case wabi_tag_cont_call:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->combiner, (wabi_val) ((wabi_cont_call) b)->combiner);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->env, (wabi_val) ((wabi_cont_call) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_call) a)->prev, (wabi_val) ((wabi_cont_call) b)->prev);
+
+  case wabi_tag_cont_sel:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->left, (wabi_val) ((wabi_cont_sel) b)->left);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->right, (wabi_val) ((wabi_cont_sel) b)->right);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->env, (wabi_val) ((wabi_cont_sel) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_sel) a)->prev, (wabi_val) ((wabi_cont_sel) b)->prev);
+
+  case wabi_tag_cont_eval_more:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->data, (wabi_val) ((wabi_cont_eval_more) b)->data);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->done, (wabi_val) ((wabi_cont_eval_more) b)->done);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->env, (wabi_val) ((wabi_cont_eval_more) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->prev, (wabi_val) ((wabi_cont_eval_more) b)->prev);
+
+  case wabi_tag_cont_def:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->pattern, (wabi_val) ((wabi_cont_def) b)->pattern);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->env, (wabi_val) ((wabi_cont_def) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_def) a)->prev, (wabi_val) ((wabi_cont_def) b)->prev);
+  }
+}
+
+
 int
 wabi_cmp(wabi_val a, wabi_val b)
 {
@@ -220,7 +240,6 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_fixnum:
     return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
   case wabi_tag_symbol:
-    // todo, since a symbol only refers to binary short circuit here
     return wabi_cmp(WABI_DEREF(a), WABI_DEREF(b));
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
@@ -239,8 +258,16 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
     return wabi_cmp_builtin_combiner((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
+  case wabi_tag_cont_eval:
+  case wabi_tag_cont_apply:
+  case wabi_tag_cont_call:
+  case wabi_tag_cont_sel:
+  case wabi_tag_cont_eval_more:
+  case wabi_tag_cont_def:
+    return wabi_cmp_cont((wabi_cont) a, (wabi_cont) b);
+
   default:
-    return -1;
+    return *a - *b;
   }
 }
 
@@ -248,4 +275,129 @@ int
 wabi_eq(wabi_val left, wabi_val right)
 {
   return !wabi_cmp(left, right);
+}
+
+
+void
+wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+  }
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b)) {
+      if(wabi_vm_has_rooms(vm, 1)) {
+        res = wabi_vm_alloc(vm, 1);
+        *res = wabi_val_false;
+        vm->control = res;
+        return;
+      }
+      vm->errno = wabi_error_nomem;
+    }
+  }
+  if(*ctrl == wabi_val_nil) {
+    if(wabi_vm_has_rooms(vm, 1)) {
+      res = wabi_vm_alloc(vm, 1);
+      *res = wabi_val_true;
+      vm->control = res;
+      return;
+    }
+    vm->errno = wabi_error_nomem;
+    return;
+  }
+  vm->errno = wabi_error_bindings;
+  return;
+}
+
+
+void
+wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+  }
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b) > 0) {
+      if(wabi_vm_has_rooms(vm, 1)) {
+        res = wabi_vm_alloc(vm, 1);
+        *res = wabi_val_false;
+        vm->control = res;
+        return;
+      }
+      vm->errno = wabi_error_nomem;
+    }
+  }
+  if(*ctrl == wabi_val_nil) {
+    if(wabi_vm_has_rooms(vm, 1)) {
+      res = wabi_vm_alloc(vm, 1);
+      *res = wabi_val_true;
+      vm->control = res;
+      return;
+    }
+    vm->errno = wabi_error_nomem;
+    return;
+  }
+  vm->errno = wabi_error_bindings;
+  return;
+}
+
+
+void
+wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->control;
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+  }
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b) < 0) {
+      if(wabi_vm_has_rooms(vm, 1)) {
+        res = wabi_vm_alloc(vm, 1);
+        *res = wabi_val_false;
+        vm->control = res;
+        return;
+      }
+      vm->errno = wabi_error_nomem;
+    }
+  }
+  if(*ctrl == wabi_val_nil) {
+    if(wabi_vm_has_rooms(vm, 1)) {
+      res = wabi_vm_alloc(vm, 1);
+      *res = wabi_val_true;
+      vm->control = res;
+      return;
+    }
+    vm->errno = wabi_error_nomem;
+    return;
+  }
+  vm->errno = wabi_error_bindings;
+  return;
+}
+
+
+void
+wabi_cmp_builtins(wabi_vm vm, wabi_env env)
+{
+  WABI_DEFN(vm, env, "=", "wabi:=", wabi_cmp_eq_builtin);
+  WABI_DEFN(vm, env, ">", "wabi:gt", wabi_cmp_gt_builtin);
+  WABI_DEFN(vm, env, "<", "wabi:lt", wabi_cmp_lt_builtin);
+  /* WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
+  /* WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */
 }

@@ -57,13 +57,17 @@ wabi_reader_is_num(char c)
 static inline void
 wabi_reader_ws(char** c)
 {
-  while(wabi_reader_is_ws(**c))
-    (*c)++;
-
-  if(**c == ';')
-    do {
+  for(;;) {
+    while(wabi_reader_is_ws(**c))
       (*c)++;
-    } while(**c == '\n');
+
+    if(**c == ';')
+      do {
+        (*c)++;
+      } while(**c != '\n' && **c != '\0');
+    else
+      return;
+  }
 }
 
 wabi_val
@@ -90,6 +94,9 @@ wabi_reader_read_list(wabi_vm vm, char** c)
     wabi_reader_ws(c);
     d = wabi_reader_read_val(vm, c);
     if(! d) return NULL;
+    wabi_reader_ws(c);
+    if(**c != ')') return NULL;
+    (*c)++;
   }
   else {
     wabi_reader_ws(c);

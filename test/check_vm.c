@@ -216,7 +216,7 @@ START_TEST(load)
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
   if(vm.errno != 0) {
-    printf("error\n");
+    printf("error %i\n", vm.errno);
   }
 
   printf("result\n");

@@ -1,3 +1,4 @@
+
 (def q (fx _ (p) p))
 
 (def qs (fx _ p p))
@@ -6,13 +7,57 @@
 
 (def list (wrap qs))
 
-(def fib
+(def env (fx e _ e))
+
+(def apply
   (wrap
-   (fx _ (n)
-     (if (< n 2)
-         1
-         (+ (fib (- n 1))
-            (fib (- n 2)))))))
+   (fx _ (o cs . es)
+     (eval (if (nil? es) (env) (car es))
+       (cons (unwrap o) cs)))))
+
+(def list*
+  (wrap
+   (fx _ (a . as)
+     (if (pr (nil? as)) a
+         (cons a (apply list* as))))))
+
+;; (def fn
+;;   (fx e (as . bs)
+;;     (wrap
+;;      (eval e
+;;        (list* fx (q ign) as bs)))))
+
+;; (def defx
+;;   (fx e (n e1 as . bs)
+;;     (eval e
+;;       (list def n (list* fx e1 as bs)))))
+
+;; (def defn
+;;   (fx e (n as . bs)
+;;     (eval e
+;;       (list def n (list* fn as bs)))))
+
+;; (defx loop
+;;     e (n bs . xs)
+;;   (def e1 (env-push e))
+;;   (eval e1 (list* defn n (evens bs) xs))
+;;   (eval e1 (list* n (odds bs))))
+
+;; (defx cond
+;;     e cs
+;;   (loop cond (cs cs)
+;;        (if (nil? cs) nil
+;;            (if (nil? (cdr cs))
+;;                (eval e (car cs))
+;;                (if (eval e (car cs))
+;;                    (eval e (car (cdr cs)))
+;;                    (cond (cdr (cdr cs))))))))
+
+;; (defn fib (n)
+;;   (if (< n 2)
+;;       1
+;;       (+ (fib (- n 1))
+;;          (fib (- n 2)))))
 
 
-(fib 3)
+(list* 33 2 (list 3))

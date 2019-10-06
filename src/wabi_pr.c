@@ -141,6 +141,7 @@ wabi_pr_env(wabi_env env)
   printf("#env");
   do {
     wabi_pr((wabi_val) env->data);
+    return;
     env = (wabi_env) WABI_WORD_VAL(env->prev);
     if(env == NULL) break;
     printf("+");
@@ -177,34 +178,34 @@ wabi_pr_cont(wabi_cont val) {
   do {
     switch(WABI_TAG(val)) {
     case wabi_tag_cont_eval:
-      printf("(eval)");
+      printf("(EVAL)");
       break;
     case wabi_tag_cont_apply:
-      printf("(apply ");
+      printf("(APPLY ");
       wabi_pr((wabi_val) ((wabi_cont_apply) val)->args);
       printf(")");
       break;
     case wabi_tag_cont_call:
-      printf("(call ");
+      printf("(CALL ");
       wabi_pr((wabi_val) ((wabi_cont_call) val)->combiner);
       printf(")");
       break;
     case wabi_tag_cont_sel:
-      printf("(sel ");
+      printf("(SEL ");
       wabi_pr((wabi_val) ((wabi_cont_sel) val)->left);
       printf(" ");
       wabi_pr((wabi_val) ((wabi_cont_sel) val)->right);
       printf(")");
       break;
     case wabi_tag_cont_eval_more:
-      printf("(eval-more ");
+      printf("(EVAL-MORE ");
       wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->data);
       printf(" ");
       wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->done);
       printf(")");
       break;
     case wabi_tag_cont_def:
-      printf("(def ");
+      printf("(DEF ");
       wabi_pr((wabi_val) ((wabi_cont_def) val)->pattern);
       printf(")");
       break;
