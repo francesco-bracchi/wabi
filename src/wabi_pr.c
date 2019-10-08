@@ -174,6 +174,22 @@ wabi_pr_operative(wabi_combiner_derived val)
 
 
 void
+wabi_pr_binary_blob(wabi_word *val)
+{
+  wabi_word  l, x;
+  char* c;
+
+  l = WABI_WORD_VAL(*val);
+  c = (char*)(val + 1);
+
+  for(x = 0; x < l; x++) {
+    putchar(*c);
+    c++;
+  }
+}
+
+
+void
 wabi_pr_cont(wabi_cont val) {
   do {
     switch(WABI_TAG(val)) {
@@ -207,6 +223,11 @@ wabi_pr_cont(wabi_cont val) {
     case wabi_tag_cont_def:
       printf("(DEF ");
       wabi_pr((wabi_val) ((wabi_cont_def) val)->pattern);
+      printf(")");
+      break;
+    case wabi_tag_cont_prog:
+      printf("(PROG ");
+      wabi_pr((wabi_val) ((wabi_cont_prog) val)->expressions);
       printf(")");
       break;
     default:
@@ -254,6 +275,11 @@ wabi_pr(wabi_val val) {
     wabi_pr_binary((wabi_binary) val);
     putchar('"');
     break;
+  case wabi_tag_bin_blob:
+    printf("#blob\"");
+    wabi_pr_binary_blob((wabi_word *) val);
+    putchar('"');
+    break;
   case wabi_tag_map_array:
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
@@ -278,6 +304,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_cont_sel:
   case wabi_tag_cont_eval_more:
   case wabi_tag_cont_def:
+  case wabi_tag_cont_prog:
     printf("<");
     wabi_pr_cont((wabi_cont) val);
     printf(">");
@@ -285,6 +312,9 @@ wabi_pr(wabi_val val) {
 
   case wabi_tag_env:
     wabi_pr_env((wabi_env) val);
+    break;
+  case wabi_tag_forward:
+    wabi_pr((wabi_val) WABI_WORD_VAL(*val));
     break;
   default:
     printf("unknown %lx", *val);

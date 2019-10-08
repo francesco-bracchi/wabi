@@ -19,7 +19,7 @@ q * 1. an empty map is an array map 0 length
 #include "wabi_cmp.h"
 #include "wabi_map.h"
 
-#define WABI_MAP_HALLOC 400
+#define WABI_MAP_HALLOC 50
 
 /**
  * Assoc operation
@@ -256,18 +256,19 @@ wabi_map_assoc(wabi_vm vm,
 {
   wabi_word hash;
   wabi_map_entry entry;
-
+  wabi_val res;
   hash = wabi_hash(key);
-  wabi_vm_prepare(vm, WABI_MAP_HALLOC);
-  entry = (wabi_map_entry) wabi_vm_alloc(vm, WABI_MAP_SIZE);
-
-  if(! entry) return NULL;
-
-  entry->key = (wabi_word) key;
-  entry->value = (wabi_word) value;
-  WABI_SET_TAG(entry, wabi_tag_map_entry);
-
-  return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+  if(wabi_vm_has_rooms(vm, WABI_MAP_HALLOC)) {
+    entry = (wabi_map_entry) wabi_vm_alloc(vm, WABI_MAP_SIZE);
+    if(entry) {
+      entry->key = (wabi_word) key;
+      entry->value = (wabi_word) value;
+      WABI_SET_TAG(entry, wabi_tag_map_entry);
+    }
+    res = wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
+    return res;
+  }
+  return NULL;
 }
 
 

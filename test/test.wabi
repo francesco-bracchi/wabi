@@ -11,37 +11,55 @@
 
 (def apply
   (wrap
-   (fx _ (o cs . es)
-     (eval (if (nil? es) (env) (car es))
-       (cons (unwrap o) cs)))))
+   (fx _ (o as)
+     (eval (env) (cons o as)))))
+
+(def list+
+  (wrap
+   (fx _ (a as)
+     (if (pair? as)
+         (cons a (list+ (car as) (cdr as)))
+         a))))
 
 (def list*
-  (wrap
-   (fx _ (a . as)
-     (if (pr (nil? as)) a
-         (cons a (apply list* as))))))
+  (wrap (fx _ (a . as) (list+ a as))))
 
-;; (def fn
-;;   (fx e (as . bs)
-;;     (wrap
-;;      (eval e
-;;        (list* fx (q ign) as bs)))))
+(def fn
+  (fx e (as . bs)
+    (wrap (eval e (list* fx _ as bs)))))
 
-;; (def defx
-;;   (fx e (n e1 as . bs)
-;;     (eval e
-;;       (list def n (list* fx e1 as bs)))))
+(def defx
+  (fx e (n e1 as . bs)
+    (eval e
+      (list def n (list* fx e1 as bs)))))
 
-;; (def defn
-;;   (fx e (n as . bs)
-;;     (eval e
-;;       (list def n (list* fn as bs)))))
+(def defn
+  (fx e (n as . bs)
+    (eval e
+      (list def n (list* fn as bs)))))
+
+
+;; (defn evens
+;;     (cs)
+;;   (if (nil? cs) nil
+;;       (cons (car cs) (odds (cdr cs)))))
+
+;; (defn odds
+;;     (cs)
+;;   (if (nil? cs) nil
+;;       (evens (cdr cs))))
 
 ;; (defx loop
 ;;     e (n bs . xs)
-;;   (def e1 (env-push e))
-;;   (eval e1 (list* defn n (evens bs) xs))
-;;   (eval e1 (list* n (odds bs))))
+;;   (do
+;;    (def e1 (epush e))
+;;    (eval e1 (list* defn n (evens bs) xs))
+;;    (eval e1 (list* n (odds bs)))))
+
+;; ;; (loop rec (a 10)
+;; ;;      (do (pr (q rec))
+;; ;;          (if (<= a 0) (q ok)
+;; ;;              (do (pr a) (rec (- a 1))))))
 
 ;; (defx cond
 ;;     e cs
@@ -53,11 +71,20 @@
 ;;                    (eval e (car (cdr cs)))
 ;;                    (cond (cdr (cdr cs))))))))
 
-;; (defn fib (n)
-;;   (if (< n 2)
-;;       1
-;;       (+ (fib (- n 1))
-;;          (fib (- n 2)))))
+;; (defx time
+;;     e as
+;;   (def e1 (env-push
+;;   (do (def t0 (pr (clock)))
+;;       (def r (pr (eval e (list* do as))))
+;;       (def t (pr (clock)))
+;;       (pr as)
+;;       (pr "time: " (- t t0))
+;;       r))
+
+(defn fib (n)
+  (if
+   (< n 2) 1
+   (+ (fib (- n 1)) (fib (- n 2)))))
 
 
-(list* 33 2 (list 3))
+(pr (fib 13))

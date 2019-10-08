@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
 #include <math.h>
 #include "wabi_store.h"
 #include "wabi_word.h"
@@ -49,7 +51,7 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
   new_blob = (wabi_word *) store->heap;
   store->heap += 1 + word_size;
   new_leaf->length = len;
-  new_leaf->data_ptr = (wabi_word) new_blob;
+  new_leaf->data_ptr = (wabi_word) (new_blob+1);
   *new_blob = 1 + word_size;
   WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
@@ -101,6 +103,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_apply:
   case wabi_tag_cont_call:
   case wabi_tag_cont_def:
+  case wabi_tag_cont_prog:
     memcpy(res, src, 3 * WABI_WORD_SIZE);
     store->heap += 3;
     break;
@@ -127,6 +130,9 @@ wabi_store_collect_heap(wabi_store store)
 
   scan = store->space;
   do {
+    /* printf("X: "); */
+    /* wabi_pr(scan); */
+    /* printf("\n"); */
     switch(WABI_TAG(scan)) {
     /* case wabi_tag_var: */
     /* case wabi_tag_alien: */
@@ -134,6 +140,8 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_bin_blob:
       scan += WABI_WORD_VAL(*scan);
+      /* wabi_pr(scan); */
+      /* printf("\n"); */
       break;
 
     case wabi_tag_constant:
@@ -149,7 +157,7 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_bin_node:
     case wabi_tag_bin_leaf:
-      scan+=2;
+      scan += 2;
       break;
 
     case wabi_tag_pair:
@@ -257,6 +265,17 @@ wabi_store_collect_heap(wabi_store store)
       scan += 3;
       break;
 
+    case wabi_tag_cont_prog:
+      // todo: unify all these cases
+      if(WABI_WORD_VAL(*scan)) {
+        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      }
+      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
+      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
+      WABI_SET_TAG(scan, wabi_tag_cont_prog);
+      scan += 3;
+      break;
+
     case wabi_tag_cont_eval_more:
       if(WABI_WORD_VAL(*scan)) {
         *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
@@ -306,6 +325,14 @@ wabi_store_collect_resize(wabi_store store)
 }
 
 
+static inline
+int
+wabi_store_size(wabi_store store)
+{
+  return (store->heap - store->space);
+}
+
+
 wabi_word*
 wabi_store_collect_prepare(wabi_store store)
 {
@@ -313,6 +340,7 @@ wabi_store_collect_prepare(wabi_store store)
   wabi_size size3;
   int j;
 
+  printf("Collecting %i\n", wabi_store_size(store));
   size3 = store->size * 3;
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
@@ -331,8 +359,9 @@ wabi_store_collect_prepare(wabi_store store)
 int
 wabi_store_collect(wabi_store store)
 {
-  printf("Collecting ...\n");
   wabi_store_collect_heap(store);
-  wabi_store_collect_resize(store);
+  printf("After collection %i\n", wabi_store_size(store));
+  wabi_pr(store->space);
+  // wabi_store_collect_resize(store);
   return 1;
 }

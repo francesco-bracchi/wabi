@@ -89,3 +89,18 @@ wabi_cont_def_new(wabi_vm vm, wabi_env env, wabi_val pattern, wabi_cont prev)
   }
   return (wabi_cont) cont;
 }
+
+
+wabi_cont
+wabi_cont_prog_new(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont prev)
+{
+  wabi_cont_prog cont;
+  cont = (wabi_cont_prog) wabi_vm_alloc(vm, WABI_CONT_PROG_SIZE);
+  if(cont) {
+    cont->prev = (wabi_word) prev;
+    cont->env = (wabi_word) env;
+    cont->expressions = (wabi_word) expressions;
+    WABI_SET_TAG(cont, wabi_tag_cont_prog);
+  }
+  return (wabi_cont) cont;
+}

@@ -59,6 +59,14 @@ typedef struct wabi_cont_def_struct {
 
 typedef wabi_cont_def_t* wabi_cont_def;
 
+typedef struct wabi_cont_prog_struct {
+  wabi_word prev;
+  wabi_word env;
+  wabi_word expressions;
+} wabi_cont_prog_t;
+
+typedef wabi_cont_prog_t* wabi_cont_prog;
+
 typedef union wabi_cont_union {
   wabi_word prev;
   wabi_cont_eval_t eval;
@@ -66,6 +74,8 @@ typedef union wabi_cont_union {
   wabi_cont_call_t call;
   wabi_cont_sel_t sel;
   wabi_cont_eval_more_t eval_more;
+  wabi_cont_def_t def;
+  wabi_cont_prog_t prog;
 } wabi_cont_t;
 
 typedef wabi_cont_t* wabi_cont;
@@ -76,6 +86,7 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_SEL_SIZE 4
 #define WABI_CONT_EVAL_MORE_SIZE 4
 #define WABI_CONT_DEF_SIZE 3
+#define WABI_CONT_PROG_SIZE 3
 
 wabi_cont
 wabi_cont_eval_new(wabi_vm vm, wabi_env env, wabi_cont prev);
@@ -94,5 +105,8 @@ wabi_cont_eval_more_new(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, 
 
 wabi_cont
 wabi_cont_def_new(wabi_vm vm, wabi_env env, wabi_val val, wabi_cont prev);
+
+wabi_cont
+wabi_cont_prog_new(wabi_vm vm, wabi_env env, wabi_val exps, wabi_cont prev);
 
 #endif

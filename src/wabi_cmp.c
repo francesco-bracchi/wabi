@@ -219,6 +219,13 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
     cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->env, (wabi_val) ((wabi_cont_def) b)->env);
     if(cmp) return cmp;
     return wabi_cmp((wabi_val) ((wabi_cont_def) a)->prev, (wabi_val) ((wabi_cont_def) b)->prev);
+
+  case wabi_tag_cont_prog:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->expressions, (wabi_val) ((wabi_cont_prog) b)->expressions);
+    if(cmp) return cmp;
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->env, (wabi_val) ((wabi_cont_prog) b)->env);
+    if(cmp) return cmp;
+    return wabi_cmp((wabi_val) ((wabi_cont_prog) a)->prev, (wabi_val) ((wabi_cont_prog) b)->prev);
   }
 }
 
@@ -264,6 +271,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_cont_sel:
   case wabi_tag_cont_eval_more:
   case wabi_tag_cont_def:
+  case wabi_tag_cont_prog:
     return wabi_cmp_cont((wabi_cont) a, (wabi_cont) b);
 
   default:

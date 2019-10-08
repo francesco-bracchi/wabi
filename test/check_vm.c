@@ -26,7 +26,7 @@ wabi_vm_t vm;
 void
 setup(void)
 {
-  wabi_vm_init(&vm, 50000);
+  wabi_vm_init(&vm, 50002);
 }
 
 

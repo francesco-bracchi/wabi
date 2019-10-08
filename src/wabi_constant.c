@@ -8,7 +8,7 @@
 #include "wabi_builtin.h"
 
 
-static inline wabi_val
+static inline void
 wabi_constant_nil_p(wabi_vm vm,
                     wabi_env env,
                     wabi_val v)
@@ -17,13 +17,14 @@ wabi_constant_nil_p(wabi_vm vm,
   if(wabi_vm_has_rooms(vm, 1)) {
     res = wabi_vm_alloc(vm, 1);
     *res = *v == wabi_val_nil ? wabi_val_true : wabi_val_false;
-    return res;
+    vm->control = res;
+    return;
   }
   vm->errno = wabi_error_nomem;
 }
 
 
-static inline wabi_val
+static inline void
 wabi_constant_ignore_p(wabi_vm vm,
                        wabi_env env,
                        wabi_val v)
@@ -32,13 +33,14 @@ wabi_constant_ignore_p(wabi_vm vm,
   if(wabi_vm_has_rooms(vm, 1)) {
     res = wabi_vm_alloc(vm, 1);
     *res = *v == wabi_val_ignore ? wabi_val_true : wabi_val_false;
-    return res;
+    vm->control = res;
+    return;
   }
   vm->errno = wabi_error_nomem;
 }
 
 
-static inline wabi_val
+static inline void
 wabi_constant_boolean_p(wabi_vm vm,
                         wabi_env env,
                         wabi_val v)
@@ -47,7 +49,8 @@ wabi_constant_boolean_p(wabi_vm vm,
   if(wabi_vm_has_rooms(vm, 1)) {
     res = wabi_vm_alloc(vm, 1);
     *res = *v == (wabi_val_true || *v == wabi_val_false) ? wabi_val_true : wabi_val_false;
-    return res;
+    vm->control = res;
+    return;
   }
   vm->errno = wabi_error_nomem;
 }

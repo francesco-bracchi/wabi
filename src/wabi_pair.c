@@ -10,56 +10,58 @@
 #include "wabi_builtin.h"
 
 
-static inline wabi_val
+static inline void
 wabi_pair_car_bt(wabi_vm vm, wabi_env env, wabi_val pair)
 {
   if(WABI_IS(wabi_tag_pair, pair)) {
-    return (wabi_val) wabi_car((wabi_pair) pair);
+    vm->control = (wabi_val) wabi_car((wabi_pair) pair);
+    return;
   }
   if(*pair == wabi_val_nil) {
-    return pair;
+    vm->control = pair;
+    return;
   }
   vm->errno = wabi_error_type_mismatch;
-  return vm->control;
 }
 
 
-static inline wabi_val
+static inline void
 wabi_pair_cdr_bt(wabi_vm vm, wabi_env env, wabi_val pair)
 {
   if(WABI_IS(wabi_tag_pair, pair)) {
-    return (wabi_val) wabi_cdr((wabi_pair) pair);
+    vm->control = (wabi_val) wabi_cdr((wabi_pair) pair);
+    return;
   }
   if(*pair == wabi_val_nil) {
-    return pair;
+    vm->control = pair;
+    return;
   }
   vm->errno = wabi_error_type_mismatch;
-  return vm->control;
 }
 
 
-static inline wabi_val
+static inline void
 wabi_pair_cons_bt(wabi_vm vm, wabi_env env, wabi_val a, wabi_val d)
 {
   if(wabi_vm_has_rooms(vm, WABI_PAIR_SIZE)) {
-    return (wabi_val) wabi_cons(vm, a, d);
+    vm->control = (wabi_val) wabi_cons(vm, a, d);
+    return;
   }
   vm->errno = wabi_error_nomem;
-  return vm->control;
 }
 
 
-static inline wabi_val
+static inline void
 wabi_pair_p_bt(wabi_vm vm, wabi_env env, wabi_val pair)
 {
   wabi_val res;
   if(wabi_vm_has_rooms(vm, 1)) {
     res = (wabi_val) wabi_vm_alloc(vm, 1);
     *res = WABI_IS(wabi_tag_pair, pair) ? wabi_val_true : wabi_val_false;
-    return res;
+    vm->control = res;
+    return;
   }
   vm->errno = wabi_error_nomem;
-  return vm->control;
 }
 
 

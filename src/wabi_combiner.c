@@ -42,6 +42,7 @@ wabi_application_builtin_new(wabi_vm vm,
 }
 
 
+// TODO: support variadic body?
 static inline void
 wabi_combiner_fx_bt(wabi_vm vm, wabi_env env, wabi_val e, wabi_val fs, wabi_val bd)
 {
