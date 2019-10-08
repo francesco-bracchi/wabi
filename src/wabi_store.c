@@ -130,9 +130,6 @@ wabi_store_collect_heap(wabi_store store)
 
   scan = store->space;
   do {
-    /* printf("X: "); */
-    /* wabi_pr(scan); */
-    /* printf("\n"); */
     switch(WABI_TAG(scan)) {
     /* case wabi_tag_var: */
     /* case wabi_tag_alien: */
@@ -140,8 +137,6 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_bin_blob:
       scan += WABI_WORD_VAL(*scan);
-      /* wabi_pr(scan); */
-      /* printf("\n"); */
       break;
 
     case wabi_tag_constant:
@@ -327,7 +322,7 @@ wabi_store_collect_resize(wabi_store store)
 
 static inline
 int
-wabi_store_size(wabi_store store)
+wabi_store_used(wabi_store store)
 {
   return (store->heap - store->space);
 }
@@ -340,7 +335,7 @@ wabi_store_collect_prepare(wabi_store store)
   wabi_size size3;
   int j;
 
-  printf("Collecting %i\n", wabi_store_size(store));
+  printf("Collecting %i\n", wabi_store_used(store));
   size3 = store->size * 3;
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
@@ -360,8 +355,7 @@ int
 wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
-  printf("After collection %i\n", wabi_store_size(store));
-  wabi_pr(store->space);
+  printf("After collection %i\n", wabi_store_used(store));
   // wabi_store_collect_resize(store);
   return 1;
 }

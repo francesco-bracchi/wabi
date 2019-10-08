@@ -38,9 +38,7 @@ wabi_store_collect(wabi_store store);
 static inline int
 wabi_store_has_rooms(wabi_store store, wabi_size size)
 {
-  printf("has_rooms %lu %lu %i\n", (store->limit - store->heap), size, (store->limit - store->heap) > size);
   return (store->limit - store->heap) > size;
-  // return store->heap + size < store->limit;
 }
 
 static inline wabi_word*

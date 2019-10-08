@@ -164,12 +164,9 @@ wabi_vm_run(wabi_vm vm)
   counter = 0;
 
   do {
-    ctrl = vm->control;
-    cont = wabi_vm_pop(vm);
 
 #ifdef WABI_VM_DEBUG
     printf("reducts:  %lu\n", counter);
-    printf("err:  %i\n", vm->errno);
     printf("control: ");
     wabi_pr(vm->control);
     if(vm->env) {
@@ -177,14 +174,16 @@ wabi_vm_run(wabi_vm vm)
       wabi_pr((wabi_val) vm->env);
     }
     printf("\ncont:    ");
-    wabi_pr((wabi_val) cont);
-    printf("\nerror:   %i", vm->errno);
+    wabi_pr((wabi_val) vm->continuation);
 
     printf("\n\n");
 #endif
+
+    ctrl = vm->control;
+    cont = wabi_vm_pop(vm);
+
     if(vm->errno) {
-      printf("ERROR ERROR \n");
-      return;
+      return wabi_vm_result_error;
     }
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
@@ -282,9 +281,9 @@ wabi_vm_run(wabi_vm vm)
         e1 = wabi_env_extend(vm, (wabi_env) ((wabi_cont_eval_more) cont)->env);
 
 
-        err = wabi_vm_bind(vm, e1, vm->env, ((wabi_combiner_derived) c0)->caller_env_name);
+        err = wabi_vm_bind(vm, e1, (wabi_val) vm->env, (wabi_val) ((wabi_combiner_derived) c0)->caller_env_name);
         if(err == wabi_error_nomem) {
-          vm->continuation = cont;
+          vm->continuation = (wabi_val) cont;
           if(wabi_vm_collect(vm)) break;
         }
         if(err) {
@@ -294,7 +293,7 @@ wabi_vm_run(wabi_vm vm)
 
         err = wabi_vm_bind(vm, e1, ctrl, (wabi_val) ((wabi_combiner_derived) c0)->parameters);
         if(err == wabi_error_nomem) {
-          vm->continuation = cont;
+          vm->continuation = (wabi_val) cont;
           if(wabi_vm_collect(vm)) break;
         }
         if(err) {
@@ -312,17 +311,10 @@ wabi_vm_run(wabi_vm vm)
       /* stack: s */
 
       ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) c0)->c_ptr)))(vm, (wabi_env) vm->env);
-      printf("free: %i\n", wabi_vm_free_words(vm));
       if(vm->errno == wabi_error_nomem) {
-        printf("MEMORY EXHAUSTED\n");
-        /* wabi_pr((wabi_val) ((wabi_combiner_builtin) c0)->c_name); */
-        /* printf("++++++++++++++++++++++++++\n"); */
         vm->errno = wabi_error_none;
-        vm->continuation = cont;
-        if(!wabi_vm_collect(vm)) {
-          printf("--------------------------\n");
-          break;
-        }
+        vm->continuation = (wabi_val) cont;
+        if(!wabi_vm_collect(vm)) break;
         return wabi_vm_result_error;
       }
       break;

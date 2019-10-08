@@ -54,7 +54,6 @@ wabi_vm_alloc(wabi_vm vm, wabi_size size)
 {
   wabi_store store;
   store = &(vm->store);
-  printf("allocating %lu\n", size);
   return wabi_store_alloc(store, size);
 }
 
