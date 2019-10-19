@@ -35,7 +35,7 @@ control: c when (app? c)
 stack: ((apply e0 (a . as)) . s)
 --------------------------------------
 control: a
-stack: ((eval-more e0 as nil) (call e0 c) . s)
+stack: ((eval e0) (eval-more e0 as nil) (call e0 c) . s)
 
 
 control: x

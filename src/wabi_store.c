@@ -1,3 +1,4 @@
+
 #define wabi_store_c
 
 #include <stdlib.h>
@@ -97,7 +98,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_eval:
   case wabi_tag_env:
     memcpy(res, src, 2 * WABI_WORD_SIZE);
-    store->heap+=2;
+    store->heap += 2;
     break;
 
   case wabi_tag_cont_apply:
@@ -294,6 +295,7 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_forward:
+      *scan = WABI_WORD_VAL(*scan);
       scan++;
       break;
     }
@@ -335,7 +337,6 @@ wabi_store_collect_prepare(wabi_store store)
   wabi_size size3;
   int j;
 
-  printf("Collecting %i\n", wabi_store_used(store));
   size3 = store->size * 3;
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
@@ -354,6 +355,7 @@ wabi_store_collect_prepare(wabi_store store)
 int
 wabi_store_collect(wabi_store store)
 {
+  printf("Collecting %i\n", wabi_store_used(store));
   wabi_store_collect_heap(store);
   printf("After collection %i\n", wabi_store_used(store));
   // wabi_store_collect_resize(store);

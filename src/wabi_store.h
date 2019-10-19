@@ -2,6 +2,7 @@
 
 #define wabi_store_h
 
+#include <stddef.h>
 #include "wabi_word.h"
 #include "wabi_value.h"
 
@@ -48,6 +49,19 @@ wabi_store_alloc(wabi_store store, wabi_size size)
   res = store->heap;
   store->heap += size;
   return res;
+}
+
+
+static inline wabi_word*
+wabi_store_alloc_checked(wabi_store store, wabi_size size)
+{
+  if(wabi_store_has_rooms(store, size)) {
+    wabi_word* res;
+    res = store->heap;
+    store->heap += size;
+    return res;
+  }
+  return NULL;
 }
 
 static inline int

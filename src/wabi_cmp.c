@@ -286,7 +286,7 @@ wabi_eq(wabi_val left, wabi_val right)
 }
 
 
-void
+wabi_error_type
 wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
 {
   wabi_val a, b, ctrl, res;
@@ -304,9 +304,9 @@ wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
-        return;
+        return wabi_error_none;
       }
-      vm->errno = wabi_error_nomem;
+      return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
@@ -314,17 +314,15 @@ wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
 {
   wabi_val a, b, ctrl, res;
@@ -342,9 +340,9 @@ wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
-        return;
+        return wabi_error_none;
       }
-      vm->errno = wabi_error_nomem;
+      return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
@@ -352,17 +350,15 @@ wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
 {
   wabi_val a, b, ctrl, res;
@@ -380,9 +376,9 @@ wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
-        return;
+        return wabi_error_none;
       }
-      vm->errno = wabi_error_nomem;
+      return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
@@ -390,22 +386,24 @@ wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_cmp_builtins(wabi_vm vm, wabi_env env)
 {
-  WABI_DEFN(vm, env, "=", "wabi:=", wabi_cmp_eq_builtin);
-  WABI_DEFN(vm, env, ">", "wabi:gt", wabi_cmp_gt_builtin);
-  WABI_DEFN(vm, env, "<", "wabi:lt", wabi_cmp_lt_builtin);
-  /* WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
-  /* WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */
+  wabi_error_type res;
+  res = WABI_DEFN(vm, env, "=", "wabi:=", wabi_cmp_eq_builtin);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, ">", "wabi:gt", wabi_cmp_gt_builtin);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "<", "wabi:lt", wabi_cmp_lt_builtin);
+  if(res) return res;
+  /* res = WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
+  /* res = WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */
 }

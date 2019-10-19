@@ -13,7 +13,7 @@ typedef struct wabi_env_struct {
 
 typedef wabi_env_t* wabi_env;
 
-#define WABI_ENV_SIZE 3
+#define WABI_ENV_SIZE 2
 
 wabi_env
 wabi_env_extend(wabi_vm vm, wabi_env prev);
@@ -30,6 +30,7 @@ wabi_env_lookup(wabi_env env, wabi_symbol k);
 wabi_error_type
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
-void
+
+wabi_error_type
 wabi_env_builtins(wabi_vm vm, wabi_env env);
 #endif

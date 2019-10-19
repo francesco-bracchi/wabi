@@ -9,7 +9,7 @@
 int
 wabi_cmp(wabi_val left, wabi_val right);
 
-void
+wabi_error_type
 wabi_cmp_builtins(wabi_vm vm, wabi_env env);
 
 #endif

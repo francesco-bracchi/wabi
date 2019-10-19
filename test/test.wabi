@@ -1,5 +1,6 @@
-
 (def q (fx _ (p) p))
+
+(pr "XXX")
 
 (def qs (fx _ p p))
 
@@ -86,5 +87,12 @@
    (< n 2) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
+(def t0 (clock))
 
-(pr (fib 13))
+(def n 10)
+
+(pr (list (q fib) n) (fib n))
+
+(def t (clock))
+
+(pr "time:" (- t t0) "ms")

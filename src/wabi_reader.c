@@ -170,7 +170,6 @@ wabi_reader_read_ignore(wabi_vm vm) {
     *res = wabi_val_ignore;
     return res;
   }
-  vm->errno = wabi_error_nomem;
   return NULL;
 }
 

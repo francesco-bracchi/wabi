@@ -245,7 +245,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_constant:
     switch(*val) {
     case wabi_val_nil:
-      printf("nil");
+      printf("()");
       break;
     case wabi_val_false:
       printf("false");
@@ -314,6 +314,7 @@ wabi_pr(wabi_val val) {
     wabi_pr_env((wabi_env) val);
     break;
   case wabi_tag_forward:
+    printf("F#");
     wabi_pr((wabi_val) WABI_WORD_VAL(*val));
     break;
   default:

@@ -7,11 +7,12 @@
 #include "wabi_env.h"
 #include "wabi_pair.h"
 #include "wabi_binary.h"
+#include "wabi_error.h"
 
 
 #define WABI_BUILTIN_WRAP1(name, fun)                           \
-  void                                                          \
-  name(wabi_vm vm, wabi_env env)                                \
+  wabi_error_type                                               \
+  name(wabi_vm vm)                                              \
   {                                                             \
     wabi_val ctrl, x;                                           \
     ctrl = vm->control;                                         \
@@ -19,39 +20,43 @@
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \
       if(*ctrl == wabi_val_nil) {                               \
-        fun(vm, env, x);                                        \
-        return;                                                 \
+        return fun(vm, x);                                      \
       }                                                         \
     }                                                           \
-    vm->errno = wabi_error_bindings;                            \
+    return wabi_error_bindings;                                 \
   }                                                             \
 
 
 #define WABI_BUILTIN_WRAP2(name, fun)                           \
-  void                                                          \
-  name(wabi_vm vm, wabi_env env)                                \
+  wabi_error_type                                               \
+  name(wabi_vm vm)                                              \
   {                                                             \
+    printf("A\n");                                              \
     wabi_val ctrl, x, y;                                        \
     ctrl = vm->control;                                         \
+    printf("0\n");                                              \
     if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
+      printf("1\n");                                            \
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \
       if(WABI_IS(wabi_tag_pair, ctrl)) {                        \
+        printf("2\n");                                          \
         y = wabi_car((wabi_pair) ctrl);                         \
         ctrl = wabi_cdr((wabi_pair) ctrl);                      \
         if(*ctrl == wabi_val_nil) {                             \
-          fun(vm, env, x, y);                                   \
-          return;                                               \
+          printf("3\n");                                        \
+          return fun(vm, x, y);                                 \
         }                                                       \
       }                                                         \
     }                                                           \
-    vm->errno = wabi_error_bindings;                            \
+    printf("x\n");                                              \
+    return wabi_error_bindings;                                 \
   }                                                             \
 
 
 #define WABI_BUILTIN_WRAP3(name, fun)                           \
-  void                                                          \
-  name(wabi_vm vm, wabi_env env)                                \
+  wabi_error_type                                               \
+  name(wabi_vm vm)                                              \
   {                                                             \
     wabi_val ctrl, x, y, z;                                     \
     ctrl = vm->control;                                         \
@@ -65,13 +70,12 @@
           z = wabi_car((wabi_pair) ctrl);                       \
           ctrl = wabi_cdr((wabi_pair) ctrl);                    \
           if(*ctrl == wabi_val_nil) {                           \
-            fun(vm, env, x, y, z);                              \
-            return;                                             \
+            return fun(vm, x, y, z);                            \
           }                                                     \
         }                                                       \
       }                                                         \
     }                                                           \
-    vm->errno = wabi_error_bindings;                            \
+    return wabi_error_bindings;                                 \
   }                                                             \
 
 
@@ -122,7 +126,7 @@ wabi_builtin_stdenv(wabi_vm vm);
 
 
 /*** this function doesn't belong to this header ***/
-void
+wabi_error_type
 wabi_builtin_load(wabi_vm vm, wabi_env env, char* data);
 
 #endif

@@ -44,7 +44,7 @@ wabi_cdr(wabi_pair pair)
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
 }
 
-void
+wabi_error_type
 wabi_pair_builtins(wabi_vm vm, wabi_env env);
 
 #endif

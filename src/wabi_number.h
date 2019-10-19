@@ -21,7 +21,7 @@ wabi_fixnum
 wabi_fixnum_new(wabi_vm vm,
                 int64_t val);
 
-void
+wabi_error_type
 wabi_number_builtins(wabi_vm vm, wabi_env env);
 
 #endif

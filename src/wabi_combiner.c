@@ -42,32 +42,32 @@ wabi_application_builtin_new(wabi_vm vm,
 }
 
 
-// TODO: support variadic body?
-static inline void
-wabi_combiner_fx_bt(wabi_vm vm, wabi_env env, wabi_val e, wabi_val fs, wabi_val bd)
+// TODO: support implicit multiexpression body?
+static inline wabi_error_type
+wabi_combiner_fx_bt(wabi_vm vm, wabi_val e, wabi_val fs, wabi_val bd)
 {
   wabi_combiner_derived res;
 
   if(!WABI_IS(wabi_tag_symbol, e) && *e != wabi_val_ignore) {
-    vm->errno = wabi_error_type_mismatch;
-    return;
+    return wabi_error_type_mismatch;
   }
   if(wabi_vm_has_rooms(vm, WABI_COMBINER_DERIVED_SIZE)) {
     res = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-    res->static_env = (wabi_word) env;
+    res->static_env = (wabi_word) ((wabi_cont_call) vm->continuation)->env;
     res->caller_env_name = (wabi_word) e;
     res->parameters = (wabi_word) fs;
     res->body = (wabi_word) bd;
     WABI_SET_TAG(res, wabi_tag_oper);
+    wabi_cont_pop(vm);
     vm->control = (wabi_val) res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
+  return wabi_error_nomem;
 }
 
 
-static inline void
-wabi_combiner_wrap_bt(wabi_vm vm, wabi_env env, wabi_val fx)
+static inline wabi_error_type
+wabi_combiner_wrap_bt(wabi_vm vm, wabi_val fx)
 {
   wabi_val res;
 
@@ -78,28 +78,28 @@ wabi_combiner_wrap_bt(wabi_vm vm, wabi_env env, wabi_val fx)
       memcpy(res, fx, sizeof(wabi_combiner_derived_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_app);
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   case wabi_tag_bt_oper:
     if(wabi_vm_has_rooms(vm, WABI_COMBINER_BUILTIN_SIZE)) {
       res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
       memcpy(res, fx, sizeof(wabi_combiner_builtin_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_bt_app);
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
 
-static inline void
-wabi_combiner_unwrap_bt(wabi_vm vm, wabi_env env, wabi_val fn)
+static inline wabi_error_type
+wabi_combiner_unwrap_bt(wabi_vm vm, wabi_val fn)
 {
   wabi_val res;
 
@@ -110,28 +110,28 @@ wabi_combiner_unwrap_bt(wabi_vm vm, wabi_env env, wabi_val fn)
       memcpy(res, fn, sizeof(wabi_combiner_derived_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_oper);
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   case wabi_tag_bt_app:
     if(wabi_vm_has_rooms(vm, WABI_COMBINER_BUILTIN_SIZE)) {
       res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
       memcpy(res, fn, sizeof(wabi_combiner_builtin_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_bt_oper);
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
 
-static inline void
-wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
+static inline wabi_error_type
+wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
@@ -147,16 +147,16 @@ wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
     default:
       *res = wabi_val_false;
     }
+    wabi_cont_pop(vm);
     vm->control = res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
-  return;
+  return wabi_error_nomem;
 }
 
 
-static inline void
-wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
+static inline wabi_error_type
+wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
@@ -170,15 +170,15 @@ wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
     default:
       *res = wabi_val_false;
     }
+    wabi_cont_pop(vm);
     vm->control = res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
-  return;
+  return wabi_error_nomem;
 }
 
-static inline void
-wabi_combiner_operative_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
+static inline wabi_error_type
+wabi_combiner_operative_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
@@ -192,15 +192,16 @@ wabi_combiner_operative_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
     default:
       *res = wabi_val_false;
     }
+    wabi_cont_pop(vm);
     vm->control = res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
+  return wabi_error_nomem;
 }
 
 
-static inline void
-wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
+static inline wabi_error_type
+wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
@@ -214,16 +215,16 @@ wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
     default:
       *res = wabi_val_false;
     }
+    wabi_cont_pop(vm);
     vm->control = res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
-  return;
+  return wabi_error_nomem;
 }
 
 
-static inline void
-wabi_combiner_derived_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
+static inline wabi_error_type
+wabi_combiner_derived_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
@@ -237,96 +238,101 @@ wabi_combiner_derived_p_bt(wabi_vm vm, wabi_env env, wabi_val v)
     default:
       *res = wabi_val_false;
     }
+    wabi_cont_pop(vm);
     vm->control = res;
-    return;
+    return wabi_error_none;
   }
-  vm->errno = wabi_error_nomem;
+  return wabi_error_nomem;
 }
 
 
-static inline void
-wabi_combiner_body_bt(wabi_vm vm, wabi_env env, wabi_val f)
+static inline wabi_error_type
+wabi_combiner_body_bt(wabi_vm vm, wabi_val f)
 {
   wabi_val res;
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
+    wabi_cont_pop(vm);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->body;
-    return;
+    return wabi_error_none;
   default:
     if(wabi_vm_has_rooms(vm, 1)) {
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_nil; // vm->nil; vm->true; vm->false;
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
 
-static inline void
-wabi_combiner_static_env_bt(wabi_vm vm, wabi_env env, wabi_val f)
+static inline wabi_error_type
+wabi_combiner_static_env_bt(wabi_vm vm, wabi_val f)
 {
   wabi_val res;
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
+    wabi_cont_pop(vm);
     vm->control = (wabi_val) WABI_WORD_VAL(((wabi_combiner_derived) f)->static_env);
-    return;
+    return wabi_error_none;
   default:
     if(wabi_vm_has_rooms(vm, 1)) {
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_nil; // vm->nil;
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
 
-static inline void
-wabi_combiner_parameters_bt(wabi_vm vm, wabi_env env, wabi_val f)
+static inline wabi_error_type
+wabi_combiner_parameters_bt(wabi_vm vm, wabi_val f)
 {
   wabi_val res;
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
+    wabi_cont_pop(vm);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->parameters;
-    return;
+    return wabi_error_none;
   default:
     if(wabi_vm_has_rooms(vm, 1)) {
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_nil; // vm->nil;
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
 
-static inline void
-wabi_combiner_caller_env_name_bt(wabi_vm vm, wabi_env env, wabi_val f)
+static inline wabi_error_type
+wabi_combiner_caller_env_name_bt(wabi_vm vm, wabi_val f)
 {
   wabi_val res;
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
+    wabi_cont_pop(vm);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->caller_env_name;
   default:
     if(wabi_vm_has_rooms(vm, 1)) {
       res = wabi_vm_alloc(vm, 1);
-      *res = wabi_val_nil; // vm->nil;
+      *res = wabi_val_nil;
+      wabi_cont_pop(vm);
       vm->control = res;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
 }
 
@@ -345,19 +351,33 @@ WABI_BUILTIN_WRAP1(wabi_combiner_builtin_parameters, wabi_combiner_parameters_bt
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_caller_env_name, wabi_combiner_caller_env_name_bt)
 
 
-void
+wabi_error_type
 wabi_combiner_builtins(wabi_vm vm, wabi_env env)
 {
-  WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx);
-  WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_combiner_builtin_wrap);
-  WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_combiner_builtin_unwrap);
-  WABI_DEFN(vm, env, "comb?", "wabi:comb?", wabi_combiner_builtin_combiner_p);
-  WABI_DEFN(vm, env, "app?", "wabi:app?", wabi_combiner_builtin_applicative_p);
-  WABI_DEFN(vm, env, "oper?", "wabi:oper?", wabi_combiner_builtin_operative_p);
-  WABI_DEFN(vm, env, "op/builtin?", "wabi:op/builtin?", wabi_combiner_builtin_builtin_p);
-  WABI_DEFN(vm, env, "op/derived?", "wabi:op/derived?", wabi_combiner_builtin_derived_p);
-  WABI_DEFN(vm, env, "op/body", "wabi:op/body", wabi_combiner_builtin_body);
-  WABI_DEFN(vm, env, "op/static-env", "wabi:op/static-env", wabi_combiner_builtin_static_env);
-  WABI_DEFN(vm, env, "op/parameters", "wabi:op/parameters", wabi_combiner_builtin_parameters);
-  WABI_DEFN(vm, env, "op/caller-env-name", "wabi:op/caller-env-name", wabi_combiner_builtin_caller_env_name);
+  wabi_error_type res;
+  res = WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx);
+  if(res) return res;
+
+  res = WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_combiner_builtin_wrap);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_combiner_builtin_unwrap);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "comb?", "wabi:comb?", wabi_combiner_builtin_combiner_p);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "app?", "wabi:app?", wabi_combiner_builtin_applicative_p);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "oper?", "wabi:oper?", wabi_combiner_builtin_operative_p);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/builtin?", "wabi:op/builtin?", wabi_combiner_builtin_builtin_p);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/derived?", "wabi:op/derived?", wabi_combiner_builtin_derived_p);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/body", "wabi:op/body", wabi_combiner_builtin_body);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/static-env", "wabi:op/static-env", wabi_combiner_builtin_static_env);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/parameters", "wabi:op/parameters", wabi_combiner_builtin_parameters);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "op/caller-env-name", "wabi:op/caller-env-name", wabi_combiner_builtin_caller_env_name);
+  if(res) return res;
 }

@@ -25,6 +25,6 @@ main(int argc,
 
   e0 = wabi_builtin_stdenv(&vm);
   vm.control = wabi_reader_read(&vm, "(pr-str \"Hello World.\")");
-  vm.continuation = (wabi_val) wabi_cont_eval_new(&vm, e0, NULL);
+  wabi_cont_push_eval(&vm, e0);
   return 0;
 }

@@ -9,6 +9,7 @@
 #include "wabi_error.h"
 #include "wabi_number.h"
 #include "wabi_builtin.h"
+#include "wabi_error.h"
 
 
 wabi_binary_leaf
@@ -110,8 +111,8 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len)
 }
 
 
-inline static wabi_val
-wabi_binary_concat_bt(wabi_vm vm, wabi_env env, wabi_val l, wabi_val r)
+inline static wabi_error_type
+wabi_binary_concat_bt(wabi_vm vm, wabi_val l, wabi_val r)
 {
   wabi_binary_node node;
   wabi_size length;
@@ -123,18 +124,17 @@ wabi_binary_concat_bt(wabi_vm vm, wabi_env env, wabi_val l, wabi_val r)
       node->left = (wabi_word) l;
       node->right = (wabi_word) r;
       WABI_SET_TAG(node, wabi_tag_bin_node);
-      return (wabi_val) node;
+      vm->control = (wabi_val) node;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return vm->control;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  return wabi_error_type_mismatch;
 }
 
 
-inline static wabi_val
-wabi_binary_sub_bt(wabi_vm vm, wabi_env env, wabi_val bin, wabi_val from, wabi_val len)
+inline static wabi_error_type
+wabi_binary_sub_bt(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
 {
   wabi_word f, l, l0;
   wabi_val res;
@@ -148,17 +148,19 @@ wabi_binary_sub_bt(wabi_vm vm, wabi_env env, wabi_val bin, wabi_val from, wabi_v
 
     if(f >= 0L && f < l0 && l >= 0L && l < l0 - f) {
       res = (wabi_val) wabi_binary_sub(vm, (wabi_binary) bin, f, l);
-      if(res) return res;
-      vm->errno = wabi_error_nomem;
-      return vm->control;
+      if(res) {
+        wabi_cont_pop(vm);
+        vm->control = res;
+        return wabi_error_none;
+      }
+      return wabi_error_nomem;
     }
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  return wabi_error_type_mismatch;
 }
 
-inline static wabi_val
-wabi_binary_length_bt(wabi_vm vm, wabi_env env, wabi_val bin)
+inline static wabi_error_type
+wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
 {
   wabi_val res;
   if(wabi_binary_p(bin)) {
@@ -166,13 +168,13 @@ wabi_binary_length_bt(wabi_vm vm, wabi_env env, wabi_val bin)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_binary_length((wabi_binary) bin);
       WABI_SET_TAG(res, wabi_tag_fixnum);
-      return res;
+      vm->control = res;
+      wabi_cont_pop(vm);
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return vm->control;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_type_mismatch;
-  return vm->control;
+  return wabi_error_type_mismatch;
 }
 
 

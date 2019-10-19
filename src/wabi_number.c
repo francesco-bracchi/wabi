@@ -24,7 +24,7 @@ wabi_fixnum_new(wabi_vm vm,
 }
 
 
-void
+wabi_error_type
 wabi_number_builtin_sum(wabi_vm vm, wabi_env env)
 {
   long ac;
@@ -43,18 +43,17 @@ wabi_number_builtin_sum(wabi_vm vm, wabi_env env)
       a = wabi_vm_alloc(vm, 1);
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
+      wabi_cont_pop(vm);
       vm->control = a;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_number_builtin_mul(wabi_vm vm, wabi_env env)
 {
   long ac;
@@ -73,18 +72,17 @@ wabi_number_builtin_mul(wabi_vm vm, wabi_env env)
       a = wabi_vm_alloc(vm, 1);
       *a = ac& wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
+      wabi_cont_pop(vm);
       vm->control = a;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
 {
   long ac;
@@ -107,18 +105,18 @@ wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
       a = wabi_vm_alloc(vm, 1);
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
+      wabi_cont_pop(vm);
+      wabi_pr(a);
       vm->control = a;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_number_builtin_div(wabi_vm vm, wabi_env env)
 {
   long x, ac;
@@ -136,8 +134,7 @@ wabi_number_builtin_div(wabi_vm vm, wabi_env env)
     x = WABI_CAST_INT64(a);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(x == 0) {
-      vm->errno = wabi_error_division_by_zero;
-      return;
+      return wabi_error_division_by_zero;
     }
     ac /= x;
   }
@@ -146,22 +143,26 @@ wabi_number_builtin_div(wabi_vm vm, wabi_env env)
       a = wabi_vm_alloc(vm, 1);
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
+      wabi_cont_pop(vm);
       vm->control = a;
-      return;
+      return wabi_error_none;
     }
-    vm->errno = wabi_error_nomem;
-    return;
+    return wabi_error_nomem;
   }
-  vm->errno = wabi_error_bindings;
-  return;
+  return wabi_error_bindings;
 }
 
 
-void
+wabi_error_type
 wabi_number_builtins(wabi_vm vm, wabi_env env)
 {
-  WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum);
-  WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mul);
-  WABI_DEFN(vm, env, "-", "wabi:+", wabi_number_builtin_diff);
-  WABI_DEFN(vm, env, "/", "wabi:*", wabi_number_builtin_div);
+  wabi_error_type res;
+  res = WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mul);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "-", "wabi:+", wabi_number_builtin_diff);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "/", "wabi:*", wabi_number_builtin_div);
+  if(res) return res;
 }
