@@ -107,8 +107,8 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
 
   for(;;) {
     exp = wabi_reader_read_val(vm, &str);
-    wabi_pr(exp);
-    printf("\n");
+    /* wabi_pr(exp); */
+    /* printf("\n"); */
     // gc before...
     if(exp == NULL) {
       exp = wabi_reader_read_val(vm, &str);
@@ -118,8 +118,12 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
     if(vm->continuation) wabi_cont_pop(vm);
     wabi_cont_push_eval(vm, env);
     e = wabi_vm_run(vm);
-    printf("XXXX: %i\n", e);
-    if(e) return e;
+    if(e == wabi_error_done)
+      continue;
+        if(e) {
+        printf("foo %i\n", e);
+        return e;
+        }
   }
   return wabi_error_none;
 }
@@ -209,6 +213,7 @@ wabi_builtin_pr(wabi_vm vm)
   }
   wabi_cont_pop(vm);
   printf("\n");
+  return wabi_error_none;
 }
 
 
@@ -278,9 +283,10 @@ wabi_builtin_clock(wabi_vm vm)
     if(wabi_vm_has_rooms(vm, 1)) {
       clock_t t = clock();
       res = wabi_vm_alloc(vm, 1);
-      *res = t & wabi_word_value_mask;
+      *res = (t * 1000000 / CLOCKS_PER_SEC) & wabi_word_value_mask;
       WABI_SET_TAG(res, wabi_tag_fixnum);
       vm->control = res;
+      wabi_cont_pop(vm);
       return wabi_error_none;
     }
     return wabi_error_nomem;

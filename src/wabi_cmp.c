@@ -304,6 +304,7 @@ wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
+        wabi_cont_pop(vm);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -314,6 +315,7 @@ wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
+      wabi_cont_pop(vm);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -340,6 +342,7 @@ wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
+        wabi_cont_pop(vm);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -350,6 +353,7 @@ wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
+      wabi_cont_pop(vm);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -376,6 +380,7 @@ wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
         vm->control = res;
+        wabi_cont_pop(vm);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -386,6 +391,7 @@ wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
       res = wabi_vm_alloc(vm, 1);
       *res = wabi_val_true;
       vm->control = res;
+      wabi_cont_pop(vm);
       return wabi_error_none;
     }
     return wabi_error_nomem;

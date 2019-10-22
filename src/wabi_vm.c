@@ -131,6 +131,14 @@ wabi_vm_reduce(wabi_vm vm)
 
   cont = vm->continuation;
 
+  if(!cont) {
+    /* control x0 */
+    /* stack: nil */
+    /* -------------------------------------- */
+    /* WIN! */
+    return wabi_error_done;
+  }
+
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
 
@@ -184,6 +192,7 @@ wabi_vm_reduce(wabi_vm vm)
       if(wabi_vm_has_rooms(vm, WABI_CONT_CALL_SIZE)) {
         wabi_cont_pop(vm);
         wabi_cont_push_call(vm, (wabi_env) ((wabi_cont_apply) cont)->env, vm->control);
+        vm->control = ((wabi_cont_apply) cont)->args;
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -210,11 +219,11 @@ wabi_vm_reduce(wabi_vm vm)
     /* stack: ((eval e0) (eval-more e0 as nil) (call e0 c) . s) */
     if(wabi_combiner_is_applicative((wabi_val) vm->control) && WABI_IS(wabi_tag_pair, ((wabi_cont_apply) cont)->args)) {
       if(wabi_vm_has_rooms(vm, WABI_CONT_EVAL_SIZE + WABI_CONT_EVAL_MORE_SIZE + WABI_CONT_CALL_SIZE + 1)) {
-        vm->control = wabi_car((wabi_pair) ((wabi_cont_apply) cont)->args);
         wabi_cont_pop(vm);
         wabi_cont_push_call(vm, (wabi_env) ((wabi_cont_apply) cont)->env, vm->control);
         wabi_cont_push_eval_more(vm, (wabi_env) ((wabi_cont_apply) cont)->env, wabi_cdr((wabi_pair) ((wabi_cont_apply) cont)->args), wabi_vm_nil(vm));
         wabi_cont_push_eval(vm, (wabi_env) ((wabi_cont_apply) cont)->env);
+        vm->control = wabi_car((wabi_pair) ((wabi_cont_apply) cont)->args);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -231,13 +240,13 @@ wabi_vm_reduce(wabi_vm vm)
     /* stack: ((eval e0) (eval-more e0 as (cons x xs)) . s) */
     if(WABI_IS(wabi_tag_pair, ((wabi_cont_eval_more) cont)->data)) {
       if(wabi_vm_has_rooms(vm, WABI_CONT_EVAL_SIZE + WABI_CONT_EVAL_MORE_SIZE + WABI_PAIR_SIZE)) {
-        vm->control = wabi_car((wabi_pair) ((wabi_cont_eval_more) cont)->data);
         wabi_cont_pop(vm);
         wabi_cont_push_eval_more(vm,
                                  (wabi_env) ((wabi_cont_eval_more) cont)->env,
                                  wabi_cdr((wabi_pair) ((wabi_cont_eval_more) cont)->data),
                                  (wabi_val) wabi_cons(vm, vm->control, (wabi_val) ((wabi_cont_eval_more) cont)->done));
         wabi_cont_push_eval(vm, (wabi_env) ((wabi_cont_eval_more) cont)->env);
+        vm->control = wabi_car((wabi_pair) ((wabi_cont_eval_more) cont)->data);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -338,16 +347,24 @@ wabi_vm_reduce(wabi_vm vm)
       return wabi_error_none;
     }
     return wabi_error_nomem;
+
+  case wabi_tag_cont_def:
+
+    /* control: as */
+    /* stack: ((def e0 ps) . s) */
+    /* -------------------------------------- */
+    /* control: as */
+    /* stack: s // (bind e0 ps as) */
+    err = wabi_vm_bind(vm, (wabi_env) ((wabi_cont_def) cont)->env, vm->control, (wabi_val) ((wabi_cont_def) cont)->pattern);
+    if(err) return err;
+    wabi_cont_pop(vm);
+    return wabi_error_none;
   }
-  /* control x0 */
-  /* stack: nil */
-  /* -------------------------------------- */
-  /* WIN! */
-  return wabi_error_none;
+  return wabi_error_other;
 }
 
 
-#define WABI_REDUCTIONS_LIMIT 10000
+#define WABI_REDUCTIONS_LIMIT 1000000
 
 wabi_error_type
 wabi_vm_run(wabi_vm vm) {
@@ -356,10 +373,12 @@ wabi_vm_run(wabi_vm vm) {
   reductions = WABI_REDUCTIONS_LIMIT;
   do {
     reductions--;
+
+    printf("used: %lu\n", (vm->store.heap - vm->store.space));
     printf("c: ");
     wabi_pr(vm->control);
     printf("\nk: ");
-    wabi_pr(vm->continuation);
+    if(vm->continuation) wabi_pr(vm->continuation);
     printf("\n-----------------------------------------------\n");
     err = wabi_vm_reduce(vm);
     if(! err) continue;
@@ -367,9 +386,11 @@ wabi_vm_run(wabi_vm vm) {
       wabi_vm_collect(vm);
       err = wabi_vm_reduce(vm);
       if(err) return err;
-      break;
+      continue;
     }
     return err;
-  } while(reductions);
-  return wabi_error_none;
+  } while(1);
+  /* } while(reductions); */
+  printf("IMPOSSIBLE\n");
+  return wabi_error_timeout;
 }

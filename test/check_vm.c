@@ -26,7 +26,7 @@ wabi_vm_t vm;
 void
 setup(void)
 {
-  wabi_vm_init(&vm, 500000);
+  wabi_vm_init(&vm, 10000);
 }
 
 
@@ -215,10 +215,6 @@ START_TEST(load)
 
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
-
-  printf("result\n");
-  wabi_pr(vm.control);
-  printf("\n");
 }
 END_TEST
 

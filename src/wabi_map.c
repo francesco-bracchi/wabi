@@ -19,7 +19,7 @@ q * 1. an empty map is an array map 0 length
 #include "wabi_cmp.h"
 #include "wabi_map.h"
 
-#define WABI_MAP_HALLOC 50
+#define WABI_MAP_HALLOC 80
 
 /**
  * Assoc operation

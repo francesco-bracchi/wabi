@@ -106,7 +106,6 @@ wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
       wabi_cont_pop(vm);
-      wabi_pr(a);
       vm->control = a;
       return wabi_error_none;
     }
@@ -161,8 +160,8 @@ wabi_number_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mul);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "-", "wabi:+", wabi_number_builtin_diff);
+  res = WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_builtin_diff);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "/", "wabi:*", wabi_number_builtin_div);
+  res = WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_builtin_div);
   if(res) return res;
 }

@@ -31,25 +31,19 @@
   wabi_error_type                                               \
   name(wabi_vm vm)                                              \
   {                                                             \
-    printf("A\n");                                              \
     wabi_val ctrl, x, y;                                        \
     ctrl = vm->control;                                         \
-    printf("0\n");                                              \
     if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
-      printf("1\n");                                            \
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \
       if(WABI_IS(wabi_tag_pair, ctrl)) {                        \
-        printf("2\n");                                          \
         y = wabi_car((wabi_pair) ctrl);                         \
         ctrl = wabi_cdr((wabi_pair) ctrl);                      \
         if(*ctrl == wabi_val_nil) {                             \
-          printf("3\n");                                        \
           return fun(vm, x, y);                                 \
         }                                                       \
       }                                                         \
     }                                                           \
-    printf("x\n");                                              \
     return wabi_error_bindings;                                 \
   }                                                             \
 

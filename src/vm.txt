@@ -94,6 +94,13 @@ control: x
 stack: ((prog e0 xs) . s)
 
 
+control: as
+stack: ((def e0 ps) . s)
+--------------------------------------
+control: (last vs)
+stack: s // (bind e0 ps as)
+
+
 control x0
 stack: nil
 --------------------------------------

@@ -1,0 +1,14 @@
+* Piano d'azione
+- [ ] ottimizzare il caso di continuazione eval-more per chiamata a funzione con un solo argomento?
+- [x] fare un reader in C
+- [ ] creare più builtin
+- [ ] scrivere test per verificare fexprs
+- [ ] scrivere test per verificare TCO
+- [ ] gestire lo store condiviso? (comunque implementare term_copy)
+- [ ] introdurre prompt/control e relative continuazioni e bookeeping delle continuazioni
+- [ ] oggetti var
+- [ ] oggetti alieni
+- [ ] tabella dei simboli condivisa
+- [ ] multi thread executor
+- [ ] fare un reader in wabi
+- [ ] wtf
