@@ -287,7 +287,7 @@ wabi_eq(wabi_val left, wabi_val right)
 
 
 wabi_error_type
-wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
+wabi_cmp_eq_builtin(wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 
@@ -325,7 +325,7 @@ wabi_cmp_eq_builtin(wabi_vm vm, wabi_env env)
 
 
 wabi_error_type
-wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
+wabi_cmp_gt_builtin(wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 
@@ -363,7 +363,7 @@ wabi_cmp_gt_builtin(wabi_vm vm, wabi_env env)
 
 
 wabi_error_type
-wabi_cmp_lt_builtin(wabi_vm vm, wabi_env env)
+wabi_cmp_lt_builtin(wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 

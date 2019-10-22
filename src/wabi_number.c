@@ -25,7 +25,7 @@ wabi_fixnum_new(wabi_vm vm,
 
 
 wabi_error_type
-wabi_number_builtin_sum(wabi_vm vm, wabi_env env)
+wabi_number_builtin_sum(wabi_vm vm)
 {
   long ac;
   wabi_val a, ctrl;
@@ -54,7 +54,7 @@ wabi_number_builtin_sum(wabi_vm vm, wabi_env env)
 
 
 wabi_error_type
-wabi_number_builtin_mul(wabi_vm vm, wabi_env env)
+wabi_number_builtin_mul(wabi_vm vm)
 {
   long ac;
   wabi_val a, ctrl;
@@ -83,7 +83,7 @@ wabi_number_builtin_mul(wabi_vm vm, wabi_env env)
 
 
 wabi_error_type
-wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
+wabi_number_builtin_diff(wabi_vm vm)
 {
   long ac;
   wabi_val a, ctrl;
@@ -116,7 +116,7 @@ wabi_number_builtin_diff(wabi_vm vm, wabi_env env)
 
 
 wabi_error_type
-wabi_number_builtin_div(wabi_vm vm, wabi_env env)
+wabi_number_builtin_div(wabi_vm vm)
 {
   long x, ac;
   wabi_val a, ctrl;

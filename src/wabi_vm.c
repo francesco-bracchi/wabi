@@ -192,7 +192,7 @@ wabi_vm_reduce(wabi_vm vm)
       if(wabi_vm_has_rooms(vm, WABI_CONT_CALL_SIZE)) {
         wabi_cont_pop(vm);
         wabi_cont_push_call(vm, (wabi_env) ((wabi_cont_apply) cont)->env, vm->control);
-        vm->control = ((wabi_cont_apply) cont)->args;
+        vm->control = (wabi_val) ((wabi_cont_apply) cont)->args;
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -374,18 +374,16 @@ wabi_vm_run(wabi_vm vm) {
   do {
     reductions--;
 
-    printf("used: %lu\n", (vm->store.heap - vm->store.space));
-    printf("c: ");
-    wabi_pr(vm->control);
-    printf("\nk: ");
-    if(vm->continuation) wabi_pr(vm->continuation);
-    printf("\n-----------------------------------------------\n");
+    /* printf("used: %lu\n", (vm->store.heap - vm->store.space)); */
+    /* printf("c: "); */
+    /* wabi_pr(vm->control); */
+    /* printf("\nk: "); */
+    /* if(vm->continuation) wabi_pr(vm->continuation); */
+    /* printf("\n-----------------------------------------------\n"); */
     err = wabi_vm_reduce(vm);
     if(! err) continue;
     if(err == wabi_error_nomem) {
       wabi_vm_collect(vm);
-      err = wabi_vm_reduce(vm);
-      if(err) return err;
       continue;
     }
     return err;

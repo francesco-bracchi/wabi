@@ -1,6 +1,5 @@
-(def q (fx _ (p) p))
 
-;; (pr "nonno nanni" "ninna nanna")
+(def q (fx _ (p) p))
 
 (def qs (fx _ p p))
 
@@ -46,7 +45,7 @@
 
 (def t0 (clock))
 
-(def n 10)
+(def n 15)
 
 (pr (list (q fib) n) (fib n))
 

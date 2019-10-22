@@ -88,7 +88,6 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_DEF_SIZE 3
 #define WABI_CONT_PROG_SIZE 3
 
-
 static inline void
 wabi_cont_push_eval(wabi_vm vm, wabi_env env)
 {
@@ -176,6 +175,7 @@ wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions)
   cont = (wabi_cont_prog) wabi_vm_alloc(vm, WABI_CONT_PROG_SIZE);
   cont->prev = (wabi_word) vm->continuation;
   cont->env = (wabi_word) env;
+  cont->expressions = (wabi_word) expressions;
   WABI_SET_TAG(cont, wabi_tag_cont_prog);
   vm->continuation = (wabi_val) cont;
 }
