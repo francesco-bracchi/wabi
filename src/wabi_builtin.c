@@ -259,7 +259,7 @@ wabi_builtin_do(wabi_vm vm)
       if(wabi_vm_has_rooms(vm, WABI_CONT_EVAL_SIZE + WABI_CONT_PROG_SIZE)) {
         env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
         wabi_cont_pop(vm);
-        wabi_cont_push_prog(vm, (wabi_env) env, wabi_cdr((wabi_pair) ctrl));
+        wabi_cont_push_prog(vm, (wabi_env) env, ctrl);
         wabi_cont_push_eval(vm, (wabi_env) env);
         vm->control = a;
         return wabi_error_none;

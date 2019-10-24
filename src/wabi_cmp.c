@@ -337,7 +337,7 @@ wabi_cmp_gt_builtin(wabi_vm vm)
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(a, b) > 0) {
+    if(wabi_cmp(a, b) >= 0) {
       if(wabi_vm_has_rooms(vm, 1)) {
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;
@@ -375,7 +375,7 @@ wabi_cmp_lt_builtin(wabi_vm vm)
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(a, b) < 0) {
+    if(wabi_cmp(a, b) <= 0) {
       if(wabi_vm_has_rooms(vm, 1)) {
         res = wabi_vm_alloc(vm, 1);
         *res = wabi_val_false;

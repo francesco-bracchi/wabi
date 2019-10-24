@@ -1,13 +1,13 @@
+(do
+ (def q (fx _ (p) p))
 
-(def q (fx _ (p) p))
+ (def qs (fx _ p p))
 
-(def qs (fx _ p p))
+  (def id (wrap q))
 
-(def id (wrap q))
+  (def list (wrap qs))
 
-(def list (wrap qs))
-
-(def env (fx e _ e))
+  (def env (fx e _ e))
 
 (def apply
   (wrap
@@ -45,7 +45,7 @@
 
 (def t0 (clock))
 
-(def n 15)
+(def n 27)
 
 (pr (list (q fib) n) (fib n))
 
@@ -96,3 +96,4 @@
 ;;       (pr as)
 ;;       (pr "time: " (- t t0))
 ;;       r))
+)

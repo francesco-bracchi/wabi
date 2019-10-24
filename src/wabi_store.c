@@ -340,7 +340,7 @@ wabi_store_collect_prepare(wabi_store store)
   int j;
 
   // printf("Before collection %i\n", wabi_store_used(store));
-  size3 = store->size * 2;
+  size3 = store->size;
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {
@@ -360,6 +360,5 @@ wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
   wabi_store_collect_resize(store);
-  printf("After collection %i\n", wabi_store_used(store));
   return 1;
 }
