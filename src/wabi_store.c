@@ -13,7 +13,7 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.2;
+static const double wabi_low_threshold = 0.021;
 
 int
 wabi_store_init(wabi_store store,
@@ -303,32 +303,32 @@ wabi_store_collect_heap(wabi_store store)
   while(scan < store->heap);
 }
 
-void
-wabi_store_collect_resize(wabi_store store)
-{
-  /* wabi_size used, new_size; */
-  /* wabi_word *new_space; */
-
-  /* used = store->heap - store->space; */
-
-  /* new_size = (wabi_size) ceil(used / wabi_low_threshold); */
-
-  /* new_space = realloc(store->space, new_size); */
-  /* store->limit = new_space + new_size; */
-  /* store->size = new_size; */
-  /* store->heap = new_space + used; */
-  /* store->space = new_space; */
-
-  free(store->old_space);
-  store->old_space = NULL;
-}
-
-
 static inline
-int
+wabi_word
 wabi_store_used(wabi_store store)
 {
   return (store->heap - store->space);
+}
+
+void
+wabi_store_collect_resize(wabi_store store)
+{
+  wabi_size used, new_size;
+  wabi_word *new_space;
+
+  used = wabi_store_used(store);
+
+  new_size = (wabi_size) ceil(used / wabi_low_threshold);
+  new_space = realloc(store->space, WABI_WORD_SIZE * new_size);
+  if(new_space != store->space) {
+    printf("BAD AND BREAKFAST");
+    exit(1);
+  }
+  store->limit = store->space + new_size;
+  store->size = new_size;
+
+  free(store->old_space);
+  store->old_space = NULL;
 }
 
 
@@ -339,8 +339,8 @@ wabi_store_collect_prepare(wabi_store store)
   wabi_size size3;
   int j;
 
-  // printf("Before collection %i\n", wabi_store_used(store));
-  size3 = store->size;
+  // printf("Before collection %i over %lu\n", wabi_store_used(store), store->size);
+  size3 = (wabi_size) ceil(store->size / wabi_low_threshold);
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {
@@ -360,5 +360,7 @@ wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
   wabi_store_collect_resize(store);
+
+  // printf("After collection %i over %lu\n", wabi_store_used(store), store->size);
   return 1;
 }

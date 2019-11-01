@@ -61,6 +61,7 @@ int
 wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
   vm->fuel = 100000;
+  vm->continuation = NULL;
   return wabi_store_init(&(vm->store), store_size);
 }
 

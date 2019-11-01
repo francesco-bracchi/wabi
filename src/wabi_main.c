@@ -15,16 +15,27 @@ int
 main(int argc,
      char* argv[])
 {
+
   wabi_vm_t vm;
   wabi_env e0;
+  int res;
+  char *buffer;
 
-  if (!ev_default_loop (0)) {
-    printf ("could not initialise libev, bad $LIBEV_FLAGS in environment?");
-    exit(1);
-  }
+  long length;
+
+  wabi_vm_init(&vm, 500000);
+
+  FILE * f = fopen("test/test.wabi", "rb");
+  fseek(f, 0, SEEK_END);
+  length = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  buffer = malloc(length + 1);
+  fread(buffer, 1, length, f);
+  buffer[length] = '\0';
+  fclose (f);
 
   e0 = wabi_builtin_stdenv(&vm);
-  vm.control = wabi_reader_read(&vm, "(pr-str \"Hello World.\")");
-  wabi_cont_push_eval(&vm, e0);
+  wabi_builtin_load(&vm, e0, buffer);
+  wabi_vm_destroy(&vm);
   return 0;
 }
