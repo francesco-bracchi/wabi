@@ -45,7 +45,7 @@
 
 (def t0 (clock))
 
-(def n 27)
+(def n 28)
 
 (pr (list (q fib) n) (fib n))
 

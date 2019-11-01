@@ -579,32 +579,33 @@ wabi_map_array_get_rec(wabi_map_array map,
                        wabi_word hash,
                        wabi_word hash_offset)
 {
-  wabi_map table;
-  wabi_word size;
+  wabi_map_entry table;
   wabi_val key0;
-  wabi_map_entry child, limit;
+  wabi_size size;
+  int first, last, middle;
   int cmp;
 
-  table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
   size = WABI_MAP_ARRAY_SIZE(map);
-  child = (wabi_map_entry) table;
-  limit = (wabi_map_entry) table + size;
+  if(size <= 0) return NULL;
 
-  while(child < limit) {
-    key0 = (wabi_val) WABI_MAP_ENTRY_KEY(child);
+  table = (wabi_map_entry) WABI_MAP_ARRAY_TABLE(map);
+  first = 0;
+  last = size - 1;
+  do {
+    middle = (last + first) / 2UL;
+    key0 = (wabi_val) WABI_MAP_ENTRY_KEY(table + middle);
     cmp = wabi_cmp(key, key0);
     if(cmp < 0) {
-      child++;
-      continue;
-    } else if(cmp == 0) {
-      return (wabi_val) WABI_MAP_ENTRY_VALUE(child);
-    } else {
-      return NULL;
+      first = middle + 1;
     }
-  }
+    else if(cmp > 0) {
+      last = middle - 1;
+    } else {
+      return (wabi_val) WABI_MAP_ENTRY_VALUE(table + middle);
+    }
+  } while(first <= last);
   return NULL;
 }
-
 
 wabi_val
 wabi_map_get_rec(wabi_map map,
