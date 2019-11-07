@@ -44,6 +44,7 @@ wabi_vm_collect(wabi_vm vm)
   if(wabi_store_collect_prepare(store)) {
     if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
     if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
+    if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
     return wabi_store_collect(store);
   }
   return 0;
@@ -60,9 +61,22 @@ wabi_vm_free_words(wabi_vm vm)
 int
 wabi_vm_init(wabi_vm vm, wabi_size store_size)
 {
+  int store_init;
+  wabi_val symbol_table;
+
   vm->fuel = 100000;
   vm->continuation = NULL;
-  return wabi_store_init(&(vm->store), store_size);
+  vm->symbol_table = NULL;
+  store_init = wabi_store_init(&(vm->store), store_size);
+  if(store_init) {
+    symbol_table = (wabi_val) wabi_map_empty(vm);
+    if(symbol_table) {
+      vm->symbol_table = symbol_table;
+      return store_init;
+    }
+    return wabi_error_nomem;
+  }
+  return store_init;
 }
 
 

@@ -233,13 +233,15 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
 int
 wabi_cmp(wabi_val a, wabi_val b)
 {
+  wabi_word tag;
+  wabi_word diff;
   // if the 2 values are the very same, they are equal :|
   if(a == b) return 0;
   // types are different => type order
-  wabi_word tag = WABI_TAG(a);
-  wabi_word tag_diff = tag - WABI_TAG(b);
-  if(tag_diff) {
-    return (int)(tag_diff >> wabi_word_tag_offset);
+  tag = WABI_TAG(a);
+  diff = tag - WABI_TAG(b);
+  if(diff) {
+    return (int)(diff >> wabi_word_tag_offset);
   }
   switch(tag) {
   case wabi_tag_constant:
@@ -273,7 +275,6 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
     return wabi_cmp_cont((wabi_cont) a, (wabi_cont) b);
-
   default:
     return *a - *b;
   }

@@ -11,6 +11,7 @@ typedef wabi_val wabi_control;
 typedef struct wabi_vm_struct {
   wabi_val control;
   wabi_val continuation;
+  wabi_val symbol_table;
   wabi_store_t store;
   wabi_size fuel;
 } wabi_vm_t;
