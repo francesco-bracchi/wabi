@@ -249,7 +249,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_fixnum:
     return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
   case wabi_tag_symbol:
-    return wabi_cmp(WABI_DEREF(a), WABI_DEREF(b));
+    return wabi_cmp(wabi_symbol_to_binary((wabi_symbol) a), wabi_symbol_to_binary((wabi_symbol) b));
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
     return wabi_cmp_binary((wabi_binary) a, (wabi_binary) b);
@@ -260,6 +260,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_entry:
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
   case wabi_tag_env:
+    // env can change... how can we maintain a constant hash?
     return wabi_cmp_env((wabi_env) a, (wabi_env) b);
   case wabi_tag_app:
   case wabi_tag_oper:

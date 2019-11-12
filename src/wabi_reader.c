@@ -159,7 +159,7 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
   free(buff);
   if(! res) return NULL;
-  return wabi_symbol_new(vm, res);
+  return (wabi_val) wabi_symbol_new(vm, res);
 }
 
 static inline wabi_val

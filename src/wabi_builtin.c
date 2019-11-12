@@ -120,10 +120,10 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
     e = wabi_vm_run(vm);
     if(e == wabi_error_done)
       continue;
-        if(e) {
-        printf("foo %i\n", e);
-        return e;
-        }
+    if(e) {
+      printf("foo %i\n", e);
+      return e;
+    }
   }
   return wabi_error_none;
 }

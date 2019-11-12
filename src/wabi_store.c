@@ -84,11 +84,11 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 
   case wabi_tag_constant:
   case wabi_tag_fixnum:
-  case wabi_tag_symbol:
     *res = *src;
     store->heap++;
     break;
 
+  case wabi_tag_symbol:
   case wabi_tag_pair:
   case wabi_tag_map_array:
   case wabi_tag_map_entry:
@@ -148,7 +148,7 @@ wabi_store_collect_heap(wabi_store store)
     case wabi_tag_symbol:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       WABI_SET_TAG(scan, wabi_tag_symbol);
-      scan++;
+      scan+=WABI_SYMBOL_SIZE;
       break;
 
     case wabi_tag_bin_node:
@@ -218,7 +218,7 @@ wabi_store_collect_heap(wabi_store store)
       }
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_env);
-      scan += 2;
+      scan += WABI_ENV_SIZE;
       break;
 
     case wabi_tag_cont_eval:

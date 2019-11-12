@@ -44,6 +44,7 @@ wabi_vm_collect(wabi_vm vm)
   if(wabi_store_collect_prepare(store)) {
     if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
     if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
+    // todo: do not copy the symbol table (it. should be fed during gc);
     if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
     return wabi_store_collect(store);
   }

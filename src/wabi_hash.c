@@ -124,7 +124,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     return;
   case wabi_tag_symbol:
     wabi_hash_step(state, "S", 1);
-    wabi_hash_val(state, WABI_DEREF(val));
+    wabi_hash_val(state, wabi_symbol_to_binary((wabi_symbol) val));
     return;
   case wabi_tag_pair:
     wabi_hash_step(state, "P", 1);
