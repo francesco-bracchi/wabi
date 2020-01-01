@@ -138,14 +138,23 @@ wabi_pr_map(wabi_map map)
 void
 wabi_pr_env(wabi_env env)
 {
-  printf("#env");
+  wabi_size j;
+  printf("#env(%u){", env->numE);
   do {
-    wabi_pr((wabi_val) env->data);
-    return;
+    for(j = 0; j < env->numE; j++) {
+      wabi_pr((wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE));
+      printf(": ");
+      wabi_pr((wabi_val) *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE));
+      if (j < env->numE - 1) {
+        printf(", ");
+      }
+    }
+
     env = (wabi_env) WABI_WORD_VAL(env->prev);
     if(env == NULL) break;
-    printf("+");
+    printf("} + {");
   } while(1);
+  printf("}");
 }
 
 
@@ -248,7 +257,6 @@ wabi_pr(wabi_val val) {
       printf("()");
       break;
     case wabi_val_false:
-      printf("false");
       break;
     case wabi_val_true:
       printf("true");
@@ -320,4 +328,13 @@ wabi_pr(wabi_val val) {
   default:
     printf("unknown %lx", *val);
   }
+}
+
+
+
+void
+wabi_prn(wabi_val val)
+{
+  wabi_pr(val);
+  printf("\n");
 }

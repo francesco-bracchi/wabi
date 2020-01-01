@@ -38,6 +38,7 @@ int
 wabi_vm_collect(wabi_vm vm)
 {
   wabi_store store;
+  int res;
 
   store = &(vm->store);
 
@@ -45,8 +46,12 @@ wabi_vm_collect(wabi_vm vm)
     if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
     if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
     // todo: do not copy the symbol table (it. should be fed during gc);
+    // vm->symbol_table = (wabi_word) wabi_map_empty();
     if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
-    return wabi_store_collect(store);
+    res = wabi_store_collect(store);
+    if(res) {
+      return res;
+    }
   }
   return 0;
 }
@@ -244,7 +249,6 @@ wabi_vm_reduce(wabi_vm vm)
       }
       return wabi_error_nomem;
     }
-
     return wabi_error_other;
 
   case wabi_tag_cont_eval_more:
@@ -290,18 +294,17 @@ wabi_vm_reduce(wabi_vm vm)
     /* control b */
     /* stack: ((eval (bind ex e0 ps as)) . s) */
     if(wabi_combiner_is_derived((wabi_val) ((wabi_cont_call) cont)->combiner)) {
-      if(wabi_vm_has_rooms(vm, WABI_ENV_SIZE + WABI_MAP_SIZE)) {
-        r0 = (wabi_val) wabi_env_extend(vm, (wabi_env) ((wabi_cont_call) cont)->env);
-        err = wabi_vm_bind(vm, (wabi_env) r0, (wabi_val) ((wabi_cont_call) cont)->env, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->caller_env_name);
-        if(err) return err;
-        err = wabi_vm_bind(vm, (wabi_env) r0, vm->control, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->parameters);
-        if(err) return err;
-        if(wabi_vm_has_rooms(vm, WABI_CONT_EVAL_SIZE)) {
-          wabi_cont_pop(vm);
-          wabi_cont_push_eval(vm, (wabi_env) r0);
-          vm->control = (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->body;
-          return wabi_error_none;
-        }
+      r0 = (wabi_val) wabi_env_extend(vm, (wabi_env) ((wabi_cont_call) cont)->env);
+      if(r0 == NULL) return wabi_error_nomem;
+      err = wabi_vm_bind(vm, (wabi_env) r0, (wabi_val) ((wabi_cont_call) cont)->env, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->caller_env_name);
+      if(err) return err;
+      err = wabi_vm_bind(vm, (wabi_env) r0, vm->control, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->parameters);
+      if(err) return err;
+      if(wabi_vm_has_rooms(vm, WABI_CONT_EVAL_SIZE)) {
+        wabi_cont_pop(vm);
+        wabi_cont_push_eval(vm, (wabi_env) r0);
+        vm->control = (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->body;
+        return wabi_error_none;
       }
       return wabi_error_nomem;
     }

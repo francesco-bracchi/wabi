@@ -311,8 +311,6 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = WABI_DEFX(vm, env, "do", "wabi:do", wabi_builtin_do);
   if(res) return NULL;
-  res = WABI_DEFX(vm, env, "if", "wabi:if", wabi_builtin_if);
-  if(res) return NULL;
   res = WABI_DEFN(vm, env, "pr", "wabi:pr", wabi_builtin_pr);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "eval", "wabi:eval", wabi_builtin_eval);

@@ -90,8 +90,12 @@ wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
 void
 wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
 {
+  wabi_size j;
   do {
-    wabi_hash_map(state, (wabi_map) env->data);
+    for(j = 0; j< env->numE; j++) {
+      wabi_hash_val(state, (wabi_val) (env->data + j * WABI_ENV_PAIR_SIZE));
+      wabi_hash_val(state, (wabi_val) (env->data + 1 + j * WABI_ENV_PAIR_SIZE));
+    }
     env = (wabi_env) WABI_WORD_VAL(env->prev);
   } while(env);
 }

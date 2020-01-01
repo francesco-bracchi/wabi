@@ -1,4 +1,3 @@
-
 #define wabi_store_c
 
 #include <stdlib.h>
@@ -14,6 +13,13 @@
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
 static const double wabi_low_threshold = 0.021;
+
+static inline void*
+wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
+{
+  return memcpy(dst, src, size * WABI_WORD_SIZE);
+}
+
 
 int
 wabi_store_init(wabi_store store,
@@ -61,10 +67,18 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
 }
 
 
+static inline wabi_size
+wabi_store_env_size(wabi_env env)
+{
+  return WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
+}
+
 wabi_word*
 wabi_store_copy_val(wabi_store store, wabi_word *src)
 {
   wabi_word* res;
+  wabi_size size;
+
   res = store->heap;
   switch(WABI_TAG(src)) {
 
@@ -84,11 +98,11 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 
   case wabi_tag_constant:
   case wabi_tag_fixnum:
+  case wabi_tag_symbol:
     *res = *src;
     store->heap++;
     break;
 
-  case wabi_tag_symbol:
   case wabi_tag_pair:
   case wabi_tag_map_array:
   case wabi_tag_map_entry:
@@ -96,8 +110,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
   case wabi_tag_cont_eval:
-  case wabi_tag_env:
-    memcpy(res, src, 2 * WABI_WORD_SIZE);
+    wordcopy(res, src, 2);
     store->heap += 2;
     break;
 
@@ -105,7 +118,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_call:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
-    memcpy(res, src, 3 * WABI_WORD_SIZE);
+    wordcopy(res, src, 3);
     store->heap += 3;
     break;
 
@@ -113,8 +126,16 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_oper:
   case wabi_tag_cont_eval_more:
   case wabi_tag_cont_sel:
-    memcpy(res, src, 4 * WABI_WORD_SIZE);
+    wordcopy(res, src, 4);
     store->heap += 4;
+    break;
+
+  case wabi_tag_env:
+    size = ((wabi_env) src)->numE * WABI_ENV_PAIR_SIZE;
+    wordcopy(res, src, WABI_ENV_SIZE);
+    wordcopy(res + WABI_ENV_SIZE, (wabi_word*) ((wabi_env) src)->data, size);
+    ((wabi_env) res)->data = (wabi_word) (res + WABI_ENV_SIZE);
+    store->heap += WABI_ENV_SIZE + size;
     break;
   }
 
@@ -123,12 +144,32 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   return res;
 }
 
+static inline void
+wabi_store_collect_env(wabi_store store, wabi_env env)
+{
+  wabi_size j;
+  wabi_word *k, *v;
+
+  if(WABI_WORD_VAL(env->prev)) {
+    env->prev = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(env->prev));
+    WABI_SET_TAG(env, wabi_tag_env);
+  }
+
+  env->maxE = env->numE;
+  // printf("--------------------------------------------------------\n");
+  for(j = 0; j < env->numE; j++) {
+    k = ((wabi_val) env->data) + 2 * j;
+    v = ((wabi_val) env->data) + 1 + 2 * j;
+
+    *k = (wabi_word) wabi_store_copy_val(store, (wabi_val) *k);
+    *v = (wabi_word) wabi_store_copy_val(store, (wabi_val) *v);
+  }
+}
 
 void
 wabi_store_collect_heap(wabi_store store)
 {
   wabi_word *scan, size, bitmap;
-
   scan = store->space;
   do {
     switch(WABI_TAG(scan)) {
@@ -172,7 +213,7 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_map_array:
       size = *(scan + 1);
-      memcpy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * WABI_WORD_SIZE * size);
+      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * size);
       *scan = (wabi_word) store->heap;
       store->heap += 2 * size;
       WABI_SET_TAG(scan, wabi_tag_map_array);
@@ -181,7 +222,7 @@ wabi_store_collect_heap(wabi_store store)
 
     case wabi_tag_map_hash:
       size = WABI_MAP_BITMAP_COUNT(*(scan + 1));
-      memcpy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * WABI_WORD_SIZE * size);
+      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * size);
       *scan = (wabi_word) store->heap;
       store->heap += 2 * size;
       WABI_SET_TAG(scan, wabi_tag_map_hash);
@@ -213,12 +254,8 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_env:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      WABI_SET_TAG(scan, wabi_tag_env);
-      scan += WABI_ENV_SIZE;
+      wabi_store_collect_env(store, (wabi_env) scan);
+      scan += wabi_store_env_size((wabi_env) scan);
       break;
 
     case wabi_tag_cont_eval:
@@ -321,7 +358,7 @@ wabi_store_collect_resize(wabi_store store)
   new_size = (wabi_size) ceil(used / wabi_low_threshold);
   new_space = realloc(store->space, WABI_WORD_SIZE * new_size);
   if(new_space != store->space) {
-    printf("BAD AND BREAKFAST");
+    fprintf(stderr, "resizing has moved heap around.\n");
     exit(1);
   }
   store->limit = store->space + new_size;

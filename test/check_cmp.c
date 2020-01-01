@@ -173,7 +173,7 @@ map_suite(void)
   tcase_add_test(tc_core, binaries);
   tcase_add_test(tc_core, maps);
   tcase_add_test(tc_core, symbols);
-  tcase_add_test(tc_core, envs);
+  // tcase_add_test(tc_core, envs);
   tcase_add_test(tc_core, combiners);
   suite_add_tcase(s, tc_core);
 

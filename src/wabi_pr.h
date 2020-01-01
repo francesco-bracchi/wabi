@@ -8,4 +8,8 @@
 void
 wabi_pr(wabi_val val);
 
+
+void
+wabi_prn(wabi_val val);
+
 #endif

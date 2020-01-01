@@ -123,16 +123,19 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 int
 wabi_cmp_env(wabi_env left, wabi_env right) {
   int cmp0;
-  do {
-    cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data);
-    if(cmp0) return cmp0;
+  /* do { */
+  /*   cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data); */
+  /*   if(cmp0) return cmp0; */
 
-    left = (wabi_env) WABI_WORD_VAL(left->prev);
-    right = (wabi_env) WABI_WORD_VAL(right->prev);
-    if(left == right) return 0;
-    if(left == NULL) return 1;
-    if(right == NULL) return -1;
-  } while(1);
+  /*   left = (wabi_env) WABI_WORD_VAL(left->prev); */
+  /*   right = (wabi_env) WABI_WORD_VAL(right->prev); */
+  /*   if(left == right) return 0; */
+  /*   if(left == NULL) return 1; */
+  /*   if(right == NULL) return -1; */
+  /* } while(1); */
+  // todo: implement me
+  wabi_word diff = right - left;
+  return diff == 0U ? 0 : diff > 0U ? 1 : -1;
 }
 
 
