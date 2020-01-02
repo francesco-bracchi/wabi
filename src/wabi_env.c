@@ -11,7 +11,6 @@
 #include "wabi_map.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
-#include "wabi_cmp.h"
 
 wabi_env
 wabi_env_extend(wabi_vm vm, wabi_env prev) {
@@ -43,12 +42,13 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
   wabi_symbol k0;
   do {
     for(j = 0; j < env->numE; j++) {
-      // printf("env: %lx\n", *(((wabi_word*) env->data) + j * WABI_ENV_PAIR_SIZE));
       k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
-      // wabi_pr(k); printf("="); wabi_prn(k0);
-      if(wabi_cmp(k0, k) == 0) {
+      if(k0 == k) {
         return (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
       }
+      /* if(wabi_cmp(k0, k) == 0) { */
+      /*   return (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j); */
+      /* } */
     }
     env = (wabi_env) WABI_WORD_VAL(env->prev);
   } while(env);

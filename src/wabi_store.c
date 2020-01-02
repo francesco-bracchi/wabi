@@ -36,11 +36,13 @@ wabi_store_init(wabi_store store,
   return 0;
 }
 
+
 void
 wabi_store_destroy(wabi_store store)
 {
   free(store->space);
 }
+
 
 void
 wabi_store_compact_binary(wabi_store store, wabi_val src)
@@ -72,6 +74,7 @@ wabi_store_env_size(wabi_env env)
 {
   return WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
 }
+
 
 wabi_word*
 wabi_store_copy_val(wabi_store store, wabi_word *src)

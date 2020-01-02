@@ -252,19 +252,31 @@ void
 wabi_pr(wabi_val val) {
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
-    switch(*val) {
-    case wabi_val_nil:
+    if(*val == wabi_val_nil) {
       printf("()");
-      break;
-    case wabi_val_false:
-      break;
-    case wabi_val_true:
-      printf("true");
-      break;
-    case wabi_val_ignore:
-      printf("_");
-      break;
     }
+    if(*val == wabi_val_false) {
+      printf("false");
+    }
+    if(*val == wabi_val_true) {
+      printf("true");
+    }
+    if(*val == wabi_val_ignore) {
+      printf("_");
+    }
+    /* switch(*val) { */
+    /* case wabi_val_nil: */
+    /*   printf("()"); */
+    /*   break; */
+    /* case wabi_val_false: */
+    /*   break; */
+    /* case wabi_val_true: */
+    /*   printf("true"); */
+    /*   break; */
+    /* case wabi_val_ignore: */
+    /*   printf("_"); */
+    /*   break; */
+    /* } */
     break;
   case wabi_tag_fixnum:
     printf("%ld", WABI_CAST_INT64(val));

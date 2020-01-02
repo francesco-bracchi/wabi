@@ -41,7 +41,7 @@ libwabi_la_SOURCES = \
 	wabi_reader.h \
 	wabi_reader.c
 
-libwabi_la_LIBADD=$(LIBEV)
+libwabi_la_LIBADD=$(LIBEV) -lm
 
 bin_PROGRAMS = wabi
 wabi_SOURCES = wabi_main.c
