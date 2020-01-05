@@ -330,6 +330,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_env_builtins(vm, env);
   if(res) return NULL;
+  res = wabi_cont_builtins(vm, env);
+  if(res) return NULL;
 
   /* WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx); */
   /* WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap); */

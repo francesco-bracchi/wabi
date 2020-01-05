@@ -284,10 +284,27 @@ wabi_cmp(wabi_val a, wabi_val b)
   }
 }
 
+
 int
 wabi_eq(wabi_val left, wabi_val right)
 {
-  return !wabi_cmp(left, right);
+  wabi_word tag;
+  wabi_word diff;
+
+  // if the 2 values are the very same, they are equal :|
+  if(left == right) return 1;
+  // types are different => they are not equal
+  tag = WABI_TAG(left);
+  diff = tag - WABI_TAG(right);
+  if(diff) return 0;
+
+  switch(tag) {
+  case wabi_tag_constant:
+  case wabi_tag_fixnum:
+    return (*left == *right);
+  default:
+    return !wabi_cmp(left, right);
+  }
 }
 
 

@@ -17,6 +17,14 @@ typedef struct wabi_cont_eval_struct {
 
 typedef wabi_cont_eval_t* wabi_cont_eval;
 
+typedef struct wabi_cont_prompt_struct {
+  wabi_word prev;
+  wabi_word env;
+  wabi_word tag;
+} wabi_cont_prompt_t;
+
+typedef wabi_cont_prompt_t* wabi_cont_prompt;
+
 typedef struct wabi_cont_apply_struct {
   wabi_word prev;
   wabi_word env;
@@ -81,6 +89,7 @@ typedef union wabi_cont_union {
 typedef wabi_cont_t* wabi_cont;
 
 #define WABI_CONT_EVAL_SIZE 2
+#define WABI_CONT_PROMPT_SIZE 3
 #define WABI_CONT_APPLY_SIZE 3
 #define WABI_CONT_CALL_SIZE 3
 #define WABI_CONT_SEL_SIZE 4
@@ -97,6 +106,19 @@ wabi_cont_push_eval(wabi_vm vm, wabi_env env)
   cont->prev = (wabi_word) vm->continuation;
   cont->env = (wabi_word) env;
   WABI_SET_TAG(cont, wabi_tag_cont_eval);
+  vm->continuation = (wabi_val) cont;
+}
+
+static inline void
+wabi_cont_push_prompt(wabi_vm vm, wabi_env env, wabi_symbol tag)
+{
+  wabi_cont_prompt cont;
+
+  cont = (wabi_cont_prompt) wabi_vm_alloc(vm, WABI_CONT_PROMPT_SIZE);
+  cont->prev = (wabi_word) vm->continuation;
+  cont->env = (wabi_word) env;
+  cont->tag = (wabi_word) tag;
+  WABI_SET_TAG(cont, wabi_tag_cont_prompt);
   vm->continuation = (wabi_val) cont;
 }
 
@@ -186,5 +208,8 @@ wabi_cont_pop(wabi_vm vm)
   wabi_cont res = (wabi_cont) vm->continuation;
   vm->continuation = (wabi_val) WABI_WORD_VAL(res->prev);
 }
+
+wabi_error_type
+wabi_cont_builtins(wabi_vm vm, wabi_env env);
 
 #endif

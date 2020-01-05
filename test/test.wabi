@@ -53,6 +53,9 @@
 
 (pr "time:" (/ (- t t0) 1000) "ms")
 
+(def x (prompt callcc (+ 10 20)))
+
+(pr "HAHA" x)
 ;; (pr (list (q fib) n) (fib n))
 
 ;; (defn evens

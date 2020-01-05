@@ -159,7 +159,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_combiner(state, (wabi_combiner) val);
     return;
   }
-
+  // todo: add all the continuation stuff?
   state->err = 1;
 }
 

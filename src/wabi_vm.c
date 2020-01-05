@@ -110,7 +110,7 @@ wabi_vm_reverse(wabi_vm vm,
 }
 
 
-wabi_error_type
+inline static wabi_error_type
 wabi_vm_bind(wabi_vm vm,
              wabi_env env,
              wabi_val args,
@@ -161,6 +161,7 @@ wabi_vm_reduce(wabi_vm vm)
   }
 
   switch(WABI_TAG(cont)) {
+  case wabi_tag_cont_prompt:
   case wabi_tag_cont_eval:
 
     /* control: (f . as) */
