@@ -18,7 +18,7 @@
 #include "wabi_error.h"
 
 #define WABI_COMBINER_DERIVED_SIZE 4
-#define WABI_COMBINER_BUILTIN_SIZE 2
+#define WABI_COMBINER_BUILTIN_SIZE 3
 
 typedef wabi_error_type (*wabi_builtin_fun)(wabi_vm);
 
@@ -35,6 +35,7 @@ typedef wabi_combiner_derived_t* wabi_combiner_derived;
 typedef struct wabi_combiner_builtin_struct {
   wabi_word c_ptr;
   wabi_word c_name;
+  wabi_word c_xtra;
 } wabi_combiner_builtin_t;
 
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
