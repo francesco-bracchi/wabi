@@ -17,7 +17,7 @@
 #include "wabi_error.h"
 #include "wabi_constant.h"
 #include "wabi_builtin.h"
-#include "wabi_cont.h"
+#include "wabi_delim.h"
 #include "wabi_error.h"
 
 
@@ -330,21 +330,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_env_builtins(vm, env);
   if(res) return NULL;
-  res = wabi_cont_builtins(vm, env);
+  res = wabi_delim_builtins(vm, env);
   if(res) return NULL;
 
-  /* WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx); */
-  /* WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_builtin_wrap); */
-  /* WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_builtin_unwrap); */
-  /* WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum); */
-  /* WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_builtin_diff); */
-  /* WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mmul); */
-  /* WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_builtin_div); */
-  /* WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_builtin_cons); */
-  /* WABI_DEFN(vm, env, "car", "wabi:car", wabi_builtin_car); */
-  /* WABI_DEFN(vm, env, "cdr", "wabi:cdr", wabi_builtin_cdr); */
-  /* WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_builtin_nil_q); */
-  // WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_builtin_pair_q);
-  // wabi_pr((wabi_val) env);
   return env;
 }

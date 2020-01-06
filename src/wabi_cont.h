@@ -209,7 +209,4 @@ wabi_cont_pop(wabi_vm vm)
   vm->continuation = (wabi_val) WABI_WORD_VAL(res->prev);
 }
 
-wabi_error_type
-wabi_cont_builtins(wabi_vm vm, wabi_env env);
-
 #endif
