@@ -39,7 +39,9 @@ typedef enum wabi_tag_enum {
   wabi_tag_cont_sel       = 0xb000000000000000,
   wabi_tag_cont_eval_more = 0xb800000000000000,
   wabi_tag_cont_def       = 0xc000000000000000,
-  wabi_tag_cont_prog      = 0xc800000000000000
+  wabi_tag_cont_prog      = 0xc800000000000000,
+
+  wabi_tag_control        = 0xd000000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;

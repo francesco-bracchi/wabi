@@ -12,7 +12,7 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.021;
+static const double wabi_low_threshold = 0.066;
 
 static inline void*
 wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
