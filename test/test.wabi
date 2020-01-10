@@ -43,7 +43,7 @@
    (< n 2) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(def n 28)
+(def n 32)
 
 (def t0 (clock))
 
