@@ -16,6 +16,7 @@ typedef struct wabi_vm_struct {
   wabi_val prompt_table;
   wabi_store_t store;
   wabi_size fuel;
+  wabi_error_type error;
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;

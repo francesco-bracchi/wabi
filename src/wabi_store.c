@@ -118,7 +118,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 
   case wabi_tag_app:
   case wabi_tag_oper:
-  case wabi_tag_cont_eval_more:
+  case wabi_tag_cont_args:
   case wabi_tag_cont_sel:
     wordcopy(res, src, 4);
     store->heap += 4;
@@ -302,14 +302,14 @@ wabi_store_collect_heap(wabi_store store)
       scan += 3;
       break;
 
-    case wabi_tag_cont_eval_more:
+    case wabi_tag_cont_args:
       if(WABI_WORD_VAL(*scan)) {
         *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       }
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
-      WABI_SET_TAG(scan, wabi_tag_cont_eval_more);
+      WABI_SET_TAG(scan, wabi_tag_cont_args);
       scan += 4;
       break;
 

@@ -50,14 +50,14 @@ typedef struct wabi_cont_sel_struct {
 
 typedef wabi_cont_sel_t* wabi_cont_sel;
 
-typedef struct wabi_cont_eval_more_struct {
+typedef struct wabi_cont_args_struct {
   wabi_word next;
   wabi_word env;
   wabi_word data;
   wabi_word done;
-} wabi_cont_eval_more_t;
+} wabi_cont_args_t;
 
-typedef wabi_cont_eval_more_t* wabi_cont_eval_more;
+typedef wabi_cont_args_t* wabi_cont_args;
 
 typedef struct wabi_cont_def_struct {
   wabi_word next;
@@ -81,7 +81,7 @@ typedef union wabi_cont_union {
   wabi_cont_apply_t apply;
   wabi_cont_call_t call;
   wabi_cont_sel_t sel;
-  wabi_cont_eval_more_t eval_more;
+  wabi_cont_args_t args;
   wabi_cont_def_t def;
   wabi_cont_prog_t prog;
 } wabi_cont_t;
@@ -93,7 +93,7 @@ typedef wabi_cont_t* wabi_cont;
 #define WABI_CONT_APPLY_SIZE 3
 #define WABI_CONT_CALL_SIZE 3
 #define WABI_CONT_SEL_SIZE 4
-#define WABI_CONT_EVAL_MORE_SIZE 4
+#define WABI_CONT_ARGS_SIZE 4
 #define WABI_CONT_DEF_SIZE 3
 #define WABI_CONT_PROG_SIZE 3
 
@@ -173,17 +173,17 @@ wabi_cont_push_sel(wabi_vm vm, wabi_env env, wabi_val left, wabi_val right, wabi
 }
 
 static inline wabi_cont
-wabi_cont_push_eval_more(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, wabi_cont next)
+wabi_cont_push_args(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, wabi_cont next)
 {
-  wabi_cont_eval_more cont;
+  wabi_cont_args cont;
 
-  cont = (wabi_cont_eval_more) wabi_vm_alloc(vm, WABI_CONT_EVAL_MORE_SIZE);
+  cont = (wabi_cont_args) wabi_vm_alloc(vm, WABI_CONT_ARGS_SIZE);
   if(cont) {
     cont->next = (wabi_word) next;
     cont->env = (wabi_word) env;
     cont->data = (wabi_word) data;
     cont->done = (wabi_word) done;
-    WABI_SET_TAG(cont, wabi_tag_cont_eval_more);
+    WABI_SET_TAG(cont, wabi_tag_cont_args);
   }
   return (wabi_cont) cont;
 }

@@ -207,14 +207,14 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
     if(cmp) return cmp;
     return wabi_cmp((wabi_val) ((wabi_cont_sel) a)->next, (wabi_val) ((wabi_cont_sel) b)->next);
 
-  case wabi_tag_cont_eval_more:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->data, (wabi_val) ((wabi_cont_eval_more) b)->data);
+  case wabi_tag_cont_args:
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->data, (wabi_val) ((wabi_cont_args) b)->data);
     if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->done, (wabi_val) ((wabi_cont_eval_more) b)->done);
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->done, (wabi_val) ((wabi_cont_args) b)->done);
     if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->env, (wabi_val) ((wabi_cont_eval_more) b)->env);
+    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->env, (wabi_val) ((wabi_cont_args) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->next, (wabi_val) ((wabi_cont_eval_more) b)->next);
+    return wabi_cmp((wabi_val) ((wabi_cont_args) a)->next, (wabi_val) ((wabi_cont_args) b)->next);
 
   case wabi_tag_cont_def:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->pattern, (wabi_val) ((wabi_cont_def) b)->pattern);
@@ -277,7 +277,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_cont_apply:
   case wabi_tag_cont_call:
   case wabi_tag_cont_sel:
-  case wabi_tag_cont_eval_more:
+  case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
     return wabi_cmp_cont((wabi_cont) a, (wabi_cont) b);

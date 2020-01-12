@@ -206,11 +206,11 @@ wabi_pr_cont(wabi_cont val) {
       wabi_pr((wabi_val) ((wabi_cont_sel) val)->right);
       printf(")");
       break;
-    case wabi_tag_cont_eval_more:
+    case wabi_tag_cont_args:
       printf("(EVAL-MORE ");
-      wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->data);
+      wabi_pr((wabi_val) ((wabi_cont_args) val)->data);
       printf(" ");
-      wabi_pr((wabi_val) ((wabi_cont_eval_more) val)->done);
+      wabi_pr((wabi_val) ((wabi_cont_args) val)->done);
       printf(")");
       break;
     case wabi_tag_cont_def:
@@ -306,7 +306,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_cont_apply:
   case wabi_tag_cont_call:
   case wabi_tag_cont_sel:
-  case wabi_tag_cont_eval_more:
+  case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
     printf("<");

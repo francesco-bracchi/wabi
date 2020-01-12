@@ -37,7 +37,7 @@ typedef enum wabi_tag_enum {
   wabi_tag_cont_apply     = 0xa000000000000000,
   wabi_tag_cont_call      = 0xa800000000000000,
   wabi_tag_cont_sel       = 0xb000000000000000,
-  wabi_tag_cont_eval_more = 0xb800000000000000,
+  wabi_tag_cont_args      = 0xb800000000000000,
   wabi_tag_cont_def       = 0xc000000000000000,
   wabi_tag_cont_prog      = 0xc800000000000000,
 
