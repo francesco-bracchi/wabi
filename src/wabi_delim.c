@@ -22,7 +22,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
       ctrl = wabi_cdr((wabi_pair) ctrl);
       env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
       if(*ctrl == wabi_val_nil) {
-        cont = wabi_cont_prev((wabi_cont) vm->continuation);
+        cont = wabi_cont_next((wabi_cont) vm->continuation);
         cont = wabi_cont_push_prompt(vm, env, tag, cont);
         if(cont) {
           vm->control = fst;
@@ -32,7 +32,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
         return wabi_error_nomem;
       }
       if(WABI_IS(wabi_tag_pair, ctrl)) {
-        cont = wabi_cont_prev((wabi_cont) vm->continuation);
+        cont = wabi_cont_next((wabi_cont) vm->continuation);
         cont = wabi_cont_push_prog(vm, env, ctrl, cont);
         if(cont) {
           cont = wabi_cont_push_prompt(vm, env, tag, cont);

@@ -148,9 +148,8 @@ wabi_store_collect_env(wabi_store store, wabi_env env)
     env->prev = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(env->prev));
     WABI_SET_TAG(env, wabi_tag_env);
   }
-
   env->maxE = env->numE;
-  // printf("--------------------------------------------------------\n");
+
   for(j = 0; j < env->numE; j++) {
     k = ((wabi_val) env->data) + 2 * j;
     v = ((wabi_val) env->data) + 1 + 2 * j;

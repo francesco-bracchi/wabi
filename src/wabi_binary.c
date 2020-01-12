@@ -146,7 +146,7 @@ wabi_binary_sub_bt(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
     if(f >= 0L && f < l0 && l >= 0L && l < l0 - f) {
       res = (wabi_val) wabi_binary_sub(vm, (wabi_binary) bin, f, l);
       if(res) {
-        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
         vm->control = res;
         return wabi_error_none;
       }
@@ -166,7 +166,7 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
       *res = wabi_binary_length((wabi_binary) bin);
       WABI_SET_TAG(res, wabi_tag_fixnum);
       vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;

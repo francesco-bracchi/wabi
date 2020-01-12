@@ -227,7 +227,7 @@ wabi_pr_cont(wabi_cont val) {
       printf("BOH");
       break;
     }
-    val = (wabi_cont) WABI_WORD_VAL(val->prev);
+    val = (wabi_cont) WABI_WORD_VAL(val->next);
     if(val) printf(" ");
   } while(val != NULL);
 }

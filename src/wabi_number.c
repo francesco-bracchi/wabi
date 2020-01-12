@@ -44,7 +44,7 @@ wabi_number_builtin_sum(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -73,7 +73,7 @@ wabi_number_builtin_mul(wabi_vm vm)
     if(a) {
       *a = ac& wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -108,7 +108,7 @@ wabi_number_builtin_diff(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -147,7 +147,7 @@ wabi_number_builtin_div(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }

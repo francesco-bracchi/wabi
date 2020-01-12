@@ -127,8 +127,8 @@ wabi_cmp_env(wabi_env left, wabi_env right) {
   /*   cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data); */
   /*   if(cmp0) return cmp0; */
 
-  /*   left = (wabi_env) WABI_WORD_VAL(left->prev); */
-  /*   right = (wabi_env) WABI_WORD_VAL(right->prev); */
+  /*   left = (wabi_env) WABI_WORD_VAL(left->next); */
+  /*   right = (wabi_env) WABI_WORD_VAL(right->next); */
   /*   if(left == right) return 0; */
   /*   if(left == NULL) return 1; */
   /*   if(right == NULL) return -1; */
@@ -176,27 +176,27 @@ int
 wabi_cmp_cont(wabi_cont a, wabi_cont b)
 {
   int cmp;
-  // todo short circuit check wabi_cmp_cont over prev
+  // todo short circuit check wabi_cmp_cont over next
 
   switch(WABI_TAG(a)) {
   case wabi_tag_cont_eval:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_eval) a)->env, (wabi_val) ((wabi_cont_eval) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_eval) a)->prev, (wabi_val) ((wabi_cont_eval) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_eval) a)->next, (wabi_val) ((wabi_cont_eval) b)->next);
 
   case wabi_tag_cont_apply:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->args, (wabi_val) ((wabi_cont_apply) b)->args);
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->env, (wabi_val) ((wabi_cont_apply) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_apply) a)->prev, (wabi_val) ((wabi_cont_apply) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_apply) a)->next, (wabi_val) ((wabi_cont_apply) b)->next);
 
   case wabi_tag_cont_call:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->combiner, (wabi_val) ((wabi_cont_call) b)->combiner);
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->env, (wabi_val) ((wabi_cont_call) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_call) a)->prev, (wabi_val) ((wabi_cont_call) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_call) a)->next, (wabi_val) ((wabi_cont_call) b)->next);
 
   case wabi_tag_cont_sel:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->left, (wabi_val) ((wabi_cont_sel) b)->left);
@@ -205,7 +205,7 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->env, (wabi_val) ((wabi_cont_sel) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_sel) a)->prev, (wabi_val) ((wabi_cont_sel) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_sel) a)->next, (wabi_val) ((wabi_cont_sel) b)->next);
 
   case wabi_tag_cont_eval_more:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->data, (wabi_val) ((wabi_cont_eval_more) b)->data);
@@ -214,21 +214,21 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->env, (wabi_val) ((wabi_cont_eval_more) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->prev, (wabi_val) ((wabi_cont_eval_more) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_eval_more) a)->next, (wabi_val) ((wabi_cont_eval_more) b)->next);
 
   case wabi_tag_cont_def:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->pattern, (wabi_val) ((wabi_cont_def) b)->pattern);
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->env, (wabi_val) ((wabi_cont_def) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_def) a)->prev, (wabi_val) ((wabi_cont_def) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_def) a)->next, (wabi_val) ((wabi_cont_def) b)->next);
 
   case wabi_tag_cont_prog:
     cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->expressions, (wabi_val) ((wabi_cont_prog) b)->expressions);
     if(cmp) return cmp;
     cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->env, (wabi_val) ((wabi_cont_prog) b)->env);
     if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_prog) a)->prev, (wabi_val) ((wabi_cont_prog) b)->prev);
+    return wabi_cmp((wabi_val) ((wabi_cont_prog) a)->next, (wabi_val) ((wabi_cont_prog) b)->next);
   default:
     return -1000;
   }
@@ -328,7 +328,7 @@ wabi_cmp_eq_builtin(wabi_vm vm)
       if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -339,7 +339,7 @@ wabi_cmp_eq_builtin(wabi_vm vm)
     if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -366,7 +366,7 @@ wabi_cmp_gt_builtin(wabi_vm vm)
       if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -377,7 +377,7 @@ wabi_cmp_gt_builtin(wabi_vm vm)
     if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -404,7 +404,7 @@ wabi_cmp_lt_builtin(wabi_vm vm)
       if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -415,7 +415,7 @@ wabi_cmp_lt_builtin(wabi_vm vm)
     if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;

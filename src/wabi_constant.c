@@ -16,7 +16,7 @@ wabi_constant_nil_p(wabi_vm vm,
   res = wabi_vm_alloc(vm, 1);
   if(res) {
     *res = *v == wabi_val_nil ? wabi_val_true : wabi_val_false;
-    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -32,7 +32,7 @@ wabi_constant_ignore_p(wabi_vm vm,
   res = wabi_vm_alloc(vm, 1);
   if(res) {
     *res = *v == wabi_val_ignore ? wabi_val_true : wabi_val_false;
-    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -48,7 +48,7 @@ wabi_constant_boolean_p(wabi_vm vm,
   res = wabi_vm_alloc(vm, 1);
   if(res) {
     *res = *v == (wabi_val_true || *v == wabi_val_false) ? wabi_val_true : wabi_val_false;
-    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
