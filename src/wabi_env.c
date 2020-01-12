@@ -28,13 +28,6 @@ wabi_env_extend(wabi_vm vm, wabi_env prev) {
 }
 
 
-wabi_env
-wabi_env_new(wabi_vm vm)
-{
-  return wabi_env_extend(vm, NULL);
-}
-
-
 static inline void
 wabi_env_actually_set(wabi_env env, wabi_symbol k, wabi_val v)
 {

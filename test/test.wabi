@@ -58,7 +58,7 @@
    (< n 2) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(def n 30)
+(def n 32)
 
 (def t0 (clock))
 
@@ -66,7 +66,7 @@
 
 (def t (clock))
 
-(pr "time:" (/ (- t t0) 1000) "ms")
+(pr "time" (/ (- t t0) 1000) "ms")
 
 (def x (prompt callcc (+ 10 20)))
 

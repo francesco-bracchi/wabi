@@ -9,11 +9,6 @@
 #include "wabi_error.h"
 #include <stdlib.h>
 
-/* typedef struct wabi_env_pair_struct { */
-/*   wabi_word key; */
-/*   wabi_word value; */
-/* } wabi_env_pair_t; */
-
 
 typedef struct wabi_env_struct {
   wabi_word prev;
@@ -25,21 +20,16 @@ typedef struct wabi_env_struct {
 
 typedef wabi_env_t* wabi_env;
 
-/* typedef wabi_env_pair_t* wabi_env_pair; */
 
 #define WABI_ENV_SIZE 4
 #define WABI_ENV_INITIAL_SIZE 8
 #define WABI_ENV_PAIR_SIZE 2
 #define WABI_ENV_ALLOC_SIZE (WABI_ENV_SIZE + WABI_ENV_PAIR_SIZE * WABI_ENV_INITIAL_SIZE)
-
 #define WABI_ENV_LOW_LIMIT 8
+
 
 wabi_env
 wabi_env_extend(wabi_vm vm, wabi_env prev);
-
-
-wabi_env
-wabi_env_new(wabi_vm vm);
 
 
 wabi_error_type
@@ -48,6 +38,13 @@ wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
 
 wabi_error_type
 wabi_env_builtins(wabi_vm vm, wabi_env env);
+
+
+static inline wabi_env
+wabi_env_new(wabi_vm vm)
+{
+  return wabi_env_extend(vm, NULL);
+}
 
 
 static inline wabi_val

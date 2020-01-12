@@ -11,8 +11,7 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-// static const double wabi_low_threshold = 0.066;
-static const double wabi_low_threshold = 0.05;
+static const double wabi_low_threshold = 0.11;
 
 int
 wabi_store_init(wabi_store store,
@@ -359,7 +358,7 @@ wabi_store_collect_resize(wabi_store store)
   store->limit = store->space + new_size;
   store->size = new_size;
 
-  // free(store->old_space);
+  free(store->old_space);
   store->old_space = NULL;
 }
 
