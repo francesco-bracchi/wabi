@@ -18,12 +18,12 @@ main(int argc,
 
   wabi_vm_t vm;
   wabi_env e0;
-  int res;
   char *buffer;
 
   long length;
+  wabi_error_type err;
 
-  wabi_vm_init(&vm, 500000);
+  wabi_vm_init(&vm, 50000);
 
   FILE * f = fopen("test/test.wabi", "rb");
   fseek(f, 0, SEEK_END);
@@ -36,6 +36,11 @@ main(int argc,
 
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
+  err = wabi_vm_run(&vm);
+  /* printf("error: %i\n", err); */
+  /* wabi_prn(vm.control); */
+  /* wabi_prn(vm.continuation); */
+
   wabi_vm_destroy(&vm);
-  return 0;
+  return err;
 }

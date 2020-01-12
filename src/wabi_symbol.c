@@ -15,8 +15,8 @@ wabi_symbol_new(wabi_vm vm,
   res = (wabi_symbol) wabi_map_get((wabi_map) vm->symbol_table, binref);
   if(res) return res;
 
-  if(wabi_vm_has_rooms(vm, WABI_SYMBOL_SIZE)) {
-    res = (wabi_symbol) wabi_vm_alloc(vm, WABI_SYMBOL_SIZE);
+  res = (wabi_symbol) wabi_vm_alloc(vm, WABI_SYMBOL_SIZE);
+  if(res) {
     *res = (wabi_word) binref;
     WABI_SET_TAG(res, wabi_tag_symbol);
     new_table = (wabi_val) wabi_map_assoc(vm, (wabi_map) vm->symbol_table, binref, (wabi_val) res);

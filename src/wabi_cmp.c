@@ -122,7 +122,7 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 
 int
 wabi_cmp_env(wabi_env left, wabi_env right) {
-  int cmp0;
+  /* int cmp0; */
   /* do { */
   /*   cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data); */
   /*   if(cmp0) return cmp0; */
@@ -229,6 +229,8 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
     cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->env, (wabi_val) ((wabi_cont_prog) b)->env);
     if(cmp) return cmp;
     return wabi_cmp((wabi_val) ((wabi_cont_prog) a)->prev, (wabi_val) ((wabi_cont_prog) b)->prev);
+  default:
+    return -1000;
   }
 }
 
@@ -322,22 +324,22 @@ wabi_cmp_eq_builtin(wabi_vm vm)
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b)) {
-      if(wabi_vm_has_rooms(vm, 1)) {
-        res = wabi_vm_alloc(vm, 1);
+      res = wabi_vm_alloc(vm, 1);
+      if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        wabi_cont_pop(vm);
+        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -360,22 +362,22 @@ wabi_cmp_gt_builtin(wabi_vm vm)
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) >= 0) {
-      if(wabi_vm_has_rooms(vm, 1)) {
-        res = wabi_vm_alloc(vm, 1);
+      res = wabi_vm_alloc(vm, 1);
+      if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        wabi_cont_pop(vm);
+        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -398,22 +400,22 @@ wabi_cmp_lt_builtin(wabi_vm vm)
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) <= 0) {
-      if(wabi_vm_has_rooms(vm, 1)) {
-        res = wabi_vm_alloc(vm, 1);
+      res = wabi_vm_alloc(vm, 1);
+      if(res) {
         *res = wabi_val_false;
         vm->control = res;
-        wabi_cont_pop(vm);
+        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
         return wabi_error_none;
       }
       return wabi_error_nomem;
     }
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_true;
       vm->control = res;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -431,7 +433,7 @@ wabi_cmp_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, ">", "wabi:gt", wabi_cmp_gt_builtin);
   if(res) return res;
   res = WABI_DEFN(vm, env, "<", "wabi:lt", wabi_cmp_lt_builtin);
-  if(res) return res;
+  return res;
   /* res = WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
   /* res = WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */
 }

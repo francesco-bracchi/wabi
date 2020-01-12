@@ -14,8 +14,9 @@ wabi_fixnum
 wabi_fixnum_new(wabi_vm vm,
                 int64_t val)
 {
-  if(wabi_vm_has_rooms(vm, 1)) {
-    wabi_val res = wabi_vm_alloc(vm, 1);
+  wabi_val res;
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     *res = val & wabi_word_value_mask;
     WABI_SET_TAG(res, wabi_tag_fixnum);
     return res;
@@ -39,11 +40,11 @@ wabi_number_builtin_sum(wabi_vm vm)
     ac += WABI_CAST_INT64(a);
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      a = wabi_vm_alloc(vm, 1);
+    a = wabi_vm_alloc(vm, 1);
+    if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -68,11 +69,11 @@ wabi_number_builtin_mul(wabi_vm vm)
     ac *= WABI_CAST_INT64(a);
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      a = wabi_vm_alloc(vm, 1);
+    a = wabi_vm_alloc(vm, 1);
+    if(a) {
       *a = ac& wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -90,22 +91,24 @@ wabi_number_builtin_diff(wabi_vm vm)
 
   ctrl = vm->control;
 
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    ac = WABI_CAST_INT64(a);
+  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+    return wabi_error_bindings;
   }
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  ac = WABI_CAST_INT64(a);
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac -= WABI_CAST_INT64(a);
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      a = wabi_vm_alloc(vm, 1);
+    a = wabi_vm_alloc(vm, 1);
+    if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -123,11 +126,13 @@ wabi_number_builtin_div(wabi_vm vm)
 
   ctrl = vm->control;
 
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    ac = WABI_CAST_INT64(a);
+  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+    return wabi_error_bindings;
   }
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  ac = WABI_CAST_INT64(a);
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     x = WABI_CAST_INT64(a);
@@ -138,11 +143,11 @@ wabi_number_builtin_div(wabi_vm vm)
     ac /= x;
   }
   if(*ctrl == wabi_val_nil) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      a = wabi_vm_alloc(vm, 1);
+    a = wabi_vm_alloc(vm, 1);
+    if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = a;
       return wabi_error_none;
     }
@@ -163,5 +168,5 @@ wabi_number_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_builtin_diff);
   if(res) return res;
   res = WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_builtin_div);
-  if(res) return res;
+  return res;
 }

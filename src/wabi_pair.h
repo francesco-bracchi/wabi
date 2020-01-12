@@ -24,9 +24,11 @@ static inline wabi_pair
 wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr)
 {
   wabi_pair pair = (wabi_pair) wabi_vm_alloc(vm, WABI_PAIR_SIZE);
-  pair->car = (wabi_word) car;
-  pair->cdr = (wabi_word) cdr;
-  WABI_SET_TAG(pair, wabi_tag_pair);
+  if(pair) {
+    pair->car = (wabi_word) car;
+    pair->cdr = (wabi_word) cdr;
+    WABI_SET_TAG(pair, wabi_tag_pair);
+  }
   return pair;
 }
 

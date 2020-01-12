@@ -8,7 +8,7 @@
 int
 wabi_system_init(wabi_system sys)
 {
-  int res;
+  /* int res; */
   /* res = wabi_store_init(sys->global_store, sys->config->store_initial_size); */
   /* if(!res) return 0; */
 

@@ -51,14 +51,14 @@ wabi_combiner_fx_bt(wabi_vm vm, wabi_val e, wabi_val fs, wabi_val bd)
   if(!WABI_IS(wabi_tag_symbol, e) && *e != wabi_val_ignore) {
     return wabi_error_type_mismatch;
   }
-  if(wabi_vm_has_rooms(vm, WABI_COMBINER_DERIVED_SIZE)) {
-    res = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+  res = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+  if(res) {
     res->static_env = (wabi_word) ((wabi_cont_call) vm->continuation)->env;
     res->caller_env_name = (wabi_word) e;
     res->parameters = (wabi_word) fs;
     res->body = (wabi_word) bd;
     WABI_SET_TAG(res, wabi_tag_oper);
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = (wabi_val) res;
     return wabi_error_none;
   }
@@ -73,28 +73,29 @@ wabi_combiner_wrap_bt(wabi_vm vm, wabi_val fx)
 
   switch(WABI_TAG(fx)) {
   case wabi_tag_oper:
-    if(wabi_vm_has_rooms(vm, WABI_COMBINER_DERIVED_SIZE)) {
-      res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+    if(res) {
       memcpy(res, fx, sizeof(wabi_combiner_derived_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_app);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
     return wabi_error_nomem;
   case wabi_tag_bt_oper:
-    if(wabi_vm_has_rooms(vm, WABI_COMBINER_BUILTIN_SIZE)) {
-      res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+    if(res) {
       memcpy(res, fx, sizeof(wabi_combiner_builtin_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_bt_app);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
     return wabi_error_nomem;
   }
+  return wabi_error_type_mismatch;
 }
 
 
@@ -105,27 +106,29 @@ wabi_combiner_unwrap_bt(wabi_vm vm, wabi_val fn)
 
   switch(WABI_TAG(fn)) {
   case wabi_tag_app:
-    if(wabi_vm_has_rooms(vm, WABI_COMBINER_DERIVED_SIZE)) {
-      res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+    if(res) {
       memcpy(res, fn, sizeof(wabi_combiner_derived_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_oper);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
     return wabi_error_nomem;
   case wabi_tag_bt_app:
-    if(wabi_vm_has_rooms(vm, WABI_COMBINER_BUILTIN_SIZE)) {
-      res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+    if(res) {
       memcpy(res, fn, sizeof(wabi_combiner_builtin_t));
       *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
       WABI_SET_TAG(res, wabi_tag_bt_oper);
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
     return wabi_error_nomem;
+  default:
+    return wabi_error_type_mismatch;
   }
 }
 
@@ -135,8 +138,8 @@ wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     // todo optimize in a single bitwise operation?
     switch(WABI_TAG(v)) {
     case wabi_tag_app:
@@ -147,7 +150,7 @@ wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_val v)
     default:
       *res = wabi_val_false;
     }
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -160,9 +163,9 @@ wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
-  if(wabi_vm_has_rooms(vm, 1)) {
     // todo optimize in a single bitwise operation?
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     switch(WABI_TAG(v)) {
     case wabi_tag_app:
     case wabi_tag_bt_app:
@@ -170,7 +173,7 @@ wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_val v)
     default:
       *res = wabi_val_false;
     }
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -182,8 +185,8 @@ wabi_combiner_operative_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     // todo optimize in a single bitwise operation?
     switch(WABI_TAG(v)) {
     case wabi_tag_oper:
@@ -192,7 +195,7 @@ wabi_combiner_operative_p_bt(wabi_vm vm, wabi_val v)
     default:
       *res = wabi_val_false;
     }
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -205,9 +208,9 @@ wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
-  if(wabi_vm_has_rooms(vm, 1)) {
-    // todo optimize in a single bitwise operation?
-    res = wabi_vm_alloc(vm, 1);
+  // todo optimize in a single bitwise operation?
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     switch(WABI_TAG(v)) {
     case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
@@ -215,7 +218,7 @@ wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_val v)
     default:
       *res = wabi_val_false;
     }
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -228,8 +231,8 @@ wabi_combiner_derived_p_bt(wabi_vm vm, wabi_val v)
 {
   wabi_val res;
 
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     // todo optimize in a single bitwise operation?
     switch(WABI_TAG(v)) {
     case wabi_tag_app:
@@ -238,7 +241,7 @@ wabi_combiner_derived_p_bt(wabi_vm vm, wabi_val v)
     default:
       *res = wabi_val_false;
     }
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -253,14 +256,14 @@ wabi_combiner_body_bt(wabi_vm vm, wabi_val f)
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->body;
     return wabi_error_none;
   default:
-    if(wabi_vm_has_rooms(vm, 1)) {
       res = wabi_vm_alloc(vm, 1);
+      if(res) {
       *res = wabi_val_nil; // vm->nil; vm->true; vm->false;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
@@ -276,14 +279,14 @@ wabi_combiner_static_env_bt(wabi_vm vm, wabi_val f)
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = (wabi_val) WABI_WORD_VAL(((wabi_combiner_derived) f)->static_env);
     return wabi_error_none;
   default:
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_nil; // vm->nil;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
@@ -299,14 +302,14 @@ wabi_combiner_parameters_bt(wabi_vm vm, wabi_val f)
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->parameters;
     return wabi_error_none;
   default:
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_nil; // vm->nil;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
@@ -322,13 +325,13 @@ wabi_combiner_caller_env_name_bt(wabi_vm vm, wabi_val f)
   switch(WABI_TAG(f)) {
   case wabi_tag_oper:
   case wabi_tag_app:
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = (wabi_val) ((wabi_combiner_derived) f)->caller_env_name;
   default:
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_val_nil;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       vm->control = res;
       return wabi_error_none;
     }
@@ -379,5 +382,5 @@ wabi_combiner_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "op/parameters", "wabi:op/parameters", wabi_combiner_builtin_parameters);
   if(res) return res;
   res = WABI_DEFN(vm, env, "op/caller-env-name", "wabi:op/caller-env-name", wabi_combiner_builtin_caller_env_name);
-  if(res) return res;
+  return res;
 }

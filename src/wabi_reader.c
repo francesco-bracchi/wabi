@@ -84,10 +84,11 @@ wabi_reader_read_list(wabi_vm vm, char** c)
   wabi_reader_ws(c);
   if(**c == ')') {
     (*c)++;
-    if(!wabi_vm_has_rooms(vm, 1)) return NULL;
 
     d = wabi_vm_alloc(vm, 1);
-    *d = wabi_val_nil;
+    if(d) {
+      *d = wabi_val_nil;
+    }
   }
   else if(**c == '.') {
     (*c)++;
@@ -165,12 +166,10 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
 static inline wabi_val
 wabi_reader_read_ignore(wabi_vm vm) {
   wabi_val res;
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res)
     *res = wabi_val_ignore;
-    return res;
-  }
-  return NULL;
+  return res;
 }
 
 

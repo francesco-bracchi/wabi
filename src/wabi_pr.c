@@ -138,23 +138,7 @@ wabi_pr_map(wabi_map map)
 void
 wabi_pr_env(wabi_env env)
 {
-  wabi_size j;
-  printf("#env(%u){", env->numE);
-  do {
-    for(j = 0; j < env->numE; j++) {
-      wabi_pr((wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE));
-      printf(": ");
-      wabi_pr((wabi_val) *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE));
-      if (j < env->numE - 1) {
-        printf(", ");
-      }
-    }
-
-    env = (wabi_env) WABI_WORD_VAL(env->prev);
-    if(env == NULL) break;
-    printf("} + {");
-  } while(1);
-  printf("}");
+  printf("#env(%lu elements)", env->numE);
 }
 
 

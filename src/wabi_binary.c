@@ -19,9 +19,8 @@ wabi_binary_leaf_new(wabi_vm vm, wabi_size size)
   wabi_binary_leaf leaf;
 
   word_size = wabi_binary_word_size(size);
-  if(wabi_vm_has_rooms(vm, word_size + 1 + WABI_BINARY_LEAF_SIZE)) {
-
-    blob = (wabi_word*) wabi_vm_alloc(vm, word_size + 1);
+  blob = (wabi_word*) wabi_vm_alloc(vm, word_size + 1);
+  if(blob) {
     *blob = word_size + 1;
     WABI_SET_TAG(blob, wabi_tag_bin_blob);
 
@@ -60,15 +59,13 @@ wabi_binary_sub_leaf(wabi_vm vm, wabi_binary_leaf leaf, wabi_size from, wabi_siz
 {
   wabi_binary_leaf new_leaf;
 
-  if(wabi_vm_has_rooms(vm, WABI_BINARY_LEAF_SIZE)) {
-    new_leaf = (wabi_binary_leaf) wabi_vm_alloc(vm, WABI_BINARY_LEAF_SIZE);
+  new_leaf = (wabi_binary_leaf) wabi_vm_alloc(vm, WABI_BINARY_LEAF_SIZE);
+  if(new_leaf) {
     new_leaf->length = len;
     new_leaf->data_ptr = leaf->data_ptr + from;
     WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
-
-    return (wabi_binary) new_leaf;
   }
-  return NULL;
+  return (wabi_binary) new_leaf;
 }
 
 
@@ -88,8 +85,8 @@ wabi_binary_sub_node(wabi_vm vm, wabi_binary_node node, wabi_size from, wabi_siz
   } else if(pivot <= from) {
     return wabi_binary_sub(vm, right, from - pivot, len);
   } else {
-    if(wabi_vm_has_rooms(vm, WABI_BINARY_NODE_SIZE)) {
-      new_node = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
+    new_node = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
+    if(new_node) {
       new_node->length = len;
       new_node->left = (wabi_word) wabi_binary_sub(vm, left, from, pivot - from);
       new_node->right = (wabi_word) wabi_binary_sub(vm, right, 0, len + from - pivot);
@@ -117,9 +114,9 @@ wabi_binary_concat_bt(wabi_vm vm, wabi_val l, wabi_val r)
   wabi_binary_node node;
   wabi_size length;
   if(wabi_binary_p(l) && wabi_binary_p(r)) {
-    if(wabi_vm_has_rooms(vm, WABI_BINARY_NODE_SIZE)) {
-      length = wabi_binary_length((wabi_binary) l) + wabi_binary_length((wabi_binary) r);
-      node = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
+    length = wabi_binary_length((wabi_binary) l) + wabi_binary_length((wabi_binary) r);
+    node = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
+    if(node) {
       node->length = length;
       node->left = (wabi_word) l;
       node->right = (wabi_word) r;
@@ -149,7 +146,7 @@ wabi_binary_sub_bt(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
     if(f >= 0L && f < l0 && l >= 0L && l < l0 - f) {
       res = (wabi_val) wabi_binary_sub(vm, (wabi_binary) bin, f, l);
       if(res) {
-        wabi_cont_pop(vm);
+        vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
         vm->control = res;
         return wabi_error_none;
       }
@@ -164,12 +161,12 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
 {
   wabi_val res;
   if(wabi_binary_p(bin)) {
-    if(wabi_vm_has_rooms(vm, 1)) {
-      res = wabi_vm_alloc(vm, 1);
+    res = wabi_vm_alloc(vm, 1);
+    if(res) {
       *res = wabi_binary_length((wabi_binary) bin);
       WABI_SET_TAG(res, wabi_tag_fixnum);
       vm->control = res;
-      wabi_cont_pop(vm);
+      vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
       return wabi_error_none;
     }
     return wabi_error_nomem;

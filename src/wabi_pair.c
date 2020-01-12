@@ -15,12 +15,12 @@ wabi_pair_car_bt(wabi_vm vm, wabi_val pair)
 {
   if(WABI_IS(wabi_tag_pair, pair)) {
     vm->control = (wabi_val) wabi_car((wabi_pair) pair);
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   if(*pair == wabi_val_nil) {
     vm->control = pair;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   return wabi_error_type_mismatch;
@@ -32,12 +32,12 @@ wabi_pair_cdr_bt(wabi_vm vm, wabi_val pair)
 {
   if(WABI_IS(wabi_tag_pair, pair)) {
     vm->control = (wabi_val) wabi_cdr((wabi_pair) pair);
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   if(*pair == wabi_val_nil) {
     vm->control = pair;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   return wabi_error_type_mismatch;
@@ -47,9 +47,11 @@ wabi_pair_cdr_bt(wabi_vm vm, wabi_val pair)
 static inline wabi_error_type
 wabi_pair_cons_bt(wabi_vm vm, wabi_val a, wabi_val d)
 {
-  if(wabi_vm_has_rooms(vm, WABI_PAIR_SIZE)) {
-    vm->control = (wabi_val) wabi_cons(vm, a, d);
-    wabi_cont_pop(vm);
+  wabi_val res;
+  res = (wabi_val) wabi_cons(vm, a, d);
+  if(res) {
+    vm->control = res;
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -60,11 +62,11 @@ static inline wabi_error_type
 wabi_pair_p_bt(wabi_vm vm, wabi_val pair)
 {
   wabi_val res;
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = (wabi_val) wabi_vm_alloc(vm, 1);
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(res) {
     *res = WABI_IS(wabi_tag_pair, pair) ? wabi_val_true : wabi_val_false;
     vm->control = res;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -87,5 +89,5 @@ wabi_pair_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_pair_builtin_cons);
   if(res) return res;
   res = WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_pair_builtin_pair_p);
-  if(res) return res;
+  return res;
 }

@@ -1,7 +1,6 @@
 #define wabi_store_c
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 
 #include <math.h>
@@ -12,14 +11,8 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.066;
-
-static inline void*
-wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
-{
-  return memcpy(dst, src, size * WABI_WORD_SIZE);
-}
-
+// static const double wabi_low_threshold = 0.066;
+static const double wabi_low_threshold = 0.05;
 
 int
 wabi_store_init(wabi_store store,
@@ -51,7 +44,6 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
 
   wabi_binary_leaf new_leaf;
   wabi_word *new_blob;
-  char *data;
 
   len = wabi_binary_length((wabi_binary) src);
   word_size = wabi_binary_word_size(len);
@@ -172,7 +164,7 @@ wabi_store_collect_env(wabi_store store, wabi_env env)
 void
 wabi_store_collect_heap(wabi_store store)
 {
-  wabi_word *scan, size, bitmap;
+  wabi_word *scan, size;
   scan = store->space;
   do {
     switch(WABI_TAG(scan)) {
@@ -367,7 +359,7 @@ wabi_store_collect_resize(wabi_store store)
   store->limit = store->space + new_size;
   store->size = new_size;
 
-  free(store->old_space);
+  // free(store->old_space);
   store->old_space = NULL;
 }
 
@@ -377,7 +369,6 @@ wabi_store_collect_prepare(wabi_store store)
 {
   wabi_word *new_space, *old_space;
   wabi_size size3;
-  int j;
 
   // printf("Before collection %i over %lu\n", wabi_store_used(store), store->size);
   size3 = (wabi_size) ceil(store->size / wabi_low_threshold);

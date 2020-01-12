@@ -10,7 +10,7 @@ typedef wabi_val wabi_control;
 
 typedef struct wabi_vm_struct {
   wabi_val control;
-  wabi_env env;
+  wabi_val env;
   wabi_val continuation;
   wabi_val symbol_table;
   wabi_val prompt_table;
@@ -34,14 +34,6 @@ wabi_vm_prepare(wabi_vm vm, wabi_size size);
 
 int
 wabi_vm_collect(wabi_vm vm);
-
-static inline int
-wabi_vm_has_rooms(wabi_vm vm, wabi_size size)
-{
-  wabi_store store;
-  store = &(vm->store);
-  return wabi_store_has_rooms(store, size);
-}
 
 static inline wabi_word*
 wabi_vm_alloc(wabi_vm vm, wabi_size size)

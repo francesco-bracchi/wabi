@@ -13,10 +13,10 @@ wabi_constant_nil_p(wabi_vm vm,
                     wabi_val v)
 {
   wabi_val res;
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     *res = *v == wabi_val_nil ? wabi_val_true : wabi_val_false;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -29,10 +29,10 @@ wabi_constant_ignore_p(wabi_vm vm,
                        wabi_val v)
 {
   wabi_val res;
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     *res = *v == wabi_val_ignore ? wabi_val_true : wabi_val_false;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -45,10 +45,10 @@ wabi_constant_boolean_p(wabi_vm vm,
                         wabi_val v)
 {
   wabi_val res;
-  if(wabi_vm_has_rooms(vm, 1)) {
-    res = wabi_vm_alloc(vm, 1);
+  res = wabi_vm_alloc(vm, 1);
+  if(res) {
     *res = *v == (wabi_val_true || *v == wabi_val_false) ? wabi_val_true : wabi_val_false;
-    wabi_cont_pop(vm);
+    vm->continuation = (wabi_val) wabi_cont_prev((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
@@ -66,9 +66,8 @@ wabi_constant_builtins(wabi_vm vm, wabi_env env)
   wabi_val val;
   wabi_error_type res;
 
-  if(wabi_vm_has_rooms(vm, 5)) {
-    val = (wabi_val) wabi_vm_alloc(vm, 5);
-
+  val = (wabi_val) wabi_vm_alloc(vm, 5);
+  if(val) {
     *val = wabi_val_nil;
     WABI_DEF(vm, env, "nil", val);
     val++;
@@ -94,5 +93,5 @@ wabi_constant_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "ignore?", "wabi:nil?", wabi_constant_builtin_ignore_p);
   if(res) return res;
   res = WABI_DEFN(vm, env, "bool?", "wabi:bool?", wabi_constant_builtin_boolean_p);
-  if(res) return res;
+  return res;
 }
