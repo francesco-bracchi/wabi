@@ -180,8 +180,6 @@ wabi_cmp_cont(wabi_cont a, wabi_cont b)
 
   switch(WABI_TAG(a)) {
   case wabi_tag_cont_eval:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_eval) a)->env, (wabi_val) ((wabi_cont_eval) b)->env);
-    if(cmp) return cmp;
     return wabi_cmp((wabi_val) ((wabi_cont_eval) a)->next, (wabi_val) ((wabi_cont_eval) b)->next);
 
   case wabi_tag_cont_apply:

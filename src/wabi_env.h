@@ -9,7 +9,6 @@
 #include "wabi_error.h"
 #include <stdlib.h>
 
-
 typedef struct wabi_env_struct {
   wabi_word prev;
   wabi_word numE;

@@ -207,7 +207,7 @@ wabi_pr_cont(wabi_cont val) {
       printf(")");
       break;
     case wabi_tag_cont_args:
-      printf("(EVAL-MORE ");
+      printf("(ARGS ");
       wabi_pr((wabi_val) ((wabi_cont_args) val)->data);
       printf(" ");
       wabi_pr((wabi_val) ((wabi_cont_args) val)->done);

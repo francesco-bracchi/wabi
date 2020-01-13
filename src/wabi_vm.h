@@ -14,6 +14,7 @@ typedef struct wabi_vm_struct {
   wabi_val continuation;
   wabi_val symbol_table;
   wabi_val prompt_table;
+  wabi_val nil;
   wabi_store_t store;
   wabi_size fuel;
   wabi_error_type error;
@@ -24,7 +25,7 @@ typedef wabi_vm_t* wabi_vm;
 wabi_error_type
 wabi_vm_run(wabi_vm vm);
 
-int
+void
 wabi_vm_init(wabi_vm vm, wabi_size store_size);
 
 void

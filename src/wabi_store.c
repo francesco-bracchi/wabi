@@ -11,7 +11,7 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.11;
+static const double wabi_low_threshold = 0.067;
 
 int
 wabi_store_init(wabi_store store,

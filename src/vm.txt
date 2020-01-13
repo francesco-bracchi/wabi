@@ -1,107 +1,136 @@
-control: (f . as)
-stack: ((eval e0) . s)
+ctrl: (f . as)
+envr: e
+cont: ((eval) . s)
+      --------------------------------------
+ctrl: f
+envr: e
+cont: ((eval) (apply e0 as) . s)
+
+
+ctrl: c when (sym? c)
+envr: e
+cont: ((eval) . s)
 --------------------------------------
-control: f
-stack: ((eval e0) (apply e0 as) . s)
+ctrl: (lookup c e)
+envr: e
+cont: s
 
-
-control: c when (sym? c)
-stack: ((eval e0) . s)
+ctrl: c
+envr: e
+cont: ((eval) . s)
 --------------------------------------
-control: (lookup c e0)
-stack s
+ctrl: c
+envr: e
+cont: s
 
-control: c
-stack: ((eval e0) . s)
+ctrl: c when (oper? c)
+envr: e
+cont: ((apply e0 as) . s)
 --------------------------------------
-control: c
-stack s
+ctrl: as
+envr: nil
+cont: ((call e0 c) . s)
 
-control: c
-stack: ((apply e0 nil) . s)
+
+ctrl: c when (app? c)
+envr: e
+cont: ((apply e0 nil) . s)
 --------------------------------------
-control: nil
-stack: ((call e0 c) . s)
+ctrl: nil
+envr: nil
+cont: ((call nil c) . s)
 
 
-control: c when (oper? c)
-stack: ((apply e0 as) . s)
+ctrl: c when (app? c)
+envr: e
+cont: ((apply e0 (a . as)) . s)
 --------------------------------------
-control: as
-stack: ((call e0 c) . s)
+ctrl: a
+envr: e0
+cont: ((eval) (args e0 as nil) (call nil c) . s)
 
 
-control: c when (app? c)
-stack: ((apply e0 (a . as)) . s)
+ctrl: x
+envr: e
+cont: ((args e0 nil xs) . s)
 --------------------------------------
-control: a
-stack: ((eval e0) (eval-more e0 as nil) (call e0 c) . s)
+ctrl: (reverse (cons x xs))
+envr: e
+cont: s
 
 
-control: x
-stack: ((eval-more e0 nil xs) . s)
+ctrl: x
+envr: e
+cont: ((args e0 (a . as) xs) . s)
 --------------------------------------
-control: (reverse (cons x xs))
-stack: s
+ctrl: a
+envr: e0
+cont: ((eval) (args e0 as (x . xs)) . s)
 
 
-control: x
-stack: ((eval-more e0 (a . as) xs) . s)
---------------------------------------
-control: a
-stack: ((eval e0) (eval-more e0 as (cons x xs)) . s)
-
-
-control: as
-stack: ((call e0 (fx e1 ex ps b)) . s)
+ctrl: as
+envr: e
+cont: ((call e0 (fx e1 ex ps b)) . s)
 --------------------------------------
 control b
-stack: ((eval (bind ex e0 ps as)) . s)
+envr: (bind ex e0 ps as)
+cont: ((eval) . s)
 
 
-control: as
-stack: ((call e0 #builtin) . s)
+ctrl: as
+envr: e
+cont: ((call e0 #builtin) . s)
 --------------------------------------
-control: (btcall bt as &s)
-stack: s
+(btcall bt as &s)
 
 
-control: false | nil
-stack: ((sel e0 l r) . s)
+ctrl: false | nil
+envr: e
+cont: ((sel e0 l r) . s)
 --------------------------------------
-control: r
-stack: ((eval e0) . s)
+ctrl: r
+envr: e0
+cont: ((eval) . s)
 
 
-control: _
-stack: ((sel e0 l r) . s)
+ctrl: _
+envr: e
+cont: ((sel e0 l r) . s)
 --------------------------------------
-control: l
-stack: ((eval e0) . s)
+ctrl: l
+envr: e0
+cont: ((eval) . s)
 
 
-control: x0
-stack: ((prog e0 nil) . s)
+ctrl: x0
+envr: e
+cont: ((prog e0 nil) . s)
 --------------------------------------
-control: x0
-stack: s
+ctrl: x0
+envr: nil
+cont: s
 
 
-control: x0
-stack: ((prog e0 (x . xs)) . s)
+ctrl: x0
+envr: e
+cont: ((prog e0 (x . xs)) . s)
 --------------------------------------
-control: x
-stack: ((prog e0 xs) . s)
+ctrl: x
+envr: e0
+cont: ((prog e0 xs) . s)
 
 
-control: as
-stack: ((def e0 ps) . s)
+ctrl: as
+envr: e
+cont: ((def e0 ps) . s)
 --------------------------------------
-control: (last vs)
-stack: s // (bind e0 ps as)
+ctrl: (last vs)
+envr: e0
+cont: s // (bind e0 ps as)
 
 
 control x0
-stack: nil
+envr: e
+cont: nil
 --------------------------------------
 WIN!

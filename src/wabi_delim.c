@@ -23,7 +23,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
       env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
       if(*ctrl == wabi_val_nil) {
         cont = wabi_cont_next((wabi_cont) vm->continuation);
-        cont = wabi_cont_push_prompt(vm, env, tag, cont);
+        cont = wabi_cont_push_prompt(vm, tag, cont);
         if(cont) {
           vm->control = fst;
           vm->continuation = (wabi_val) cont;
@@ -35,7 +35,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
         cont = wabi_cont_next((wabi_cont) vm->continuation);
         cont = wabi_cont_push_prog(vm, env, ctrl, cont);
         if(cont) {
-          cont = wabi_cont_push_prompt(vm, env, tag, cont);
+          cont = wabi_cont_push_prompt(vm, tag, cont);
           if(cont) {
             vm->control = fst;
             vm->continuation = (wabi_val) cont;
