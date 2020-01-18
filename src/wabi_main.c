@@ -19,9 +19,7 @@ main(int argc,
   wabi_vm_t vm;
   wabi_env e0;
   char *buffer;
-
   long length;
-  wabi_error_type err;
 
   wabi_vm_init(&vm, 25000);
 
@@ -36,11 +34,11 @@ main(int argc,
 
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
-  err = wabi_vm_run(&vm);
-  printf("error: %li\n", vm.error);
+  wabi_vm_run(&vm);
+  printf("error: %i\n", vm.error);
   /* wabi_prn(vm.control); */
   /* wabi_prn(vm.continuation); */
 
   wabi_vm_destroy(&vm);
-  return err;
+  return (int) vm.error;
 }

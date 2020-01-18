@@ -22,7 +22,7 @@ typedef struct wabi_vm_struct {
 
 typedef wabi_vm_t* wabi_vm;
 
-wabi_error_type
+void
 wabi_vm_run(wabi_vm vm);
 
 void

@@ -508,13 +508,12 @@ wabi_vm_reduce(wabi_vm vm)
 
 #define WABI_REDUCTIONS_LIMIT 1000000
 
-wabi_error_type
+void
 wabi_vm_run(wabi_vm vm) {
   wabi_size reductions;
 
   reductions = WABI_REDUCTIONS_LIMIT;
-  do {
-    reductions--;
+  for(;;) {
 
 #ifdef DEBUG
     printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
@@ -525,23 +524,19 @@ wabi_vm_run(wabi_vm vm) {
     printf("l: %lu\nr: %lu\n", l, WABI_REDUCTIONS_LIMIT -reductions);
     printf("\n-----------------------------------------------\n");
 #endif
+    reductions--;
     wabi_vm_reduce(vm);
-    if(! vm->continuation) {
-      return wabi_error_done;
-    }
-    if(! vm->error) continue;
-    if(vm->error == wabi_error_nomem) {
-      // printf("COLLECTING ...\n");
+
+    switch(vm->error) {
+    case wabi_error_nomem:
       if(wabi_vm_collect(vm)) {
-        // printf("COLLECTED.\n");
-        // printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
         vm->error = wabi_error_none;
         continue;
       }
+    default:
+      if(vm->continuation) continue;
+      return;
     }
-    return vm->error;
-  } while(1);
-  /* } while(reductions); */
-  printf("IMPOSSIBLE\n");
-  return wabi_error_timeout;
+  }
+  vm->error = wabi_error_timeout;
 }

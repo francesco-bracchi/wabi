@@ -414,7 +414,6 @@ wabi_store_collect(wabi_store store)
 int
 wabi_store_check(wabi_store store, wabi_val val)
 {
-  wabi_binary_node bnode;
   wabi_pair pair;
   wabi_map_entry entry;
   wabi_map_array array;
@@ -438,11 +437,8 @@ wabi_store_check(wabi_store store, wabi_val val)
   if(val == NULL) {
     return 1;
   }
-  /* printf("CHECK: %s \n", wabi_tag_to_string(val)); */
-  /* printf("CHECK: %LX %lx %lx \n", *val, *(val + 1), *(val + 2)); */
   if (val < store->space || val >=store->limit) {
-    printf("DANGLING POINTER FOUND: %lx\n", wabi_tag_to_string(val));
-    // wabi_prn(val);
+    printf("DANGLING POINTER FOUND: %s\n", wabi_tag_to_string(val));
     return 0;
   }
   switch(WABI_TAG(val)) {
@@ -469,8 +465,6 @@ wabi_store_check(wabi_store store, wabi_val val)
     size = array->size;
     for(j = 0; j < size; j++) {
       if(!wabi_store_check(store, (wabi_val) table + size)) {
-        printf("MAP ARRAY ");
-        wabi_prn(val);
         return 0;
       }
     }
@@ -482,8 +476,6 @@ wabi_store_check(wabi_store store, wabi_val val)
     size = WABI_POPCNT(hash->bitmap);
     for(j = 0; j < size; j++) {
       if(!wabi_store_check(store, (wabi_val) table + size)) {
-        printf("MAP HASH ");
-        wabi_prn(val);
         return 0;
       }
     }
@@ -510,21 +502,15 @@ wabi_store_check(wabi_store store, wabi_val val)
   case wabi_tag_env:
     env = (wabi_env) val;
     if(! wabi_store_check(store, (wabi_val) WABI_WORD_VAL(env->prev))) {
-      printf("ENV, PREV ");
-      wabi_prn(val);
       return 0;
     }
     size = env->numE;
     data = (wabi_val) env->data;
     for(j = 0; j < size; j++) {
       if(! wabi_store_check(store, data + 2 * j)) {
-        printf("ENV, KEY %i ", j);
-        wabi_prn(val);
         return 0;
       }
       if(! wabi_store_check(store, data + 2 * j + 1)) {
-        printf("ENV, VAL %i ", j);
-        wabi_prn(val);
         return 0;
       }
     }
@@ -583,7 +569,6 @@ wabi_store_check(wabi_store store, wabi_val val)
     return 1;
 
   default:
-    printf("UNKNOWN STUFF %lx\n", WABI_TAG(val));
     return 0;
   }
 }
