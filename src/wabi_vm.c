@@ -37,24 +37,56 @@ wabi_vm_nil(wabi_vm vm)
   return v;
 }
 
+#ifdef DEBUG
+
+int
+wabi_vm_check(wabi_vm vm)
+{
+  wabi_store store;
+  int x;
+
+  store = &(vm->store);
+
+  printf("control\n");
+  x = vm->control && wabi_store_check(store, vm->control);
+  if(!x) return x;
+  printf("continuation\n");
+  x = vm->continuation && wabi_store_check(store, vm->continuation);
+  if(!x) return x;
+  printf("env\n");
+  x = vm->env && wabi_store_check(store, vm->env);
+  return x;
+}
+
+#endif
 
 int
 wabi_vm_collect(wabi_vm vm)
 {
   wabi_store store;
   int res;
-
   store = &(vm->store);
   if(wabi_store_collect_prepare(store)) {
     if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
     if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
     if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
+    if(vm->env) vm->env = wabi_store_copy_val(store, vm->env);
     if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
     res = wabi_store_collect(store);
+    #ifdef DEBUG
+    if(!wabi_vm_check(vm)) {
+      printf("Dangling pointer found\n");
+    }
+    else {
+      printf("Heap is consistent\n");
+    }
+    #endif
     if(res) {
+      vm->error = wabi_error_nomem;
       return res;
     }
   }
+  vm->error = wabi_error_none;
   return 0;
 }
 
@@ -229,6 +261,7 @@ wabi_vm_reduce(wabi_vm vm)
         vm->control = ctrl0;
         vm->env = vm->nil;
         vm->continuation = (wabi_val) cont0;
+        return;
       }
       vm->error = wabi_error_nomem;
       return;
@@ -273,9 +306,9 @@ wabi_vm_reduce(wabi_vm vm)
             return;
           }
         }
-        vm->error = wabi_error_nomem;
-        return;
       }
+      vm->error = wabi_error_nomem;
+      return;
     }
     /* not applicative neither operative */
     vm->error = wabi_error_other;
@@ -364,7 +397,7 @@ wabi_vm_reduce(wabi_vm vm)
           return;
         }
       }
-      vm->error =  wabi_error_nomem;
+      vm->error = wabi_error_nomem;
       return;
     }
     /* ctrl: as */
@@ -478,21 +511,33 @@ wabi_vm_reduce(wabi_vm vm)
 wabi_error_type
 wabi_vm_run(wabi_vm vm) {
   wabi_size reductions;
+
   reductions = WABI_REDUCTIONS_LIMIT;
   do {
     reductions--;
 
-    /* printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size); */
-    /* printf("c: "); */
-    /* wabi_pr(vm->control); */
-    /* printf("\nk: "); */
-    /* if(vm->continuation) wabi_pr(vm->continuation); */
-    /* printf("\n-----------------------------------------------\n"); */
+#ifdef DEBUG
+    printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
+    printf("c: ");
+    wabi_pr(vm->control);
+    printf("(%s) \nk: ", wabi_tag_to_string(vm->control));
+    if(vm->continuation) wabi_prn(vm->continuation);
+    printf("l: %lu\nr: %lu\n", l, WABI_REDUCTIONS_LIMIT -reductions);
+    printf("\n-----------------------------------------------\n");
+#endif
     wabi_vm_reduce(vm);
+    if(! vm->continuation) {
+      return wabi_error_done;
+    }
     if(! vm->error) continue;
     if(vm->error == wabi_error_nomem) {
-      wabi_vm_collect(vm);
-      continue;
+      // printf("COLLECTING ...\n");
+      if(wabi_vm_collect(vm)) {
+        // printf("COLLECTED.\n");
+        // printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
+        vm->error = wabi_error_none;
+        continue;
+      }
     }
     return vm->error;
   } while(1);

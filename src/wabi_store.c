@@ -7,11 +7,17 @@
 #include "wabi_store.h"
 #include "wabi_word.h"
 #include "wabi_binary.h"
+
 #include "wabi_map.h"
+#include "wabi_pair.h"
+#include "wabi_combiner.h"
+#include "wabi_cont.h"
+#include "wabi_pr.h"
+
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.067;
+static const double wabi_low_threshold = 0.0013;
 
 int
 wabi_store_init(wabi_store store,
@@ -101,8 +107,6 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_map_array:
   case wabi_tag_map_entry:
   case wabi_tag_map_hash:
-  case wabi_tag_bt_app:
-  case wabi_tag_bt_oper:
   case wabi_tag_cont_eval:
     wordcopy(res, src, 2);
     store->heap += 2;
@@ -112,6 +116,8 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_call:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
     wordcopy(res, src, 3);
     store->heap += 3;
     break;
@@ -225,8 +231,12 @@ wabi_store_collect_heap(wabi_store store)
     case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      scan += 2;
+      if(*(scan + 2)) {
+        *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
+      }
+      scan += 3;
       break;
+
 
     case wabi_tag_oper:
       *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
@@ -255,11 +265,18 @@ wabi_store_collect_heap(wabi_store store)
       if(WABI_WORD_VAL(*scan)) {
         *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
       }
+      WABI_SET_TAG(scan, wabi_tag_cont_eval);
+      scan += 1;
+      break;
+
+    case wabi_tag_cont_prompt:
+      if(WABI_WORD_VAL(*scan)) {
+        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      }
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       WABI_SET_TAG(scan, wabi_tag_cont_eval);
       scan += 2;
       break;
-
 
     case wabi_tag_cont_apply:
       if(WABI_WORD_VAL(*scan)) {
@@ -310,7 +327,7 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
       WABI_SET_TAG(scan, wabi_tag_cont_args);
-      scan += 4;
+      scan += 3;
       break;
 
     case wabi_tag_cont_sel:
@@ -346,18 +363,18 @@ wabi_store_collect_resize(wabi_store store)
   wabi_size used, new_size;
   wabi_word *new_space;
 
-  used = wabi_store_used(store);
+  free(store->old_space);
 
+  used = wabi_store_used(store);
   new_size = (wabi_size) ceil(used / wabi_low_threshold);
   new_space = realloc(store->space, WABI_WORD_SIZE * new_size);
   if(new_space != store->space) {
     fprintf(stderr, "resizing has moved heap around.\n");
     exit(1);
   }
+
   store->limit = store->space + new_size;
   store->size = new_size;
-
-  free(store->old_space);
   store->old_space = NULL;
 }
 
@@ -389,7 +406,184 @@ wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
   wabi_store_collect_resize(store);
-
   // printf("After collection %i over %lu\n", wabi_store_used(store), store->size);
   return 1;
+}
+
+
+int
+wabi_store_check(wabi_store store, wabi_val val)
+{
+  wabi_binary_node bnode;
+  wabi_pair pair;
+  wabi_map_entry entry;
+  wabi_map_array array;
+  wabi_map_hash hash;
+  wabi_map_entry table;
+  wabi_size size;
+  wabi_size j;
+  wabi_combiner_derived comb;
+  wabi_combiner_builtin combb;
+  wabi_env env;
+  wabi_val data;
+  wabi_cont_eval cont_eval;
+  wabi_cont_prompt cont_prompt;
+  wabi_cont_apply cont_apply;
+  wabi_cont_call cont_call;
+  wabi_cont_sel cont_sel;
+  wabi_cont_args cont_args;
+  wabi_cont_def cont_def;
+  wabi_cont_prog cont_prog;
+
+  if(val == NULL) {
+    return 1;
+  }
+  /* printf("CHECK: %s \n", wabi_tag_to_string(val)); */
+  /* printf("CHECK: %LX %lx %lx \n", *val, *(val + 1), *(val + 2)); */
+  if (val < store->space || val >=store->limit) {
+    printf("DANGLING POINTER FOUND: %lx\n", wabi_tag_to_string(val));
+    // wabi_prn(val);
+    return 0;
+  }
+  switch(WABI_TAG(val)) {
+  case wabi_tag_fixnum:
+  case wabi_tag_constant:
+    return 1;
+
+  case wabi_tag_symbol:
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(*val));
+
+  case wabi_tag_pair:
+    pair = (wabi_pair) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(pair->cdr))
+      && wabi_store_check(store, (wabi_val) pair->car);
+
+  case wabi_tag_map_entry:
+    entry = (wabi_map_entry) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(entry->value))
+      && wabi_store_check(store, (wabi_val) entry->key);
+
+  case wabi_tag_map_array:
+    array = (wabi_map_array) val;
+    table = (wabi_map_entry) WABI_WORD_VAL(array->table);
+    size = array->size;
+    for(j = 0; j < size; j++) {
+      if(!wabi_store_check(store, (wabi_val) table + size)) {
+        printf("MAP ARRAY ");
+        wabi_prn(val);
+        return 0;
+      }
+    }
+    return 1;
+
+  case wabi_tag_map_hash:
+    hash = (wabi_map_hash) val;
+    table = (wabi_map_entry) WABI_WORD_VAL(hash->table);
+    size = WABI_POPCNT(hash->bitmap);
+    for(j = 0; j < size; j++) {
+      if(!wabi_store_check(store, (wabi_val) table + size)) {
+        printf("MAP HASH ");
+        wabi_prn(val);
+        return 0;
+      }
+    }
+    return 1;
+
+  case wabi_tag_oper:
+  case wabi_tag_app:
+    comb = (wabi_combiner_derived) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(comb->static_env))
+      && wabi_store_check(store, (wabi_val) comb->caller_env_name)
+      && wabi_store_check(store, (wabi_val) comb->parameters)
+      && wabi_store_check(store, (wabi_val) comb->body);
+
+
+  case wabi_tag_bt_oper:
+  case wabi_tag_bt_app:
+    combb = (wabi_combiner_builtin) val;
+    if(!combb->c_xtra) {
+      return wabi_store_check(store, (wabi_val) combb->c_name);
+    } else {
+      return wabi_store_check(store, (wabi_val) combb->c_name)
+        && wabi_store_check(store, (wabi_val) combb->c_xtra);
+    }
+  case wabi_tag_env:
+    env = (wabi_env) val;
+    if(! wabi_store_check(store, (wabi_val) WABI_WORD_VAL(env->prev))) {
+      printf("ENV, PREV ");
+      wabi_prn(val);
+      return 0;
+    }
+    size = env->numE;
+    data = (wabi_val) env->data;
+    for(j = 0; j < size; j++) {
+      if(! wabi_store_check(store, data + 2 * j)) {
+        printf("ENV, KEY %i ", j);
+        wabi_prn(val);
+        return 0;
+      }
+      if(! wabi_store_check(store, data + 2 * j + 1)) {
+        printf("ENV, VAL %i ", j);
+        wabi_prn(val);
+        return 0;
+      }
+    }
+    return 1;
+
+  case wabi_tag_cont_eval:
+    cont_eval = (wabi_cont_eval) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_eval->next));
+
+  case wabi_tag_cont_prompt:
+    cont_prompt = (wabi_cont_prompt) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_prompt->next))
+      && wabi_store_check(store, (wabi_val) cont_prompt->tag);
+
+  case wabi_tag_cont_call:
+    cont_call = (wabi_cont_call) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_call->next))
+      && wabi_store_check(store, (wabi_val) cont_call->env)
+      && wabi_store_check(store, (wabi_val) cont_call->combiner);
+
+  case wabi_tag_cont_def:
+    cont_def = (wabi_cont_def) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_def->next))
+      && wabi_store_check(store, (wabi_val) cont_def->env)
+      && wabi_store_check(store, (wabi_val) cont_def->pattern);
+
+  case wabi_tag_cont_prog:
+    cont_prog = (wabi_cont_prog) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_prog->next))
+      && wabi_store_check(store, (wabi_val) cont_prog->env)
+      && wabi_store_check(store, (wabi_val) cont_prog->expressions);
+
+  case wabi_tag_cont_args:
+    cont_args = (wabi_cont_args) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_args->next))
+      && wabi_store_check(store, (wabi_val) cont_args->env)
+      && wabi_store_check(store, (wabi_val) cont_args->data)
+      && wabi_store_check(store, (wabi_val) cont_args->done);
+
+  case wabi_tag_cont_apply:
+    cont_apply = (wabi_cont_apply) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_apply->next))
+      && wabi_store_check(store, (wabi_val) cont_apply->env)
+      && wabi_store_check(store, (wabi_val) cont_apply->args);
+
+  case wabi_tag_cont_sel:
+    cont_sel = (wabi_cont_sel) val;
+    return wabi_store_check(store, (wabi_val) WABI_WORD_VAL(cont_sel->next))
+      && wabi_store_check(store, (wabi_val) cont_sel->env)
+      && wabi_store_check(store, (wabi_val) cont_sel->left)
+      && wabi_store_check(store, (wabi_val) cont_sel->right);
+
+  case wabi_tag_bin_node:
+    return 0;
+  case wabi_tag_bin_leaf:
+    return 1;
+
+  default:
+    printf("UNKNOWN STUFF %lx\n", WABI_TAG(val));
+    return 0;
+  }
 }

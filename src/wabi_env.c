@@ -13,21 +13,6 @@
 #include "wabi_builtin.h"
 
 
-wabi_env
-wabi_env_extend(wabi_vm vm, wabi_env prev) {
-  wabi_env res;
-  res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
-  if(res) {
-    res->prev = (wabi_word) prev;
-    res->numE = 0;
-    res->maxE = WABI_ENV_INITIAL_SIZE;
-    res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
-    WABI_SET_TAG(res, wabi_tag_env);
-  }
-  return res;
-}
-
-
 static inline void
 wabi_env_actually_set(wabi_env env, wabi_symbol k, wabi_val v)
 {

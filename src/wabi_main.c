@@ -23,7 +23,7 @@ main(int argc,
   long length;
   wabi_error_type err;
 
-  wabi_vm_init(&vm, 50000);
+  wabi_vm_init(&vm, 25000);
 
   FILE * f = fopen("test/test.wabi", "rb");
   fseek(f, 0, SEEK_END);
@@ -37,7 +37,7 @@ main(int argc,
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
   err = wabi_vm_run(&vm);
-  /* printf("error: %i\n", err); */
+  printf("error: %li\n", vm.error);
   /* wabi_prn(vm.control); */
   /* wabi_prn(vm.continuation); */
 

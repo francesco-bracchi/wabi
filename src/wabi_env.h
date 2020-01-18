@@ -19,6 +19,7 @@ typedef struct wabi_env_struct {
 
 typedef wabi_env_t* wabi_env;
 
+// todo introduce a wabi_env_entry struct
 
 #define WABI_ENV_SIZE 4
 #define WABI_ENV_INITIAL_SIZE 8
@@ -27,8 +28,19 @@ typedef wabi_env_t* wabi_env;
 #define WABI_ENV_LOW_LIMIT 8
 
 
-wabi_env
-wabi_env_extend(wabi_vm vm, wabi_env prev);
+static inline wabi_env
+wabi_env_extend(wabi_vm vm, wabi_env prev) {
+  wabi_env res;
+  res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
+  if(res) {
+    res->prev = (wabi_word) prev;
+    res->numE = 0;
+    res->maxE = WABI_ENV_INITIAL_SIZE;
+    res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
+    WABI_SET_TAG(res, wabi_tag_env);
+  }
+  return res;
+}
 
 
 wabi_error_type

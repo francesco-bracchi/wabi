@@ -138,7 +138,7 @@ wabi_pr_map(wabi_map map)
 void
 wabi_pr_env(wabi_env env)
 {
-  printf("#env(%lu elements)", env->numE);
+  printf("#env(%lu)", env->numE);
 }
 
 
@@ -188,6 +188,11 @@ wabi_pr_cont(wabi_cont val) {
     switch(WABI_TAG(val)) {
     case wabi_tag_cont_eval:
       printf("(EVAL)");
+      break;
+    case wabi_tag_cont_prompt:
+      printf("(PROMPT ");
+      wabi_pr((wabi_val) ((wabi_cont_prompt) val)->tag);
+      printf(")");
       break;
     case wabi_tag_cont_apply:
       printf("(APPLY ");
@@ -309,6 +314,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
+  case wabi_tag_cont_prompt:
     printf("<");
     wabi_pr_cont((wabi_cont) val);
     printf(">");

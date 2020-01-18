@@ -61,4 +61,8 @@ wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
   return memcpy(dst, src, size * WABI_WORD_SIZE);
 }
 
+/** debug only **/
+int
+wabi_store_check(wabi_store store, wabi_val val);
+
 #endif
