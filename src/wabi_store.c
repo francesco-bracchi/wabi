@@ -25,7 +25,7 @@ int
 wabi_store_init(wabi_store store,
                 wabi_size size)
 {
-  wabi_word *mem = malloc(WABI_WORD_SIZE * size);
+  wabi_word *mem = malloc(size * WABI_WORD_SIZE);
   if(mem && (mem + size <= wabi_store_limit)) {
     store->space = mem;
     store->limit = mem + size;
@@ -390,7 +390,7 @@ wabi_store_collect_prepare(wabi_store store)
   // printf("Before collection %i over %lu\n", wabi_store_used(store), store->size);
   size3 = (wabi_size) ceil(store->size * wabi_invlow_threshold);
   old_space = store->space;
-  new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
+  new_space = (wabi_word*) malloc(size3 * WABI_WORD_SIZE);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {
     store->space = new_space;
     store->limit = new_space + size3;

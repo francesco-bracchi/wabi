@@ -50,12 +50,33 @@
     (eval e
       (list def n (list* fn as bs)))))
 
+(def cond
+  (fx e (x . xs)
+    (if (nil? xs)
+        (eval e x)
+        (if (pair? xs)
+            (eval e
+              (list if x (car xs) (cons cond (cdr xs))))
+            (error cond)))))
+
+(pr "c"
+    (cond
+      (= 1 10) (q a)
+      (= 2 20) (q b)
+      (q c)))
+
+
+(pr "b"
+    (cond
+      (= 1 10) (q a)
+      (= 2 (+ 1 1)) (q b)
+      (q foo)))
 
 ;; fib
 
 (defn fib (n)
   (if
-   (< n 2) 1
+   (< n 2) n
    (+ (fib (- n 1)) (fib (- n 2)))))
 
 (def n 32)

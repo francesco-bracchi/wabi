@@ -535,8 +535,10 @@ wabi_vm_run(wabi_vm vm) {
         vm->error = wabi_error_none;
         continue;
       }
-    default:
+    case wabi_error_none:
       if(vm->continuation) continue;
+      return;
+    default:
       return;
     }
   }
