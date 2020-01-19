@@ -5,6 +5,7 @@
 #include "wabi_delim.h"
 #include "wabi_builtin.h"
 
+#include <stdio.h>
 
 wabi_error_type
 wabi_cont_prompt_bt(wabi_vm vm)
@@ -39,12 +40,14 @@ wabi_cont_prompt_bt(wabi_vm vm)
           if(cont) {
             vm->control = fst;
             vm->continuation = (wabi_val) cont;
+            return wabi_error_none;
           }
         }
         return wabi_error_nomem;
       }
     }
   }
+  printf("5\n");
   return wabi_error_type_mismatch;
 }
 

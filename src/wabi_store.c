@@ -17,7 +17,9 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
 
-static const double wabi_low_threshold = 0.0013;
+// static const double wabi_low_threshold = 0.0013;
+
+static const double wabi_invlow_threshold = 50;
 
 int
 wabi_store_init(wabi_store store,
@@ -366,7 +368,7 @@ wabi_store_collect_resize(wabi_store store)
   free(store->old_space);
 
   used = wabi_store_used(store);
-  new_size = (wabi_size) ceil(used / wabi_low_threshold);
+  new_size = (wabi_size) ceil(used * wabi_invlow_threshold);
   new_space = realloc(store->space, WABI_WORD_SIZE * new_size);
   if(new_space != store->space) {
     fprintf(stderr, "resizing has moved heap around.\n");
@@ -386,7 +388,7 @@ wabi_store_collect_prepare(wabi_store store)
   wabi_size size3;
 
   // printf("Before collection %i over %lu\n", wabi_store_used(store), store->size);
-  size3 = (wabi_size) ceil(store->size / wabi_low_threshold);
+  size3 = (wabi_size) ceil(store->size * wabi_invlow_threshold);
   old_space = store->space;
   new_space = (wabi_word*) malloc(WABI_WORD_SIZE * size3);
   if(new_space && (new_space + size3 <= wabi_store_limit)) {

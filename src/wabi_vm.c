@@ -259,7 +259,7 @@ wabi_vm_reduce(wabi_vm vm)
       if(cont0) {
         ctrl0 = (wabi_val) ((wabi_cont_apply) cont)->args;
         vm->control = ctrl0;
-        vm->env = vm->nil;
+        vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
         vm->continuation = (wabi_val) cont0;
         return;
       }
@@ -517,11 +517,13 @@ wabi_vm_run(wabi_vm vm) {
 
 #ifdef DEBUG
     printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
-    printf("c: ");
-    wabi_pr(vm->control);
-    printf("(%s) \nk: ", wabi_tag_to_string(vm->control));
+    printf("c[%s]: ", wabi_tag_to_string(vm->control));
+    wabi_prn(vm->control);
+    printf("e: ");
+    wabi_prn(vm->env);
+    printf("k: ");
     if(vm->continuation) wabi_prn(vm->continuation);
-    printf("l: %lu\nr: %lu\n", l, WABI_REDUCTIONS_LIMIT -reductions);
+    printf("r: %lu\n", WABI_REDUCTIONS_LIMIT - reductions);
     printf("\n-----------------------------------------------\n");
 #endif
     reductions--;

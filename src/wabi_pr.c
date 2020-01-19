@@ -138,7 +138,18 @@ wabi_pr_map(wabi_map map)
 void
 wabi_pr_env(wabi_env env)
 {
-  printf("#env(%lu)", env->numE);
+  wabi_size j;
+
+  printf("#env{");
+  do {
+    for(j = 0; j < env->numE; j++) {
+      wabi_pr((wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE));
+      printf(" ");
+    }
+    env= (wabi_env) WABI_WORD_VAL(env->prev);
+  } while(env);
+
+  printf("}");
 }
 
 

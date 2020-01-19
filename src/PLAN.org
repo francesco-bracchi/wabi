@@ -11,4 +11,5 @@
 - [ ] tabella dei simboli condivisa
 - [ ] multi thread executor
 - [ ] fare un reader in wabi
+- [ ] avere un pool di aree di memoria preallocate al SO?
 - [ ] wtf

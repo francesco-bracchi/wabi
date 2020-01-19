@@ -70,9 +70,9 @@
 
 ;; end fib
 
-(def x 10)
+(def kkk (prompt callcc (+ 10 20)))
 
-;; (def x (prompt callcc (+ 10 20)))
+(pr "30" kkk)
 
 
 
