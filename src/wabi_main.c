@@ -10,6 +10,7 @@
 #include "wabi_builtin.h"
 #include "wabi_reader.h"
 #include "wabi_cont.h"
+#include "wabi_pr.h"
 
 int
 main(int argc,
@@ -35,9 +36,11 @@ main(int argc,
   e0 = wabi_builtin_stdenv(&vm);
   wabi_builtin_load(&vm, e0, buffer);
   wabi_vm_run(&vm);
-  printf("error: %i\n", vm.error);
-  /* wabi_prn(vm.control); */
-  /* wabi_prn(vm.continuation); */
+  printf("error: %s\n", wabi_error_name(vm.error));
+  if(vm.error) {
+    wabi_prn(vm.control);
+    /* wabi_prn(vm.continuation); */
+  }
 
   wabi_vm_destroy(&vm);
   return (int) vm.error;

@@ -42,27 +42,39 @@ wabi_application_builtin_new(wabi_vm vm,
 }
 
 
-// TODO: support implicit multiexpression body?
 static inline wabi_error_type
-wabi_combiner_fx_bt(wabi_vm vm, wabi_val e, wabi_val fs, wabi_val bd)
+wabi_combiner_builtin_fx(wabi_vm vm)
 {
-  wabi_combiner_derived res;
+  wabi_combiner_derived fx;
+  wabi_val ctrl, e, fs;
+  ctrl = vm->control; // (e (a b) (+ a b))
+  if(WABI_IS(wabi_tag_pair, ctrl)) {
+    e = wabi_car((wabi_pair) ctrl);
+    if(!WABI_IS(wabi_tag_symbol, e) && *e != wabi_val_ignore) {
+      return wabi_error_type_mismatch;
+    }
+    ctrl = wabi_cdr((wabi_pair) ctrl); // ((a b) (+ a b) (pr "ok"))
+    if(WABI_IS(wabi_tag_pair, ctrl)) {
+      fs = wabi_car((wabi_pair) ctrl);
+      ctrl = wabi_cdr((wabi_pair) ctrl); // ((+ a b) (pr "ok"))
+      if(WABI_IS(wabi_tag_pair, ctrl)) {
+        fx = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+        if(fx) {
+          fx->static_env = (wabi_word) ((wabi_cont_call) vm->continuation)->env;
+          fx->caller_env_name = (wabi_word) e;
+          fx->parameters = (wabi_word) fs;
+          fx->body = (wabi_word) ctrl;
+          WABI_SET_TAG(fx, wabi_tag_oper);
 
-  if(!WABI_IS(wabi_tag_symbol, e) && *e != wabi_val_ignore) {
-    return wabi_error_type_mismatch;
+          vm->control = (wabi_val) fx;
+          vm->continuation = (wabi_val) wabi_cont_next((wabi_cont)vm->continuation);
+          return wabi_error_none;
+        }
+        return wabi_error_nomem;
+      }
+    }
   }
-  res = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-  if(res) {
-    res->static_env = (wabi_word) ((wabi_cont_call) vm->continuation)->env;
-    res->caller_env_name = (wabi_word) e;
-    res->parameters = (wabi_word) fs;
-    res->body = (wabi_word) bd;
-    WABI_SET_TAG(res, wabi_tag_oper);
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-    vm->control = (wabi_val) res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
+  return wabi_error_bindings;
 }
 
 
@@ -340,7 +352,6 @@ wabi_combiner_caller_env_name_bt(wabi_vm vm, wabi_val f)
 }
 
 
-WABI_BUILTIN_WRAP3(wabi_combiner_builtin_fx, wabi_combiner_fx_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_wrap, wabi_combiner_wrap_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_unwrap, wabi_combiner_unwrap_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_combiner_p, wabi_combiner_combiner_p_bt)

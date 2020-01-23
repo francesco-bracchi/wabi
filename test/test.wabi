@@ -30,7 +30,7 @@
 (def list*
   (wrap
    (fx _ (a . as)
-     (cond
+     (if
        (nil? as) a
        (cons a (apply list* as))))))
 
@@ -51,26 +51,28 @@
     (eval e
       (list def n (list* fn as bs)))))
 
-;; (pr "()" (cond))
+;; (pr "()" (if))
 
-;; (pr "10" (cond (+ 4 6)))
+;; (pr "10" (if (+ 4 6)))
 
-;; (pr "4" (cond true (* 2 2)))
+;; (pr "4" (if true (* 2 2)))
 
-;; (pr "()" (cond false (+ 2 3)))
+;; (pr "()" (if false (+ 2 3)))
 
-;; (pr "ciccio" (cond false (+ 2 3) (q ciccio)))
+;; (pr "ciccio" (if false (+ 2 3) (q ciccio)))
 
-;; (pr "second" (cond false (q first) true (q second) (q third)))
+;; (pr "seif" (if false (q first) true (q seif) (q third)))
 
 ;; fib
 
 (defn fib (n)
-  (cond
-   (< n 2) n
+  (if
+   (= n 0) 0
+   (= n 1) 1
+   (= n 2) 2
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(def n 100)
+(def n 20)
 
 (def t0 (clock))
 
@@ -84,11 +86,7 @@
 
 (def kkk (prompt callcc (+ 10 20)))
 
-(pr "30" kkk)
-
-
-
-
+(pr "prompt 30" kkk)
 
 ;; (pr (list (q fib) n) (fib n))
 
@@ -114,15 +112,15 @@
 ;; ;;          (if (<= a 0) (q ok)
 ;; ;;              (do (pr a) (rec (- a 1))))))
 
-;; (defx cond
+;; (defx if
 ;;     e cs
-;;   (loop cond (cs cs)
+;;   (loop if (cs cs)
 ;;        (if (nil? cs) nil
 ;;            (if (nil? (cdr cs))
 ;;                (eval e (car cs))
 ;;                (if (eval e (car cs))
 ;;                    (eval e (car (cdr cs)))
-;;                    (cond (cdr (cdr cs))))))))
+;;                    (if (cdr (cdr cs))))))))
 
 ;; (defx time
 ;;     e as

@@ -56,6 +56,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
   return wabi_error_type_mismatch;
 }
 
+
 wabi_error_type
 wabi_delim_builtins(wabi_vm vm, wabi_env env)
 {

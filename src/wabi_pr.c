@@ -9,7 +9,7 @@
 #include "wabi_map.h"
 #include "wabi_number.h"
 #include "wabi_symbol.h"
-/* #include "wabi_symbol.h" */
+#include "wabi_pair.h"
 #include "wabi_combiner.h"
 /* #include "wabi_env.h" */
 
@@ -156,10 +156,19 @@ wabi_pr_env(wabi_env env)
 void
 wabi_pr_applicative(wabi_combiner_derived val)
 {
+  wabi_val body;
+
   printf("(fn ");
   wabi_pr((wabi_val) val->parameters);
   printf(" ");
-  wabi_pr((wabi_val) val->body);
+  body = (wabi_val) val->body;
+  while(WABI_IS(wabi_tag_pair, body)) {
+    wabi_pr(wabi_car((wabi_pair) body));
+    body = wabi_cdr((wabi_pair) body);
+    if(*body != wabi_val_nil) {
+      printf(" ");
+    }
+  }
   printf(")");
 }
 
@@ -167,12 +176,21 @@ wabi_pr_applicative(wabi_combiner_derived val)
 void
 wabi_pr_operative(wabi_combiner_derived val)
 {
+  wabi_val body;
+
   printf("(fx ");
   wabi_pr((wabi_val) val->caller_env_name);
   printf(" ");
   wabi_pr((wabi_val) val->parameters);
   printf(" ");
-  wabi_pr((wabi_val) val->body);
+  body = (wabi_val) val->body;
+  while(WABI_IS(wabi_tag_pair, body)) {
+    wabi_pr(wabi_car((wabi_pair) body));
+    body = wabi_cdr((wabi_pair) body);
+    if(*body != wabi_val_nil) {
+      printf(" ");
+    }
+  }
   printf(")");
 }
 

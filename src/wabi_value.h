@@ -60,10 +60,10 @@ typedef wabi_val wabi_expr;
 
 #define WABI_IS(tag, val) (WABI_TAG((wabi_word *) val) == tag)
 
-static const wabi_word wabi_val_nil    = 0x0000000000000000;
-static const wabi_word wabi_val_false  = 0x0000000000000001;
-static const wabi_word wabi_val_true   = 0x0000000000000002;
-static const wabi_word wabi_val_ignore = 0x0000000000000003;
+static const wabi_word wabi_val_nil    = wabi_tag_constant | 0x0000000000000000;
+static const wabi_word wabi_val_false  = wabi_tag_constant | 0x0000000000000001;
+static const wabi_word wabi_val_true   = wabi_tag_constant | 0x0000000000000002;
+static const wabi_word wabi_val_ignore = wabi_tag_constant | 0x0000000000000003;
 static const wabi_word wabi_val_zero   = wabi_tag_fixnum;
 
 #define WABI_IS_VAL(k, v) ((k)==(*(v)))
