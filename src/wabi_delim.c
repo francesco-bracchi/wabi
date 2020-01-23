@@ -26,9 +26,12 @@ wabi_cont_prompt_bt(wabi_vm vm)
         cont = wabi_cont_next((wabi_cont) vm->continuation);
         cont = wabi_cont_push_prompt(vm, tag, cont);
         if(cont) {
-          vm->control = fst;
-          vm->continuation = (wabi_val) cont;
-          return wabi_error_none;
+          cont = wabi_cont_push_eval(vm, cont);
+          if(cont) {
+            vm->control = fst;
+            vm->continuation = (wabi_val) cont;
+            return wabi_error_none;
+          }
         }
         return wabi_error_nomem;
       }
@@ -38,16 +41,18 @@ wabi_cont_prompt_bt(wabi_vm vm)
         if(cont) {
           cont = wabi_cont_push_prompt(vm, tag, cont);
           if(cont) {
-            vm->control = fst;
-            vm->continuation = (wabi_val) cont;
-            return wabi_error_none;
+            if(cont) {
+              cont = wabi_cont_push_eval(vm, cont);
+              vm->control = fst;
+              vm->continuation = (wabi_val) cont;
+              return wabi_error_none;
+            }
           }
         }
         return wabi_error_nomem;
       }
     }
   }
-  printf("5\n");
   return wabi_error_type_mismatch;
 }
 

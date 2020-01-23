@@ -215,10 +215,12 @@ wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont ne
   return (wabi_cont) cont;
 }
 
-static inline wabi_cont
-wabi_cont_next(wabi_cont cont)
-{
-  return (wabi_cont) WABI_WORD_VAL(cont->next);
-}
+/* static inline wabi_cont */
+/* wabi_cont_next(wabi_cont cont) */
+/* { */
+/*   return (wabi_cont) WABI_WORD_VAL(cont->next); */
+/* } */
+
+#define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
 
 #endif

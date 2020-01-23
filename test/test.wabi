@@ -1,4 +1,4 @@
-(pr "AHAH");
+(pr "test.wabi");
 
 (def q (fx _ (p) p))
 
@@ -30,8 +30,9 @@
 (def list*
   (wrap
    (fx _ (a . as)
-     (if (nil? as) a
-         (cons a (apply list* as))))))
+     (cond
+       (nil? as) a
+       (cons a (apply list* as))))))
 
 
 (pr "(1 2 3 4)" (list* 1 2 (list 3 4)))
@@ -50,36 +51,26 @@
     (eval e
       (list def n (list* fn as bs)))))
 
-(def cond
-  (fx e (x . xs)
-    (if (nil? xs)
-        (eval e x)
-        (if (pair? xs)
-            (eval e
-              (list if x (car xs) (cons cond (cdr xs))))
-            (error cond)))))
+;; (pr "()" (cond))
 
-(pr "c"
-    (cond
-      (= 1 10) (q a)
-      (= 2 20) (q b)
-      (q c)))
+;; (pr "10" (cond (+ 4 6)))
 
+;; (pr "4" (cond true (* 2 2)))
 
-(pr "b"
-    (cond
-      (= 1 10) (q a)
-      (= 2 (+ 1 1)) (q b)
-      (q foo)))
+;; (pr "()" (cond false (+ 2 3)))
+
+;; (pr "ciccio" (cond false (+ 2 3) (q ciccio)))
+
+;; (pr "second" (cond false (q first) true (q second) (q third)))
 
 ;; fib
 
 (defn fib (n)
-  (if
+  (cond
    (< n 2) n
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(def n 32)
+(def n 100)
 
 (def t0 (clock))
 

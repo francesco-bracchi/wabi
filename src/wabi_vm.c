@@ -193,6 +193,8 @@ wabi_vm_reduce(wabi_vm vm)
   }
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_prompt:
+    vm->continuation = (wabi_val) wabi_cont_next(cont);
+    return;
   case wabi_tag_cont_eval:
     /* ctrl: (f . as) */
     /* envr: e */

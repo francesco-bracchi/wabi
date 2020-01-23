@@ -7,8 +7,8 @@
 typedef int wabi_error_code;
 
 typedef enum wabi_tag_enum {
-  wabi_tag_constant       = 0x0000000000000000,
-  wabi_tag_fixnum         = 0x0100000000000000,
+  wabi_tag_fixnum         = 0x0000000000000000,
+  wabi_tag_constant       = 0x0100000000000000,
   wabi_tag_symbol         = 0x0200000000000000,
   wabi_tag_forward        = 0x0300000000000000,
   wabi_tag_pair           = 0x0400000000000000,
