@@ -393,6 +393,20 @@ wabi_builtin_clock(wabi_vm vm)
 }
 
 
+static inline wabi_error_type
+wabi_builtin_not_bt(wabi_vm vm, wabi_val e) {
+  wabi_val res;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(res) {
+    *res = (*e == (wabi_val_false || *e == wabi_val_nil) ? wabi_val_true : wabi_val_false);
+    vm->control = res;
+    return wabi_error_none;
+  }
+  return wabi_error_nomem;
+}
+
+
+WABI_BUILTIN_WRAP1(wabi_builtin_not, wabi_builtin_not_bt);
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -414,6 +428,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   res = WABI_DEFN(vm, env, "eval", "wabi:eval", wabi_builtin_eval);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "clock", "wabi:clock", wabi_builtin_clock);
+  if(res) return NULL;
+  res = WABI_DEFN(vm, env, "not", "wabi:not", wabi_builtin_not);
   if(res) return NULL;
 
   res = wabi_constant_builtins(vm, env);
