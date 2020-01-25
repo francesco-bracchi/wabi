@@ -39,7 +39,7 @@ main(int argc,
   printf("error: %s\n", wabi_error_name(vm.error));
   if(vm.error) {
     wabi_prn(vm.control);
-    /* wabi_prn(vm.continuation); */
+    wabi_prn(vm.continuation);
   }
 
   wabi_vm_destroy(&vm);

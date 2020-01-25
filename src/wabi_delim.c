@@ -57,10 +57,72 @@ wabi_cont_prompt_bt(wabi_vm vm)
 }
 
 
+#define wabi_delim_prompt_of(cont, tag)         \
+  (                                             \
+   WABI_IS(wabi_tag_cont_prompt, cont)          \
+   && ((wabi_cont_prompt) cont)->tag == *(tag)  \
+  )
+
+wabi_error_type
+wabi_cont_control_bt(wabi_vm vm)
+{
+  wabi_env env;
+  wabi_val kname, ctrl, tag, fst;
+  wabi_cont cont;
+  wabi_combiner kval;
+
+  ctrl = vm->control;
+  if(! WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_type_mismatch;
+
+  tag = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! WABI_IS(wabi_tag_symbol, tag))
+    return wabi_error_type_mismatch;
+  if(! WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_type_mismatch;
+
+  kname = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! WABI_IS(wabi_tag_symbol, tag) || *kname != wabi_val_ignore)
+    return wabi_error_type_mismatch;
+  if(! WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_type_mismatch;
+
+  fst = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
+  env = wabi_env_extend(vm, env);
+  if(!env) return wabi_error_nomem;
+
+  cont = wabi_cont_next((wabi_cont) vm->continuation);
+
+  kval = wabi_combiner_continuation_new(vm, tag, cont);
+  if(!kval)
+    return wabi_error_nomem;
+
+  // todo: optimize bookeeping the last prompt in the VM (limit the number of registers?)
+  while(!wabi_delim_prompt_of(cont, tag))
+    cont = wabi_cont_next((wabi_cont) vm->continuation);
+
+  if(*ctrl == wabi_val_nil) {
+    cont = wabi_cont_push_eval(vm, cont);
+    if(! cont) return wabi_error_nomem;
+    vm->control = fst;
+    vm->env = (wabi_val) env;
+    vm->continuation = (wabi_val) cont;
+    return wabi_error_none;
+  }
+  return wabi_error_other;
+}
+
 wabi_error_type
 wabi_delim_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
   res = WABI_DEFX(vm, env, "prompt", "wabi:prompt", wabi_cont_prompt_bt);
+  if(res) return res;
+  res = WABI_DEFX(vm, env, "control", "wabi:control", wabi_cont_control_bt);
   return res;
 }

@@ -398,15 +398,16 @@ wabi_builtin_not_bt(wabi_vm vm, wabi_val e) {
   wabi_val res;
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
-    *res = (*e == (wabi_val_false || *e == wabi_val_nil) ? wabi_val_true : wabi_val_false);
+    *res = (*e == wabi_val_false || *e == wabi_val_nil) ? wabi_val_true : wabi_val_false;
     vm->control = res;
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     return wabi_error_none;
   }
   return wabi_error_nomem;
 }
 
-
 WABI_BUILTIN_WRAP1(wabi_builtin_not, wabi_builtin_not_bt);
+
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {

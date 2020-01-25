@@ -15,7 +15,7 @@
 #include "wabi_pr.h"
 
 
-static const wabi_word* wabi_store_limit = (wabi_word *)0x07FFFFFFFFFFFFFF;
+static const wabi_word* wabi_store_limit = (wabi_word *)0x00FFFFFFFFFFFFFF;
 
 // static const double wabi_low_threshold = 0.0013;
 

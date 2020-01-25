@@ -19,6 +19,7 @@
 
 #define WABI_COMBINER_DERIVED_SIZE 4
 #define WABI_COMBINER_BUILTIN_SIZE 3
+#define WABI_COMBINER_CONTINUATION_SIZE 2
 
 typedef wabi_error_type (*wabi_builtin_fun)(wabi_vm);
 
@@ -40,9 +41,17 @@ typedef struct wabi_combiner_builtin_struct {
 
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
 
+typedef struct wabi_combiner_continuation_struct {
+  wabi_word tag;
+  wabi_word cont;
+} wabi_combiner_continuation_t;
+
+typedef wabi_combiner_continuation_t* wabi_combiner_continuation;
+
 typedef union wabi_combiner_union {
   wabi_combiner_builtin_t builtin;
   wabi_combiner_derived_t derived;
+  wabi_combiner_continuation_t continuation;
 } wabi_combiner_t;
 
 typedef wabi_combiner_t* wabi_combiner;
@@ -51,18 +60,11 @@ typedef wabi_combiner_t* wabi_combiner;
 wabi_combiner
 wabi_operator_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
 
-
 wabi_combiner
 wabi_application_builtin_new(wabi_vm vm, wabi_binary cname, wabi_builtin_fun cfun);
 
-
-wabi_combiner
-wabi_combiner_new(wabi_vm vm,
-                  wabi_env static_env,
-                  wabi_val caller_env_name,
-                  wabi_val parameters,
-                  wabi_val body);
-
+wabi_error_type
+wabi_combiner_builtins(wabi_vm vm, wabi_env env);
 
 inline static int
 wabi_combiner_is_operative(wabi_val combiner) {
@@ -86,7 +88,16 @@ wabi_combiner_is_derived(wabi_val combiner)
   return WABI_IS(wabi_tag_app, combiner) || WABI_IS(wabi_tag_oper, combiner);
 }
 
-wabi_error_type
-wabi_combiner_builtins(wabi_vm vm, wabi_env env);
+static inline wabi_combiner
+wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont)
+{
+  wabi_combiner_continuation res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
+  if(res) {
+    res->tag = (wabi_word) tag;
+    res->cont = (wabi_word) cont;
+    WABI_SET_TAG(res, wabi_tag_cont);
+  }
+  return (wabi_combiner) res;
+}
 
 #endif
