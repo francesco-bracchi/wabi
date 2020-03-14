@@ -13,7 +13,6 @@ typedef struct wabi_vm_struct {
   wabi_val env;
   wabi_val continuation;
   wabi_val symbol_table;
-  wabi_val prompt_table;
   wabi_val nil;
   wabi_store_t store;
   wabi_size fuel;

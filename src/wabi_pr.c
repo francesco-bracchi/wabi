@@ -212,9 +212,9 @@ wabi_pr_binary_blob(wabi_word *val)
 
 
 void
-wabi_pr_cont(wabi_cont val) {
-  do {
-    switch(WABI_TAG(val)) {
+wabi_pr_cont0(wabi_cont val)
+{
+  switch(WABI_TAG(val)) {
     case wabi_tag_cont_eval:
       printf("(EVAL)");
       break;
@@ -261,6 +261,37 @@ wabi_pr_cont(wabi_cont val) {
       printf("BOH");
       break;
     }
+}
+
+
+void
+wabi_pr_cont_combiner(wabi_combiner_continuation val)
+{
+  wabi_val tag;
+  wabi_cont cont;
+  tag = (wabi_val) WABI_WORD_VAL(val->tag);
+  cont = (wabi_cont) val->cont;
+
+  printf("K[");
+  wabi_pr(tag);
+  printf("](");
+
+  do {
+    if(WABI_IS(wabi_tag_cont_prompt, cont) && wabi_eq(tag, (wabi_val) ((wabi_cont_prompt) cont)->tag)) {
+      return;
+    }
+    wabi_pr_cont0(cont);
+    cont = (wabi_cont) WABI_WORD_VAL(cont->next);
+  } while(1);
+
+  printf(")");
+}
+
+
+void
+wabi_pr_cont(wabi_cont val) {
+  do {
+    wabi_pr_cont0(val);
     val = (wabi_cont) WABI_WORD_VAL(val->next);
     if(val) printf(" ");
   } while(val != NULL);
@@ -356,11 +387,14 @@ wabi_pr(wabi_val val) {
     printf("F#");
     wabi_pr((wabi_val) WABI_WORD_VAL(*val));
     break;
+  case wabi_tag_cont:
+  case wabi_tag_cont_oper:
+    wabi_pr_cont_combiner((wabi_combiner_continuation) val);
+    break;
   default:
     printf("unknown %lx", *val);
   }
 }
-
 
 
 void

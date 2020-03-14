@@ -68,18 +68,28 @@ wabi_combiner_builtins(wabi_vm vm, wabi_env env);
 
 inline static int
 wabi_combiner_is_operative(wabi_val combiner) {
-  return WABI_IS(wabi_tag_oper, combiner) || WABI_IS(wabi_tag_bt_oper, combiner);
+  return WABI_IS(wabi_tag_oper, combiner)
+    || WABI_IS(wabi_tag_bt_oper, combiner)
+    || WABI_IS(wabi_tag_cont_oper, combiner);
 }
 
 static inline int
 wabi_combiner_is_applicative(wabi_val combiner) {
-  return WABI_IS(wabi_tag_app, combiner) || WABI_IS(wabi_tag_bt_app, combiner);
+  return WABI_IS(wabi_tag_app, combiner)
+    || WABI_IS(wabi_tag_bt_app, combiner)
+    || WABI_IS(wabi_tag_cont, combiner);
 }
 
 static inline int
 wabi_combiner_is_builtin(wabi_val combiner)
 {
   return WABI_IS(wabi_tag_bt_app, combiner) || WABI_IS(wabi_tag_bt_oper, combiner);
+}
+
+static inline int
+wabi_combiner_is_continuation(wabi_val combiner)
+{
+  return WABI_IS(wabi_tag_cont, combiner) || WABI_IS(wabi_tag_cont_oper, combiner);
 }
 
 static inline int

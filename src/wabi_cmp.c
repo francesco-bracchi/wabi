@@ -13,7 +13,6 @@
 #include "wabi_builtin.h"
 #include "wabi_cmp.h"
 
-
 int
 wabi_cmp_leaves(wabi_binary_leaf left,
                 wabi_word from_left,

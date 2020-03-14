@@ -16,13 +16,14 @@
 #include "wabi_combiner.h"
 #include "wabi_store.h"
 #include "wabi_error.h"
+#include "wabi_cont.h"
 
 /*** TMP ***/
 #include <stdio.h>
 #include "wabi_pr.h"
 
 
-#define WABI_VM_DEBUG 1
+// #define WABI_VM_DEBUG 1
 
 
 static const wabi_cont wabi_cont_done = NULL;
@@ -112,14 +113,14 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
   store_init = wabi_store_init(&(vm->store), store_size);
   if(store_init) {
     symbol_table = (wabi_val) wabi_map_empty(vm);
-    if(symbol_table) {
-      vm->symbol_table = symbol_table;
-      vm->nil = wabi_vm_nil(vm);
-      vm->error = wabi_error_none;
-      vm->continuation = (wabi_val) wabi_cont_done;
+    if(! symbol_table) {
+      vm->error = wabi_error_nomem;
       return;
     }
-    vm->error = wabi_error_nomem;
+    vm->symbol_table = symbol_table;
+    vm->nil = wabi_vm_nil(vm);
+    vm->error = wabi_error_none;
+    vm->continuation = (wabi_val) wabi_cont_done;
   }
 }
 
@@ -269,6 +270,7 @@ wabi_vm_reduce(wabi_vm vm)
       return;
     }
     if(wabi_combiner_is_applicative(ctrl)) {
+
       /* ctrl: c when (app? c) */
       /* envr: e */
       /* cont: ((apply e0 nil) . s) */
@@ -312,7 +314,6 @@ wabi_vm_reduce(wabi_vm vm)
       vm->error = wabi_error_nomem;
       return;
     }
-    /* not applicative neither operative */
     vm->error = wabi_error_other;
     return;
 
@@ -369,6 +370,23 @@ wabi_vm_reduce(wabi_vm vm)
     return;
 
   case wabi_tag_cont_call:
+    /***** CONT *****/
+    if(wabi_combiner_is_continuation((wabi_val) ((wabi_cont_call) cont)->combiner)) {
+      cont0 = wabi_cont_concat(vm,
+                               (wabi_val) (wabi_combiner_continuation) ((wabi_cont_call) cont)->combiner,
+                               wabi_cont_next(cont));
+      if(! cont0) {
+        vm->error = wabi_error_nomem;
+        return;
+      }
+      if(!WABI_IS(wabi_tag_pair, ctrl)) {
+        vm->error = wabi_error_bindings;
+        return;
+      }
+      vm->control = wabi_car((wabi_pair) ctrl);
+      vm->continuation = (wabi_val) cont0;
+      return;
+    }
 
     /* ctrl: as */
     /* envr: e */
@@ -538,7 +556,7 @@ wabi_vm_run(wabi_vm vm) {
   reductions = WABI_REDUCTIONS_LIMIT;
   for(;;) {
 
-#ifdef DEBUG
+#ifdef WABI_VM_DEBUG
     printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
     printf("c[%s]: ", wabi_tag_to_string(vm->control));
     wabi_prn(vm->control);

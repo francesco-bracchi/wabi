@@ -1,7 +1,7 @@
 ctrl: (f . as)
 envr: e
 cont: ((eval) . s)
-      --------------------------------------
+--------------------------------------
 ctrl: f
 envr: e
 cont: ((eval) (apply e0 as) . s)
@@ -129,7 +129,7 @@ envr: e0
 cont: s // (bind e0 ps as)
 
 
-control x0
+ctrl: x0
 envr: e
 cont: nil
 --------------------------------------

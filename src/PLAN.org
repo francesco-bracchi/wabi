@@ -1,6 +1,8 @@
 * Piano d'azione
 - [x] ottimizzare il caso di continuazione eval-more per chiamata a funzione con un solo argomento?
 - [x] fare un reader in C
+- [ ] mettere operativo e applicativo in un bit nel tag
+- [ ] concatenare le continuazioni in modo lazy e senza sprecare memoria
 - [ ] pulizia del codice della VM
 - [ ] builtin non ritornano codice d'errore, lo scrivono direttamente nella VM
 - [ ] creare più builtin
