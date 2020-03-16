@@ -361,7 +361,7 @@ wabi_vm_reduce(wabi_vm vm)
       ctrl0 = wabi_vm_reverse(vm,(wabi_val) ((wabi_cont_args) cont)->done, ctrl0);
       if(ctrl0) {
         vm->control = ctrl0;
-        vm->env = vm->nil;
+        vm->env = (wabi_val) ((wabi_cont_args) cont)->env;
         vm->continuation = (wabi_val) wabi_cont_next(cont);
         return;
       }

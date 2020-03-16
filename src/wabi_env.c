@@ -61,20 +61,39 @@ wabi_env_p_bt(wabi_vm vm, wabi_val e0)
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     *res = WABI_IS(wabi_tag_env, e0) ? wabi_val_true : wabi_val_false;
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     vm->control = res;
     return wabi_error_none;
   }
   return wabi_error_nomem;
 }
 
+static inline wabi_error_type
+wabi_env_extend_bt(wabi_vm vm, wabi_val e0)
+{
+  wabi_val res;
+  if(! WABI_IS(wabi_tag_env, e0))
+    return wabi_error_type_mismatch;
+
+  res = (wabi_val) wabi_env_extend(vm, (wabi_env) e0);
+
+  if(! res)
+    return wabi_error_nomem;
+
+  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  vm->control = res;
+  return wabi_error_none;
+}
 
 WABI_BUILTIN_WRAP1(wabi_env_p_builtin, wabi_env_p_bt)
-
+WABI_BUILTIN_WRAP1(wabi_env_ext_excl, wabi_env_extend_bt)
 
 wabi_error_type
 wabi_env_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
   res = WABI_DEFN(vm, env, "env?", "wabi:env?", wabi_env_p_builtin);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "ext!", "wabi:extend!", wabi_env_ext_excl);
   return res;
 }

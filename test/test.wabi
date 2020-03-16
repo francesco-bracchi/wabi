@@ -1,31 +1,24 @@
-(pr "test.wabi");
 
 (def q (fx _ (p) p))
 
-(pr "(a b c)" (q (a b c)))
 
 (def qs (fx _ p p))
 
-(pr "(a b c)" (qs a b c))
 
 (def id (wrap q))
 
-(pr "5" (id (+ 2 3)))
 
 (def list (wrap qs))
 
-(pr "(3 4)" (list 3 (+ 2 2)))
 
 (def env (fx e _ e))
 
-(pr "env" (env))
 
 (def apply
   (wrap
    (fx _ (o as)
      (eval (env) (cons (unwrap o) as)))))
 
-(pr "6" (apply + (list 1 2 3)))
 
 (def list*
   (wrap
@@ -35,33 +28,155 @@
        (cons a (apply list* as))))))
 
 
-(pr "(1 2 3 4)" (list* 1 2 (list 3 4)))
-
 (def fn
   (fx e (as . bs)
     (wrap (eval e (list* fx _ as bs)))))
+
 
 (def defx
   (fx e (n e1 as . bs)
     (eval e
       (list def n (list* fx e1 as bs)))))
 
+
 (def defn
   (fx e (n as . bs)
     (eval e
       (list def n (list* fn as bs)))))
 
-;; (pr "()" (if))
 
-;; (pr "10" (if (+ 4 6)))
+(defn fold
+    (f i as)
+  (if
+   (nil? as) i
+   (fold f (f i (car as)) (cdr as))))
 
-;; (pr "4" (if true (* 2 2)))
 
-;; (pr "()" (if false (+ 2 3)))
+(defn conc2
+    (l l0)
+  (if
+   (pair? l) (cons (car l) (conc2 (cdr l) l0))
+   (nil? l) l0))
 
-;; (pr "ciccio" (if false (+ 2 3) (q ciccio)))
 
-;; (pr "seif" (if false (q first) true (q seif) (q third)))
+(defn conc
+    ls
+  (fold conc2 nil ls))
+
+
+(defn part
+    (f . as)
+  (fn bs (apply f (conc as bs))))
+
+
+(defn flip
+    (f)
+  (fn (a b . as) (apply f (list* b a as))))
+
+
+(defn foldr
+    (f as i)
+  (if (nil? as) i
+      (f (car as) (foldr f (cdr as) i))))
+
+
+(defn rev
+    (as)
+  (fold (flip cons) nil as))
+
+
+(defn always
+    (v)
+  (fn _ v))
+
+
+(defx and
+    e bs
+  (all? (part eval e) bs))
+
+
+(defx or
+    e bs
+  (some? (part eval e) bs))
+
+
+(defn odds
+    (cs)
+  (if
+   (nil? cs) nil
+   (cons (car cs) (evens (cdr cs)))))
+
+
+(defn evens
+    (cs)
+  (if
+   (nil? cs) nil
+   (odds (cdr cs))))
+
+
+(defx loop
+    e (n bs . xs)
+  (def e1 (ext! e))
+  (eval e1 (list* defn n (odds bs) xs))
+  (eval e1 (list* n (evens bs))))
+
+
+(defn comp
+    fs
+  (if
+   (nil? fs) id
+   (nil? (cdr fs)) (car fs)
+   (nil? (cdr (cdr fs)))
+   (do (def f (car fs))
+       (def g (car (cdr fs)))
+       (fn (a)
+          (f (g a))))
+   (fold comp (car fs) (cdr fs))))
+
+
+(def inc
+  (part + 1))
+
+(def dec
+  (part (flip -) 1))
+
+(def zero?
+  (part = 0))
+
+;; (def pos?
+;;   (part < 0))
+
+;; (def neg?
+;;   (part > 0))
+
+(def fst car)
+
+(def snd (comp car cdr))
+
+(def trd (comp car cdr cdr))
+
+(def fth (comp car cdr cdr cdr))
+
+(defn nth (n l)
+  (if
+    (= 0 n) (fst l)
+    (= 1 n) (snd l)
+    (= 2 n) (trd l)
+    (= 3 n) (fth l)
+    (nth (dec n) (cdr l))))
+
+;; TESTS
+
+(defx test
+    e (a b)
+  (def ax (eval e a))
+  (def bx (eval e b))
+  (pr (q test)
+      (list (q =) a b)
+      (if
+       (= ax bx) (q ok)
+       (list (q error) ax bx))))
+
 
 ;; fib
 
@@ -75,6 +190,8 @@
 
 ;; (fib 22)
 
+(pr (env))
+
 (def n 20)
 
 (def t0 (clock))
@@ -83,22 +200,26 @@
 
 (def t (clock))
 
-(pr "time" (/ (- t t0) 1000) "ms")
+(pr (q time) (/ (- t t0) 1000) (q ms))
 
 ;; end fib
 
-(def kkk (prompt callcc (+ 10 20)))
+(test (id (+ 2 3)) 5)
+
+(test (list* 1 2 (list 3 4)) (list 1 2 3 4))
 
 
-(defx test
-    e (a b)
-  (def ax (eval e a))
-  (def bx (eval e b))
-  (pr (q test)
-      (list (q =) a b)
-      (if
-       (= ax bx) "ok"
-       (list "error" ax bx))))
+(test (fold + 0 nil) 0)
+
+(test (fold + 0 (list 1 2 3)) 6)
+
+(test (fold + 10 (list 1 2 3)) 16)
+
+(test (apply + (list 1 2 3)) 6)
+
+(test (conc) nil)
+
+(test (conc (list 1 2 3) nil) (list 1 2 3))
 
 
 ;; if
@@ -119,18 +240,6 @@
 (test (if false "true") nil)
 (test (if true "true") "true")
 (test (if 10 "true") "true")
-
-(defn odds
-    (cs)
-  (if
-   (nil? cs) nil
-   (cons (car cs) (evens (cdr cs)))))
-
-(defn evens
-    (cs)
-  (if
-   (nil? cs) nil
-   (odds (cdr cs))))
 
 
 (test (odds nil) nil)
@@ -167,3 +276,19 @@
 (test (prompt x (control x k (oper? k))) false)
 (test (* 2 (prompt x (+ 1 (control x k (k 3))))) 8)
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
+(test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
+
+(def u (list 1 2 3 4 5))
+
+(test (fst nil) nil)
+(test (fst u) 1)
+(test (snd u) 2)
+(test (trd u) 3)
+(test (fth u) 4)
+(test (nth 4 u) 5)
+(test (nth 5 u) nil)
+
+(test (loop recur (a (q (1 2 3 4)) r nil)
+        (if (nil? a) (rev r)
+          (recur (cdr a) (cons (inc (car a)) r))))
+      (list 2 3 4 5))
