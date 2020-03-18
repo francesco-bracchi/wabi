@@ -172,6 +172,16 @@ wabi_reader_read_ignore(wabi_vm vm) {
   return res;
 }
 
+wabi_val
+wabi_reader_neg(wabi_val num)
+{
+  long lnum;
+
+  lnum = - WABI_CAST_INT64(num);
+  *num = WABI_WORD_VAL(lnum);
+  WABI_SET_TAG(num, wabi_tag_fixnum);
+  return num;
+}
 
 wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)
@@ -183,6 +193,13 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   }
   if(wabi_reader_is_num(**c)) {
     return wabi_reader_read_num(vm, c);
+  }
+  if(**c == '-') {
+    if(wabi_reader_is_num(*(*c + 1))) {
+      (*c)++;
+      return wabi_reader_neg(wabi_reader_read_num(vm, c));
+    }
+    return wabi_reader_read_symbol(vm, c);
   }
   if(**c == '"') {
     (*c)++;

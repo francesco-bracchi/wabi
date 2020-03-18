@@ -98,6 +98,16 @@ wabi_number_builtin_diff(wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
+  if(*ctrl == wabi_val_nil) {
+    a = wabi_vm_alloc(vm, 1);
+    if(! a) return wabi_error_nomem;
+    *a = (- ac) & wabi_word_value_mask;
+    WABI_SET_TAG(a, wabi_tag_fixnum);
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->control = a;
+    return wabi_error_none;
+  }
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);

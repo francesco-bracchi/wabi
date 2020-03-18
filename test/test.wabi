@@ -143,19 +143,29 @@
 (def zero?
   (part = 0))
 
-;; (def pos?
-;;   (part < 0))
+(def pos?
+  (part < 0))
 
-;; (def neg?
-;;   (part > 0))
+(def neg?
+  (part > 0))
 
-(def fst car)
+(def fst
+  car)
 
-(def snd (comp car cdr))
+(def snd
+  (comp car cdr))
 
-(def trd (comp car cdr cdr))
+(def trd
+  (comp car cdr cdr))
 
-(def fth (comp car cdr cdr cdr))
+(def fth
+  (comp car cdr cdr cdr))
+
+(defn ran
+    (hi)
+  (loop ran (hi (dec hi) rs nil)
+       (if (> 0 hi) rs
+           (ran (dec hi) (cons hi rs)))))
 
 (defn nth (n l)
   (if
@@ -163,7 +173,7 @@
     (= 1 n) (snd l)
     (= 2 n) (trd l)
     (= 3 n) (fth l)
-    (nth (dec n) (cdr l))))
+    (nth (- n 3) (cdr (cdr (cdr l))))))
 
 ;; TESTS
 
@@ -265,7 +275,6 @@
 (test (unless true 20 10) nil)
 (test (unless false 20 10) 10)
 
-
 (test (prompt x 10) 10)
 (test (prompt x 10 20) 20)
 (test (+ 1 (prompt x (control x k 20))) 21)
@@ -278,17 +287,32 @@
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
-(def u (list 1 2 3 4 5))
+(test (loop recur (a (list 0 1) r nil) (if (nil? a) (rev r) (recur (cdr a) (cons (inc (car a)) r)))) (list 1 2))
 
 (test (fst nil) nil)
-(test (fst u) 1)
-(test (snd u) 2)
-(test (trd u) 3)
-(test (fth u) 4)
-(test (nth 4 u) 5)
-(test (nth 5 u) nil)
+(test (fst (list 1 2 3 4 5)) 1)
+(test (snd (list 1 2 3 4 5)) 2)
+(test (trd (list 1 2 3 4 5)) 3)
+(test (fth (list 1 2 3 4 5)) 4)
+(test (nth 4 (list 1 2 3 4 5)) 5)
+(test (nth 5 (list 1 2 3 4 5)) nil)
 
-(test (loop recur (a (q (1 2 3 4)) r nil)
-        (if (nil? a) (rev r)
-          (recur (cdr a) (cons (inc (car a)) r))))
-      (list 2 3 4 5))
+(test (ran 0) nil)
+(test (ran 1) (list 1))
+(test (ran 2) (list 1 2))
+(test (ran (- 1)) nil)
+
+(test (+) 0)
+(test (+ 2) 2)
+(test (+ 2 2) 4)
+
+(test (- 2) -2)
+(test (- 2 2) 0)
+
+(test (*) 1)
+(test (* 2) 2)
+(test (* 2 2) 4)
+
+(test (/ 4 1) 4)
+(test (/ 4 2) 2)
+(test (/ 4 3) 1)
