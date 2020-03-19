@@ -248,6 +248,47 @@
    (nil? as) nil
    (drop (dec n) (cdr as))))
 
+(defn filter
+    (t? as)
+  (rec filter (as as rs nil)
+    (if
+     (nil? as) (rev rs)
+     (t? (car as)) (filter (cdr as) (cons (car as) rs))
+     (filter (cdr as) rs))))
+
+(defn remove
+    (t? as)
+  (filter (comp not t?) as))
+
+(defn find
+    (t? as)
+  (if
+   (nil? as) nil
+   (t? (car as)) (car as)
+   (find t? (cdr as))))
+
+(defn in?
+    (a as)
+  (if
+    (nil? as) false
+    (= a (car as)) true
+    (in? a (cdr as))))
+
+(defn take?
+    (t? as)
+  (rec take? (as as rs nil)
+    (if
+     (nil? as) (rev rs)
+     (t? (car as)) (take? (cdr as) (cons (car as) rs))
+     (rev rs))))
+
+(defn drop?
+    (t? as)
+  (if
+   (nil? as) nil
+   (t? (car as)) (drop? t? (cdr as))
+   as))
+
 (defn ran
     (n)
   (rec ran (n (dec n) rs nil)
@@ -414,3 +455,12 @@
 (test (map inc (ran 3)) (list 1 2 3))
 (test (map + (ran 3) (ran 4)) (list 0 2 4))
 (test (map + (ran 4) (ran 3)) (list 0 2 4))
+
+(test (find (part < 3) (ran 10)) 4)
+(test (find (part < 3) (ran 3)) nil)
+(test (in? 3 (ran 3)) false)
+(test (in? 3 (ran 10)) true)
+(test (drop? (part > 4) (ran 2)) nil)
+(test (drop? (part > 4) (ran 6)) (list 4 5))
+(test (take? (part > 4) (ran 6)) (list 0 1 2 3))
+(test (take? (part > 4) (ran 2)) (list 0 1))
