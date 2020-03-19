@@ -1,24 +1,25 @@
+(def q
+  (fx _ (p) p))
 
-(def q (fx _ (p) p))
+(def qs
+  (fx _ p p))
 
+(def id
+  (wrap q))
 
-(def qs (fx _ p p))
+(def list
+  (wrap qs))
 
+(def comment
+  (fx _ p nil))
 
-(def id (wrap q))
-
-
-(def list (wrap qs))
-
-
-(def env (fx e _ e))
-
+(def env
+  (fx e _ e))
 
 (def apply
   (wrap
    (fx _ (o as)
      (eval (env) (cons (unwrap o) as)))))
-
 
 (def list*
   (wrap
@@ -27,23 +28,24 @@
        (nil? as) a
        (cons a (apply list* as))))))
 
-
 (def fn
   (fx e (as . bs)
     (wrap (eval e (list* fx _ as bs)))))
-
 
 (def defx
   (fx e (n e1 as . bs)
     (eval e
       (list def n (list* fx e1 as bs)))))
 
-
 (def defn
   (fx e (n as . bs)
     (eval e
       (list def n (list* fn as bs)))))
 
+(defn insp
+    e
+  (pr e)
+  (fst e))
 
 (defn fold
     (f i as)
@@ -51,54 +53,89 @@
    (nil? as) i
    (fold f (f i (car as)) (cdr as))))
 
-
 (defn conc2
-    (l l0)
+    (as bs)
   (if
-   (pair? l) (cons (car l) (conc2 (cdr l) l0))
-   (nil? l) l0))
-
+   (pair? as) (cons (car as) (conc2 (cdr as) bs))
+   (nil? as) bs))
 
 (defn conc
-    ls
-  (fold conc2 nil ls))
-
+    as
+  (fold conc2 nil as))
 
 (defn part
     (f . as)
   (fn bs (apply f (conc as bs))))
 
-
 (defn flip
     (f)
   (fn (a b . as) (apply f (list* b a as))))
 
-
 (defn foldr
     (f as i)
-  (if (nil? as) i
-      (f (car as) (foldr f (cdr as) i))))
-
+  (if
+   (nil? as) i
+   (f (car as) (foldr f (cdr as) i))))
 
 (defn rev
     (as)
   (fold (flip cons) nil as))
 
-
 (defn always
     (v)
   (fn _ v))
 
+(defn all?
+    (t? as)
+  (if
+   (nil? as) true
+   (t? (car as)) (all? t? (cdr as))
+   false))
+
+(defn some?
+    (t? as)
+  (if
+   (nil? as) false
+   (t? (car as)) true
+   (some? t? (cdr as))))
+
+(defn last
+    (as)
+  (if
+    (nil? as) nil
+    (nil? (cdr as)) (car as)
+    (last (cdr as))))
+
+(defn but-last
+    (as)
+  (cond
+    (nil? as) nil
+    (nil? (cdr as)) (car as)
+    (but-last (cdr as))))
+
+(defn snoc
+    (as a)
+  (if
+   (nil? as) (list a)
+   (cons (car as) (snoc (cdr as) a))))
+
+(defn pipe
+    (a b)
+  (if
+   (pair? b) (snoc b a)
+   (list b a)))
+
+(defx ->
+    e (a . as)
+  (eval e (fold pipe a as)))
 
 (defx and
     e bs
   (all? (part eval e) bs))
 
-
 (defx or
     e bs
   (some? (part eval e) bs))
-
 
 (defn odds
     (cs)
@@ -106,33 +143,61 @@
    (nil? cs) nil
    (cons (car cs) (evens (cdr cs)))))
 
-
 (defn evens
     (cs)
   (if
    (nil? cs) nil
    (odds (cdr cs))))
 
+(defn map1
+    (f as)
+  (if
+   (nil? as) nil
+   (cons (f (car as)) (map1 f (cdr as)))))
 
-(defx loop
+(defn each1
+    (f as)
+  (if
+   (nil? as) nil
+   (do (f (car as)) (each1 f (cdr as)))))
+
+(defn map
+    (f . as)
+  (if
+   (nil? as) nil
+   (some? nil? as) nil
+   (cons (apply f (map1 car as))
+         (apply map (cons f (map1 cdr as))))))
+
+(defn each
+    (f . as)
+  (if
+   (nil? as) nil
+   (some? nil? as) nil
+   (do (apply f (map1 car as))
+       (apply each (cons f (map1 cdr as))))))
+
+(defx rec
     e (n bs . xs)
   (def e1 (ext! e))
   (eval e1 (list* defn n (odds bs) xs))
   (eval e1 (list* n (evens bs))))
 
+(defx let
+    e (bs . xs)
+  (def e1 (ext! e))
+  (eval e1 (list* do (map (part list def) (odds bs) (evens bs))))
+  (eval e1 (list* do xs)))
 
 (defn comp
     fs
   (if
    (nil? fs) id
    (nil? (cdr fs)) (car fs)
-   (nil? (cdr (cdr fs)))
-   (do (def f (car fs))
-       (def g (car (cdr fs)))
-       (fn (a)
-          (f (g a))))
+   (nil? (cdr (cdr fs))) (do (def f (car fs))
+                             (def g (car (cdr fs)))
+                             (fn (a) (f (g a))))
    (fold comp (car fs) (cdr fs))))
-
 
 (def inc
   (part + 1))
@@ -161,12 +226,6 @@
 (def fth
   (comp car cdr cdr cdr))
 
-(defn ran
-    (hi)
-  (loop ran (hi (dec hi) rs nil)
-       (if (> 0 hi) rs
-           (ran (dec hi) (cons hi rs)))))
-
 (defn nth (n l)
   (if
     (= 0 n) (fst l)
@@ -174,6 +233,27 @@
     (= 2 n) (trd l)
     (= 3 n) (fth l)
     (nth (- n 3) (cdr (cdr (cdr l))))))
+
+(defn take
+    (n as)
+  (if
+   (zero? n) nil
+   (nil? as) nil
+   (cons (car as) (take (dec n) (cdr as)))))
+
+(defn drop
+    (n as)
+  (if
+   (zero? n) as
+   (nil? as) nil
+   (drop (dec n) (cdr as))))
+
+(defn ran
+    (n)
+  (rec ran (n (dec n) rs nil)
+    (if
+     (> 0 n) rs
+     (ran (dec n) (cons n rs)))))
 
 ;; TESTS
 
@@ -187,9 +267,7 @@
        (= ax bx) (q ok)
        (list (q error) ax bx))))
 
-
 ;; fib
-
 (defn fib
     (n)
   (if
@@ -215,20 +293,14 @@
 ;; end fib
 
 (test (id (+ 2 3)) 5)
-
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
 
 
 (test (fold + 0 nil) 0)
-
 (test (fold + 0 (list 1 2 3)) 6)
-
 (test (fold + 10 (list 1 2 3)) 16)
-
 (test (apply + (list 1 2 3)) 6)
-
 (test (conc) nil)
-
 (test (conc (list 1 2 3) nil) (list 1 2 3))
 
 
@@ -287,7 +359,11 @@
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
-(test (loop recur (a (list 0 1) r nil) (if (nil? a) (rev r) (recur (cdr a) (cons (inc (car a)) r)))) (list 1 2))
+(test (rec recur (a (list 0 1) r nil)
+        (if
+         (nil? a) (rev r)
+         (recur (cdr a) (cons (inc (car a)) r))))
+      (list 1 2))
 
 (test (fst nil) nil)
 (test (fst (list 1 2 3 4 5)) 1)
@@ -298,8 +374,8 @@
 (test (nth 5 (list 1 2 3 4 5)) nil)
 
 (test (ran 0) nil)
-(test (ran 1) (list 1))
-(test (ran 2) (list 1 2))
+(test (ran 1) (list 0))
+(test (ran 2) (list 0 1))
 (test (ran (- 1)) nil)
 
 (test (+) 0)
@@ -316,3 +392,33 @@
 (test (/ 4 1) 4)
 (test (/ 4 2) 2)
 (test (/ 4 3) 1)
+
+(test (all? (part < 0) nil) true)
+(test (all? (part < 0) (list 1 2 3)) true)
+(test (all? (part < 0) (list 1 0 3)) false)
+
+(test (some? (part < 0) nil) false)
+(test (some? (part < 0) (list 1 2 3)) true)
+(test (some? (part < 0) (list 1 0 -1)) true)
+
+(test (and (> 1 0) (> 0 1)) false)
+(test (or (> 1 0) (> 0 1)) true)
+
+(test (let (a 1 b 2) (+ a b)) 3)
+(test (let (a 1 b 2) (+ a b) 10) 10)
+
+(test (take 0 (ran 2)) nil)
+(test (take 1 (ran 2)) (list 0))
+(test (take 2 (ran 2)) (list 0 1))
+(test (take 3 (ran 2)) (list 0 1))
+
+(test (drop 0 (ran 2)) (list 0 1))
+(test (drop 1 (ran 2)) (list 1))
+(test (drop 2 (ran 2)) nil)
+(test (drop 3 (ran 2)) nil)
+
+(test (map inc) nil)
+
+(test (map inc (ran 3)) (list 1 2 3))
+(test (map + (ran 3) (ran 4)) (list 0 2 4))
+(test (map + (ran 4) (ran 3)) (list 0 2 4))
