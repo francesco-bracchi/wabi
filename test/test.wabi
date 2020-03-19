@@ -257,15 +257,23 @@
 
 ;; TESTS
 
+(defx time
+    e as
+  (let (t0 (clock)
+        v  (eval e (list* do as))
+        t (clock))
+    (each pr as)
+    (pr (q time) (/ (- t t0) 1000) (q ms))
+    v))
+
 (defx test
     e (a b)
-  (def ax (eval e a))
-  (def bx (eval e b))
-  (pr (q test)
-      (list (q =) a b)
-      (if
-       (= ax bx) (q ok)
-       (list (q error) ax bx))))
+  (let ((ax bx) (map (part eval e) (list a b)))
+    (pr (q test)
+        (list (q =) a b)
+        (if
+         (= ax bx) (q ok)
+         (list (q error) ax bx)))))
 
 ;; fib
 (defn fib
@@ -276,25 +284,10 @@
    (= n 2) 2
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-;; (fib 22)
-
-(pr (env))
-
-(def n 20)
-
-(def t0 (clock))
-
-(pr (list (q fib) n) (fib n))
-
-(def t (clock))
-
-(pr (q time) (/ (- t t0) 1000) (q ms))
-
-;; end fib
+(time (fib 22))
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
-
 
 (test (fold + 0 nil) 0)
 (test (fold + 0 (list 1 2 3)) 6)
@@ -302,7 +295,6 @@
 (test (apply + (list 1 2 3)) 6)
 (test (conc) nil)
 (test (conc (list 1 2 3) nil) (list 1 2 3))
-
 
 ;; if
 ;; zero terms -> nil
