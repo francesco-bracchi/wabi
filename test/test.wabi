@@ -149,6 +149,13 @@
    (nil? cs) nil
    (odds (cdr cs))))
 
+(defn len
+    (as)
+  (rec len (as as t 0)
+    (if
+     (nil? as) t
+     (len (cdr as) (inc t)))))
+
 (defn map1
     (f as)
   (if
@@ -429,38 +436,42 @@
 (test (all? (part < 0) nil) true)
 (test (all? (part < 0) (list 1 2 3)) true)
 (test (all? (part < 0) (list 1 0 3)) false)
-
+(fib 20)
 (test (some? (part < 0) nil) false)
 (test (some? (part < 0) (list 1 2 3)) true)
 (test (some? (part < 0) (list 1 0 -1)) true)
 
-(test (and (> 1 0) (> 0 1)) false)
-(test (or (> 1 0) (> 0 1)) true)
+;; (test (and (> 1 0) (> 0 1)) false)
+;; (test (or (> 1 0) (> 0 1)) true)
 
-(test (let (a 1 b 2) (+ a b)) 3)
-(test (let (a 1 b 2) (+ a b) 10) 10)
+;; (test (let (a 1 b 2) (+ a b)) 3)
+;; (test (let (a 1 b 2) (+ a b) 10) 10)
 
-(test (take 0 (ran 2)) nil)
-(test (take 1 (ran 2)) (list 0))
-(test (take 2 (ran 2)) (list 0 1))
-(test (take 3 (ran 2)) (list 0 1))
+;; (test (take 0 (ran 2)) nil)
+;; (test (take 1 (ran 2)) (list 0))
+;; (test (take 2 (ran 2)) (list 0 1))
+;; (test (take 3 (ran 2)) (list 0 1))
 
-(test (drop 0 (ran 2)) (list 0 1))
-(test (drop 1 (ran 2)) (list 1))
-(test (drop 2 (ran 2)) nil)
-(test (drop 3 (ran 2)) nil)
+;; (test (drop 0 (ran 2)) (list 0 1))
+;; (test (drop 1 (ran 2)) (list 1))
+;; (test (drop 2 (ran 2)) nil)
+;; (test (drop 3 (ran 2)) nil)
 
-(test (map inc) nil)
+;; (test (map inc) nil)
 
-(test (map inc (ran 3)) (list 1 2 3))
-(test (map + (ran 3) (ran 4)) (list 0 2 4))
-(test (map + (ran 4) (ran 3)) (list 0 2 4))
+;; (test (map inc (ran 3)) (list 1 2 3))
+;; (test (map + (ran 3) (ran 4)) (list 0 2 4))
+;; (test (map + (ran 4) (ran 3)) (list 0 2 4))
 
-(test (find (part < 3) (ran 10)) 4)
-(test (find (part < 3) (ran 3)) nil)
-(test (in? 3 (ran 3)) false)
-(test (in? 3 (ran 10)) true)
-(test (drop? (part > 4) (ran 2)) nil)
-(test (drop? (part > 4) (ran 6)) (list 4 5))
-(test (take? (part > 4) (ran 6)) (list 0 1 2 3))
-(test (take? (part > 4) (ran 2)) (list 0 1))
+;; (test (find (part < 3) (ran 10)) 4)
+;; (test (find (part < 3) (ran 3)) nil)
+;; (test (in? 3 (ran 3)) false)
+;; (test (in? 3 (ran 10)) true)
+;; (test (drop? (part > 4) (ran 2)) nil)
+;; (test (drop? (part > 4) (ran 6)) (list 4 5))
+;; (test (take? (part > 4) (ran 6)) (list 0 1 2 3))
+;; (test (take? (part > 4) (ran 2)) (list 0 1))
+;; (test (len nil) 0)
+;; (test (len (ran 20)) 20)
+
+;; (test (len (ran 2)) 2)

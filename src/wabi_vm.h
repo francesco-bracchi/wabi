@@ -11,7 +11,15 @@ typedef wabi_val wabi_control;
 typedef struct wabi_vm_struct {
   wabi_val control;
   wabi_val env;
+
+  wabi_val tag;
   wabi_val continuation;
+  wabi_val tag_chain;
+
+  wabi_val meta_tag;
+  wabi_val meta_continuation;
+  wabi_val meta_tag_chain;
+
   wabi_val symbol_table;
   wabi_val nil;
   wabi_store_t store;

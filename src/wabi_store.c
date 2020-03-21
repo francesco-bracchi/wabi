@@ -151,7 +151,6 @@ wabi_store_collect_env(wabi_store store, wabi_env env)
 {
   wabi_size j;
   wabi_word *k, *v;
-
   if(WABI_WORD_VAL(env->prev)) {
     env->prev = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(env->prev));
     WABI_SET_TAG(env, wabi_tag_env);
@@ -161,7 +160,6 @@ wabi_store_collect_env(wabi_store store, wabi_env env)
   for(j = 0; j < env->numE; j++) {
     k = ((wabi_val) env->data) + 2 * j;
     v = ((wabi_val) env->data) + 1 + 2 * j;
-
     *k = (wabi_word) wabi_store_copy_val(store, (wabi_val) *k);
     *v = (wabi_word) wabi_store_copy_val(store, (wabi_val) *v);
   }
@@ -379,7 +377,6 @@ wabi_store_collect_resize(wabi_store store)
   store->size = new_size;
   store->old_space = NULL;
 }
-
 
 wabi_word*
 wabi_store_collect_prepare(wabi_store store)

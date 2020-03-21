@@ -147,9 +147,10 @@ wabi_pr_env(wabi_env env)
       printf(" ");
     }
     env= (wabi_env) WABI_WORD_VAL(env->prev);
+    if(env) printf(" -> ");
   } while(env);
 
-  printf("}");
+  printf("}\n");
 }
 
 

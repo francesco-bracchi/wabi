@@ -129,6 +129,36 @@ envr: e0
 cont: s // (bind e0 ps as)
 
 
+ctrl: x
+envr: e
+tag:  t0
+cont: ((prompt t0) . s)
+mtag: (t . ts)
+meta: (c . cs)
+--------------------------------------
+ctrl: x
+envr: e
+tag:  t
+cont: c
+mtag: ts
+meta: cs
+
+
+ctrl: x
+envr: e
+tag:  t0
+cont: nil
+mtag: (t . ts)
+meta: (c . cs)
+--------------------------------------
+ctrl: x
+envr: e
+tag:  t
+cont: c
+mtag: ts
+meta: cs
+
+
 ctrl: x0
 envr: e
 cont: nil
