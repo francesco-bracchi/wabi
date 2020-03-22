@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "wabi_value.h"
 #include "wabi_env.h"
@@ -11,7 +12,6 @@
 #include "wabi_map.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
-
 
 static inline void
 wabi_env_actually_set(wabi_env env, wabi_symbol k, wabi_val v)
@@ -39,7 +39,6 @@ wabi_env_set_expand(wabi_vm vm, wabi_env env)
   return wabi_error_nomem;
 }
 
-
 wabi_error_type
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 {
@@ -53,6 +52,39 @@ wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
   return wabi_error_none;
 }
 
+wabi_val
+wabi_env_lookup(wabi_env env, wabi_symbol k)
+{
+  wabi_size j, l;
+  wabi_symbol k0;
+  wabi_val res;
+  wabi_word sk, sv;
+
+  do {
+    for(j = 0; j < env->numE; j++) {
+      k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
+      if(k0 == k) {
+        res = (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
+        if (j >= WABI_ENV_LOW_LIMIT) {
+          // tricky
+          l = rand() % WABI_ENV_LOW_LIMIT;
+          sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
+          sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
+          *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE);
+          *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE);
+          *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE) = sk;
+          *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE) = sv;
+        }
+        return res;
+      }
+      /* if(wabi_cmp(k0, k) == 0) { */
+      /*   return (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j); */
+      /* } */
+    }
+    env = (wabi_env) WABI_WORD_VAL(env->prev);
+  } while(env);
+  return NULL;
+}
 
 static inline wabi_error_type
 wabi_env_p_bt(wabi_vm vm, wabi_val e0)

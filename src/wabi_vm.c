@@ -17,6 +17,7 @@
 #include "wabi_store.h"
 #include "wabi_error.h"
 #include "wabi_cont.h"
+#include "wabi_env.h"
 
 /*** TMP ***/
 #include <stdio.h>

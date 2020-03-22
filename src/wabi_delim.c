@@ -4,8 +4,7 @@
 #include "wabi_cont.h"
 #include "wabi_delim.h"
 #include "wabi_builtin.h"
-#include "wabi_pr.h"
-#include <stdio.h>
+#include "wabi_cmp.h"
 
 wabi_error_type
 wabi_cont_prompt_bt(wabi_vm vm)
