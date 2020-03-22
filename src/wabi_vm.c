@@ -18,6 +18,7 @@
 #include "wabi_error.h"
 #include "wabi_cont.h"
 #include "wabi_env.h"
+#include "wabi_value.h"
 
 /*** TMP ***/
 #include <stdio.h>
@@ -39,7 +40,7 @@ wabi_vm_nil(wabi_vm vm)
   return v;
 }
 
-#ifdef DEBUG
+#ifdef WABI_VM_DEBUG
 
 int
 wabi_vm_check(wabi_vm vm)
@@ -75,7 +76,7 @@ wabi_vm_collect(wabi_vm vm)
     if(vm->env) vm->env = wabi_store_copy_val(store, vm->env);
     if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
     res = wabi_store_collect(store);
-    #ifdef DEBUG
+    #ifdef WABI_VM_DEBUG
     if(!wabi_vm_check(vm)) {
       printf("Dangling pointer found\n");
     }
@@ -307,6 +308,7 @@ wabi_vm_reduce(wabi_vm vm)
           cont0 = wabi_cont_push_eval(vm, cont0);
           if(cont0) {
             vm->control = wabi_car(pair);
+            vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
             vm->continuation = (wabi_val) cont0;
             return;
           }

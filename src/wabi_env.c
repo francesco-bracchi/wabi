@@ -28,7 +28,7 @@ wabi_env_set_expand(wabi_vm vm, wabi_env env)
   uint32_t new_size;
   wabi_word *new_data;
 
-  new_size = env->numE * 2;
+  new_size = env->numE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
   new_data = (wabi_word*) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
   if(new_data) {
     wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);

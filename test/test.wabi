@@ -399,11 +399,12 @@
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
-(test (rec recur (a (list 0 1) r nil)
-        (if
-         (nil? a) (rev r)
-         (recur (cdr a) (cons (inc (car a)) r))))
-      (list 1 2))
+(test
+ (rec recur (a (list 0 1) r nil)
+   (if
+    (nil? a) (rev r)
+    (recur (cdr a) (cons (inc (car a)) r))))
+ (list 1 2))
 
 (test (fst nil) nil)
 (test (fst (list 1 2 3 4 5)) 1)
