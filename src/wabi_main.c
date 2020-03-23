@@ -23,8 +23,12 @@ main(int argc,
   long length;
 
   wabi_vm_init(&vm, 25000);
+  if(argc < 2) {
+    fprintf(stderr, "usage: wabi <filename>\n");
+    return 1;
+  }
 
-  FILE * f = fopen("test/test.wabi", "rb");
+  FILE * f = fopen(argv[1], "rb");
   fseek(f, 0, SEEK_END);
   length = ftell(f);
   fseek(f, 0, SEEK_SET);

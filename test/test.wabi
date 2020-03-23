@@ -333,10 +333,9 @@
   (if
    (= n 0) 0
    (= n 1) 1
-   (= n 2) 2
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(time (pr (fib 20)))
+(time (pr (fib 30)))
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
