@@ -71,8 +71,9 @@ wabi_env_lookup_local(wabi_env env, wabi_symbol k)
 wabi_error_type
 wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 {
+
   wabi_error_type err;
-  if(wabi_env_lookup(env, k)) {
+  if(wabi_env_lookup_local(env, k)) {
     return wabi_error_already_defined;
   }
   if(env->numE >= env->maxE) {

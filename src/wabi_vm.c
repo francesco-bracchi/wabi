@@ -256,7 +256,7 @@ wabi_vm_reduce(wabi_vm vm)
     /* cont: ((apply e0 as) . s) */
     /* -------------------------------------- */
     /* ctrl: as */
-    /* envr: nil */
+    /* envr: e0 */
     /* cont: ((call e0 c) . s) */
     if(wabi_combiner_is_operative(ctrl)) {
       cont0 = wabi_cont_next(cont);
@@ -364,7 +364,7 @@ wabi_vm_reduce(wabi_vm vm)
       ctrl0 = wabi_vm_reverse(vm,(wabi_val) ((wabi_cont_args) cont)->done, ctrl0);
       if(ctrl0) {
         vm->control = ctrl0;
-        vm->env = (wabi_val) ((wabi_cont_args) cont)->env;
+        vm->env = vm->nil; // (wabi_val) ((wabi_cont_args) cont)->env;
         vm->continuation = (wabi_val) wabi_cont_next(cont);
         return;
       }
