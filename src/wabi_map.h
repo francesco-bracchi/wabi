@@ -115,4 +115,7 @@ wabi_word
 wabi_map_length(wabi_map map);
 
 
+wabi_error_type
+wabi_map_builtins(wabi_vm vm, wabi_env env);
+
 #endif

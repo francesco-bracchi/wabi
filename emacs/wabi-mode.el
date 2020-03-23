@@ -18,7 +18,7 @@
   (font-lock-add-keywords
    mode
    `(
-     ("(\\(def\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(def\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
 
@@ -26,33 +26,33 @@
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
 
-     ("(\\(defx\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(defx\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
-     ("(\\(defn\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(defn\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
-     ("(\\(prompt\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(prompt\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
 
-     ("(\\(control\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(control\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face)
       (3 font-lock-function-name-face))
 
-     ("(\\(rec\\)[[:space:]]+\\([/[:alpha:]*!][^(){}[:space:]]*\\)[[:space:]]"
+     ("(\\(rec\\)[[:space:]]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[[:space:]]"
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
      ("(\\(let\\)[([:space:]]" 1 font-lock-keyword-face)
      ("(\\(when\\)[([:space:]]" 1 font-lock-keyword-face)
-     ("(\\(when-not\\)[([:space:]]" 1 font-lock-keyword-face)
+     ("(\\(unless\\)[([:space:]]" 1 font-lock-keyword-face)
      ("(\\(if\\)[([:space:]]" 1 font-lock-keyword-face)
      ("(\\(eval\\)[([:space:]]" 1 font-lock-keyword-face)
-     ("(\\(->\\)[([:space:]]" 1 font-lock-keyword-face)
+     ("(\\(->\\)[([:space:]]" 1 font-lock-builtin-face)
      ("(\\(and\\)[([:space:]]" 1 font-lock-keyword-face)
      ("(\\(or\\)[([:space:]]" 1 font-lock-keyword-face)
      ("(\\(do\\)[([:space:]]" 1 font-lock-keyword-face)

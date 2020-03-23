@@ -299,6 +299,16 @@
 (def hd
   car)
 
+(defx when
+    e (t? . b)
+  (eval e
+    (list if t? (list* do b))))
+
+(defx unless
+    e (t? . b)
+  (eval e
+    (list* when (list not t?) b)))
+
 (defn insp
     as
   (pr as)
@@ -327,6 +337,11 @@
          (= ax bx) (q ok)
          (list (q error) ax bx)))))
 
+(defx afn
+    e as
+  (eval e
+    (list* fn (q as) (list (list* let (q ((a0 a1 a2 a3 a4 a5 . _) as)) as)))))
+
 ;; fib
 (defn fib
     (n)
@@ -335,7 +350,14 @@
    (= n 1) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-(time (pr (fib 30)))
+(def kont
+  (prompt x
+    (let (u (control x k k))
+      (+ u 3))))
+
+(test (kont 10) 13)
+
+(time (pr (fib 20)))
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
@@ -373,16 +395,6 @@
 (test (evens (qs 1)) nil)
 (test (odds (list 1 2 3 4 5 6 8)) (list 1 3 5 8))
 (test (evens (list 1 2 3 4 5 6 8)) (list 2 4 6))
-
-(defx when
-    e (t? . b)
-  (eval e
-    (list if t? (list* do b))))
-
-(defx unless
-    e (t? . b)
-  (eval e
-    (list* when (list not t?) b)))
 
 
 (test (when true 20 10) 10)
@@ -482,7 +494,7 @@
 
 (test (-> 3) 3)
 (test (-> 3 ran) (ran 3))
-(test (-> 3 ran (apply +)) (apply + (ran 3)))
+(test (-> 3 ran (apply +) (* 3)) (* 3 (apply + (ran 3))))
 
 (test (fst (ran 3)) 0)
 (test (snd (ran 3)) 1)
@@ -493,3 +505,9 @@
 (test (fst (ran 10)) (car (ran 10)))
 (test (hd nil) (car nil))
 (test (fst nil) (car nil))
+
+;; (pr (kont 100))
+
+(test (map (afn (+ a0 1)) (ran 5)) (map inc (ran 5)))
+
+(test (assoc (hmap) 10 "ten") (hmap 10 "ten"))

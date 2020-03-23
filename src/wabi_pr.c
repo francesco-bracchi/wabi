@@ -273,13 +273,13 @@ wabi_pr_cont_combiner(wabi_combiner_continuation val)
   tag = (wabi_val) WABI_WORD_VAL(val->tag);
   cont = (wabi_cont) val->cont;
 
-  printf("K[");
+  printf("~cont[");
   wabi_pr(tag);
   printf("](");
 
   do {
     if(WABI_IS(wabi_tag_cont_prompt, cont) && wabi_eq(tag, (wabi_val) ((wabi_cont_prompt) cont)->tag)) {
-      return;
+      break;
     }
     wabi_pr_cont0(cont);
     cont = (wabi_cont) WABI_WORD_VAL(cont->next);

@@ -164,10 +164,17 @@ wabi_vm_bind(wabi_vm vm,
   if(*params == wabi_val_ignore) {
     return wabi_error_none;
   }
-  if(WABI_IS(wabi_tag_pair, params) && WABI_IS(wabi_tag_pair, args)) {
-    partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
-    if(partial != wabi_error_none) return partial;
-    return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+  if(WABI_IS(wabi_tag_pair, params)) {
+    if(WABI_IS(wabi_tag_pair, args)) {
+      partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
+      if(partial != wabi_error_none) return partial;
+      return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+    }
+    if(*args == wabi_val_nil) {
+      partial = wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
+      if(partial != wabi_error_none) return partial;
+      return wabi_vm_bind(vm, env, vm->nil, wabi_cdr((wabi_pair) params));
+    }
   }
   if(wabi_cmp(params, args) == 0) {
     return wabi_error_none;

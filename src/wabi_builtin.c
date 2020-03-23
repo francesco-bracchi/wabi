@@ -21,6 +21,7 @@
 #include "wabi_delim.h"
 #include "wabi_error.h"
 #include "wabi_pr.h"
+#include "wabi_map.h"
 
 
 wabi_error_type
@@ -136,29 +137,6 @@ wabi_builtin_if(wabi_vm vm)
 /*   } */
 /*   return wabi_error_type_mismatch; */
 /* } */
-
-wabi_error_type
-wabi_builtin_hmap(wabi_vm vm)
-{
-  wabi_val ctrl, k, v;
-  wabi_map res;
-  ctrl = vm->control;
-  res = wabi_map_empty(vm);
-  while(*ctrl != wabi_val_nil) {
-    k = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(WABI_IS(wabi_tag_pair, ctrl)) {
-      v = wabi_car((wabi_pair) ctrl);
-      ctrl = wabi_cdr((wabi_pair) ctrl);
-      res = wabi_map_assoc(vm, res, k, v);
-      if(!res) return wabi_error_nomem;
-    } else {
-      return wabi_error_type_mismatch;
-    }
-  }
-  vm->control = (wabi_val) res;
-  return wabi_error_none;
-}
 
 
 inline static wabi_val
@@ -420,8 +398,6 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = WABI_DEFX(vm, env, "if", "if", wabi_builtin_if);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "hmap", "hmap", wabi_builtin_hmap);
-  if(res) return NULL;
   res = WABI_DEFX(vm, env, "do", "do", wabi_builtin_do);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "pr", "pr", wabi_builtin_pr);
@@ -446,6 +422,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   res = wabi_env_builtins(vm, env);
   if(res) return NULL;
   res = wabi_delim_builtins(vm, env);
+  if(res) return NULL;
+  res = wabi_map_builtins(vm, env);
   if(res) return NULL;
 
   return env;
