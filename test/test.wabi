@@ -42,11 +42,6 @@
     (eval e
       (list def n (list* fn as bs)))))
 
-(defn insp
-    e
-  (pr e)
-  (fst e))
-
 (defn fold
     (f i as)
   (if
@@ -221,26 +216,6 @@
 (def neg?
   (part > 0))
 
-(def fst
-  car)
-
-(def snd
-  (comp car cdr))
-
-(def trd
-  (comp car cdr cdr))
-
-(def fth
-  (comp car cdr cdr cdr))
-
-(defn nth (n l)
-  (if
-    (= 0 n) (fst l)
-    (= 1 n) (snd l)
-    (= 2 n) (trd l)
-    (= 3 n) (fth l)
-    (nth (- n 3) (cdr (cdr (cdr l))))))
-
 (defn take
     (n as)
   (if
@@ -296,12 +271,41 @@
    (t? (car as)) (drop? t? (cdr as))
    as))
 
+(defn iter
+    (i f n)
+  (rec iter (i i n n rs nil)
+    (if
+     (< n 1) (rev rs)
+     (iter (f i) (dec n) (cons i rs)))))
+
 (defn ran
     (n)
-  (rec ran (n (dec n) rs nil)
-    (if
-     (> 0 n) rs
-     (ran (dec n) (cons n rs)))))
+  (iter 0 inc n))
+
+(def (fst snd trd fth)
+  (iter car (fn (f) (comp f cdr)) 4))
+
+(defn nth (n l)
+  (if
+   (= 0 n) (fst l)
+    (= 1 n) (snd l)
+    (= 2 n) (trd l)
+    (= 3 n) (fth l)
+    (nth (- n 3) (cdr (cdr (cdr l))))))
+
+(def tl
+  cdr)
+
+(def hd
+  car)
+
+(defn insp
+    as
+  (pr as)
+  (if
+   (nil? as) nil
+   (nil? (cdr as)) (car as)
+   as))
 
 ;; TESTS
 
@@ -480,3 +484,13 @@
 (test (-> 3) 3)
 (test (-> 3 ran) (ran 3))
 (test (-> 3 ran (apply +)) (apply + (ran 3)))
+
+(test (fst (ran 3)) 0)
+(test (snd (ran 3)) 1)
+(test (trd (ran 3)) 2)
+(test (fth (ran 3)) nil)
+
+(test (hd (ran 10)) (car (ran 10)))
+(test (fst (ran 10)) (car (ran 10)))
+(test (hd nil) (car nil))
+(test (fst nil) (car nil))

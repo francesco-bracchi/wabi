@@ -82,12 +82,12 @@ wabi_error_type
 wabi_pair_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFN(vm, env, "car", "wabi:car", wabi_pair_builtin_car);
+  res = WABI_DEFN(vm, env, "car", "car", wabi_pair_builtin_car);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "cdr", "wabi:cdr", wabi_pair_builtin_cdr);
+  res = WABI_DEFN(vm, env, "cdr", "cdr", wabi_pair_builtin_cdr);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "cons", "wabi:cons", wabi_pair_builtin_cons);
+  res = WABI_DEFN(vm, env, "cons", "cons", wabi_pair_builtin_cons);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "pair?", "wabi:pair?", wabi_pair_builtin_pair_p);
+  res = WABI_DEFN(vm, env, "pair?", "pair?", wabi_pair_builtin_pair_p);
   return res;
 }

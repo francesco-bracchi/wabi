@@ -88,10 +88,10 @@ wabi_constant_builtins(wabi_vm vm, wabi_env env)
     WABI_DEF(vm, env, "zero", val);
   }
 
-  res = WABI_DEFN(vm, env, "nil?", "wabi:nil?", wabi_constant_builtin_nil_p);
+  res = WABI_DEFN(vm, env, "nil?", "nil?", wabi_constant_builtin_nil_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "ignore?", "wabi:nil?", wabi_constant_builtin_ignore_p);
+  res = WABI_DEFN(vm, env, "ignore?", "ignore?", wabi_constant_builtin_ignore_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "bool?", "wabi:bool?", wabi_constant_builtin_boolean_p);
+  res = WABI_DEFN(vm, env, "bool?", "bool?", wabi_constant_builtin_boolean_p);
   return res;
 }

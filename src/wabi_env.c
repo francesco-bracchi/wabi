@@ -135,8 +135,8 @@ wabi_error_type
 wabi_env_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFN(vm, env, "env?", "wabi:env?", wabi_env_p_builtin);
+  res = WABI_DEFN(vm, env, "env?", "env?", wabi_env_p_builtin);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "ext!", "wabi:extend!", wabi_env_ext_excl);
+  res = WABI_DEFN(vm, env, "ext!", "ext!", wabi_env_ext_excl);
   return res;
 }

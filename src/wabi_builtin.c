@@ -416,21 +416,21 @@ wabi_builtin_stdenv(wabi_vm vm)
 
   env = wabi_env_new(vm);
 
-  res = WABI_DEFX(vm, env, "def", "wabi:def", wabi_builtin_def);
+  res = WABI_DEFX(vm, env, "def", "def", wabi_builtin_def);
   if(res) return NULL;
-  res = WABI_DEFX(vm, env, "if", "wabi:if", wabi_builtin_if);
+  res = WABI_DEFX(vm, env, "if", "if", wabi_builtin_if);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "hmap", "wabi:hmap", wabi_builtin_hmap);
+  res = WABI_DEFN(vm, env, "hmap", "hmap", wabi_builtin_hmap);
   if(res) return NULL;
-  res = WABI_DEFX(vm, env, "do", "wabi:do", wabi_builtin_do);
+  res = WABI_DEFX(vm, env, "do", "do", wabi_builtin_do);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "pr", "wabi:pr", wabi_builtin_pr);
+  res = WABI_DEFN(vm, env, "pr", "pr", wabi_builtin_pr);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "eval", "wabi:eval", wabi_builtin_eval);
+  res = WABI_DEFN(vm, env, "eval", "eval", wabi_builtin_eval);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "clock", "wabi:clock", wabi_builtin_clock);
+  res = WABI_DEFN(vm, env, "clock", "clock", wabi_builtin_clock);
   if(res) return NULL;
-  res = WABI_DEFN(vm, env, "not", "wabi:not", wabi_builtin_not);
+  res = WABI_DEFN(vm, env, "not", "not", wabi_builtin_not);
   if(res) return NULL;
 
   res = wabi_constant_builtins(vm, env);

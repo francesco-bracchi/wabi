@@ -171,12 +171,12 @@ wabi_error_type
 wabi_number_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFN(vm, env, "+", "wabi:+", wabi_number_builtin_sum);
+  res = WABI_DEFN(vm, env, "+", "+", wabi_number_builtin_sum);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "*", "wabi:*", wabi_number_builtin_mul);
+  res = WABI_DEFN(vm, env, "*", "*", wabi_number_builtin_mul);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "-", "wabi:-", wabi_number_builtin_diff);
+  res = WABI_DEFN(vm, env, "-", "-", wabi_number_builtin_diff);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "/", "wabi:/", wabi_number_builtin_div);
+  res = WABI_DEFN(vm, env, "/", "/", wabi_number_builtin_div);
   return res;
 }

@@ -420,16 +420,17 @@ wabi_cmp_lt_builtin(wabi_vm vm)
   return wabi_error_bindings;
 }
 
-
+// TODO
+// rename with eq gt lt since = < > must be for numbers only (maybe not =?)
 wabi_error_type
 wabi_cmp_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFN(vm, env, "=", "wabi:=", wabi_cmp_eq_builtin);
+  res = WABI_DEFN(vm, env, "=", "=", wabi_cmp_eq_builtin);
   if(res) return res;
-  res = WABI_DEFN(vm, env, ">", "wabi:gt", wabi_cmp_gt_builtin);
+  res = WABI_DEFN(vm, env, ">", "gt", wabi_cmp_gt_builtin);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "<", "wabi:lt", wabi_cmp_lt_builtin);
+  res = WABI_DEFN(vm, env, "<", "lt", wabi_cmp_lt_builtin);
   return res;
   /* res = WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
   /* res = WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */

@@ -134,8 +134,8 @@ wabi_error_type
 wabi_delim_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFX(vm, env, "prompt", "wabi:prompt", wabi_cont_prompt_bt);
+  res = WABI_DEFX(vm, env, "prompt", "prompt", wabi_cont_prompt_bt);
   if(res) return res;
-  res = WABI_DEFX(vm, env, "control", "wabi:control", wabi_cont_control_bt);
+  res = WABI_DEFX(vm, env, "control", "control", wabi_cont_control_bt);
   return res;
 }

@@ -439,30 +439,30 @@ wabi_error_type
 wabi_combiner_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  res = WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx);
+  res = WABI_DEFX(vm, env, "fx", "fx", wabi_combiner_builtin_fx);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_combiner_builtin_wrap);
+  res = WABI_DEFN(vm, env, "wrap", "wrap", wabi_combiner_builtin_wrap);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_combiner_builtin_unwrap);
+  res = WABI_DEFN(vm, env, "unwrap", "unwrap", wabi_combiner_builtin_unwrap);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "comb?", "wabi:comb?", wabi_combiner_builtin_combiner_p);
+  res = WABI_DEFN(vm, env, "comb?", "comb?", wabi_combiner_builtin_combiner_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "app?", "wabi:app?", wabi_combiner_builtin_applicative_p);
+  res = WABI_DEFN(vm, env, "app?", "app?", wabi_combiner_builtin_applicative_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "oper?", "wabi:oper?", wabi_combiner_builtin_operative_p);
+  res = WABI_DEFN(vm, env, "oper?", "oper?", wabi_combiner_builtin_operative_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "cont?", "wabi:cont?", wabi_combiner_builtin_cont_p);
+  res = WABI_DEFN(vm, env, "cont?", "cont?", wabi_combiner_builtin_cont_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/builtin?", "wabi:op/builtin?", wabi_combiner_builtin_builtin_p);
+  res = WABI_DEFN(vm, env, "builtin?", "builtin?", wabi_combiner_builtin_builtin_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/derived?", "wabi:op/derived?", wabi_combiner_builtin_derived_p);
+  res = WABI_DEFN(vm, env, "derived?", "derived?", wabi_combiner_builtin_derived_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/body", "wabi:op/body", wabi_combiner_builtin_body);
+  res = WABI_DEFN(vm, env, "combiner-body", "combiner-body", wabi_combiner_builtin_body);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/static-env", "wabi:op/static-env", wabi_combiner_builtin_static_env);
+  res = WABI_DEFN(vm, env, "combiner-static-env", "combiner-static-env", wabi_combiner_builtin_static_env);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/parameters", "wabi:op/parameters", wabi_combiner_builtin_parameters);
+  res = WABI_DEFN(vm, env, "combiner-parameters", "combiner-parameters", wabi_combiner_builtin_parameters);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "op/caller-env-name", "wabi:op/caller-env-name", wabi_combiner_builtin_caller_env_name);
+  res = WABI_DEFN(vm, env, "combiner-caller-env-name", "combiner-caller-env-name", wabi_combiner_builtin_caller_env_name);
   return res;
 }
