@@ -441,7 +441,6 @@ wabi_combiner_builtins(wabi_vm vm, wabi_env env)
   wabi_error_type res;
   res = WABI_DEFX(vm, env, "fx", "wabi:fx", wabi_combiner_builtin_fx);
   if(res) return res;
-
   res = WABI_DEFN(vm, env, "wrap", "wabi:wrap", wabi_combiner_builtin_wrap);
   if(res) return res;
   res = WABI_DEFN(vm, env, "unwrap", "wabi:unwrap", wabi_combiner_builtin_unwrap);

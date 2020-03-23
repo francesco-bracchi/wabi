@@ -10,6 +10,7 @@ typedef enum wabi_error_type_enum {
   wabi_error_division_by_zero = 4,
   wabi_error_unbound_name = 5,
   wabi_error_no_prompt = 6,
+  wabi_error_already_defined = 7,
   wabi_error_other = 253,
   wabi_error_timeout = 254,
   wabi_error_done = 255
@@ -38,6 +39,8 @@ wabi_error_name(wabi_error_type e) {
     return "TIME OUT";
   case wabi_error_done:
     return "DONE";
+  case wabi_error_already_defined:
+    return "SYMBOL ALREADY DEFINED";
   default:
     return NULL;
   }

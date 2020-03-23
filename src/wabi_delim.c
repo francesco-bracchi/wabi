@@ -75,7 +75,6 @@ wabi_cont_control_bt(wabi_vm vm)
   if(! WABI_IS(wabi_tag_pair, ctrl))
     return wabi_error_type_mismatch;
 
-
   kname = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
