@@ -359,8 +359,6 @@
 
 (test (kont 10) 13)
 
-(time (pr (fib 20)))
-
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
 
@@ -513,3 +511,7 @@
 (test (map (afn (+ a0 1)) (ran 5)) (map inc (ran 5)))
 
 (test (assoc (hmap) 10 "ten") (hmap 10 "ten"))
+
+
+
+(time (pr (fib 35)))

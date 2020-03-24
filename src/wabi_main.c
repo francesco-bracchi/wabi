@@ -22,7 +22,7 @@ main(int argc,
   char *buffer;
   long length;
 
-  wabi_vm_init(&vm, 25000);
+  wabi_vm_init(&vm, 2500000);
   if(argc < 2) {
     fprintf(stderr, "usage: wabi <filename>\n");
     return 1;

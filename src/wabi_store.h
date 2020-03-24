@@ -9,7 +9,7 @@
 
 typedef struct wabi_store_struct
 {
-  wabi_word* space;
+  wabi_word* new_space;
   wabi_word* limit;
   wabi_word* heap;
   wabi_word* old_space;
@@ -27,7 +27,7 @@ wabi_store_init(wabi_store store,
 void
 wabi_store_destroy(wabi_store store);
 
-wabi_word*
+void
 wabi_store_collect_prepare(wabi_store store);
 
 wabi_word*

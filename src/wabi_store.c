@@ -17,20 +17,25 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x00FFFFFFFFFFFFFF;
 
-// static const double wabi_low_threshold = 0.0013;
-
-static const double wabi_invlow_threshold = 50;
+static const double wabi_store_ratio = 40.0;
 
 int
 wabi_store_init(wabi_store store,
                 wabi_size size)
 {
-  wabi_word *mem = malloc(size * WABI_WORD_SIZE);
-  if(mem && (mem + size <= wabi_store_limit)) {
-    store->space = mem;
-    store->limit = mem + size;
-    store->heap = mem;
+  wabi_word *new_space = malloc(size * WABI_WORD_SIZE);
+  wabi_word *old_space = malloc(size * WABI_WORD_SIZE);
+  if(new_space
+     && old_space
+     && (new_space + size <= wabi_store_limit)
+     && (old_space + size <= wabi_store_limit)) {
+    memset(new_space, 0, size * WABI_WORD_SIZE);
+    memset(old_space, 0, size * WABI_WORD_SIZE);
+    store->new_space = new_space;
+    store->limit = new_space + size;
+    store->heap = new_space;
     store->size = size;
+    store->old_space = old_space;
     return 1;
   }
   return 0;
@@ -40,7 +45,8 @@ wabi_store_init(wabi_store store,
 void
 wabi_store_destroy(wabi_store store)
 {
-  free(store->space);
+  if(store->new_space) free(store->new_space);
+  if(store->old_space) free(store->old_space);
 }
 
 
@@ -168,7 +174,7 @@ void
 wabi_store_collect_heap(wabi_store store)
 {
   wabi_word *scan, size;
-  scan = store->space;
+  scan = store->new_space;
   do {
     switch(WABI_TAG(scan)) {
     /* case wabi_tag_var: */
@@ -353,49 +359,85 @@ static inline
 wabi_word
 wabi_store_used(wabi_store store)
 {
-  return (store->heap - store->space);
+  return (store->heap - store->new_space);
+}
+
+
+static inline
+wabi_word
+wabi_store_free(wabi_store store)
+{
+ return (store->limit - store->heap);
 }
 
 void
 wabi_store_collect_resize(wabi_store store)
 {
-  wabi_size used, new_size;
-  wabi_word *new_space;
+  wabi_size new_size, _free, _used;
+  double rat;
+  wabi_word* old_space;
+  wabi_word* new_space;
 
-  free(store->old_space);
+  _free = wabi_store_free(store);
+  _used = wabi_store_used(store);
+  rat = (double) _free / _used;
+  // printf("ratio %lf\n", rat);
 
-  used = wabi_store_used(store);
-  new_size = (wabi_size) ceil(used * wabi_invlow_threshold);
-  new_space = realloc(store->space, WABI_WORD_SIZE * new_size);
-  if(new_space != store->space) {
-    fprintf(stderr, "resizing has moved heap around.\n");
-    exit(1);
+  if(rat >= wabi_store_ratio * 2) {
+    // printf("SHRINK\n");
+    // shrink
+    new_size = (wabi_size) ceil(_used * wabi_store_ratio);
+    store->new_space = realloc(store->new_space, WABI_WORD_SIZE * new_size);
+    store->old_space = realloc(store->old_space, WABI_WORD_SIZE * new_size);
+    store->size = new_size;
+    store->limit = store->new_space + new_size;
+    return;
   }
 
-  store->limit = store->space + new_size;
-  store->size = new_size;
-  store->old_space = NULL;
+  if(rat <= wabi_store_ratio / 2) {
+    // expand
+    // printf("EXPAND\n");
+    new_size = (wabi_size) ceil(_used * wabi_store_ratio);
+    new_space = realloc(store->new_space, WABI_WORD_SIZE * new_size);
+    old_space = realloc(store->old_space, WABI_WORD_SIZE * new_size);
+    store->size = new_size;
+    store->limit = store->new_space + new_size;
+    if(new_space != store->new_space) {
+      fprintf(stderr, "resizing has moved heap around TBD handle the case.\n");
+      exit(1);
+    }
+    store->new_space = new_space;
+    store->old_space = old_space;
+    store->size = new_size;
+    return;
+  }
+  /* wabi_size used, new_size; */
+  /* wabi_word *new_space; */
+
+  /* used = wabi_store_used(store); */
+  /* new_size = (wabi_size) ceil(used * wabi_invlow_threshold); */
+  /* new_space = realloc(store->space, WABI_WORD_SIZE * new_size); */
+  /* if(new_space != store->space) { */
+  /*   fprintf(stderr, "resizing has moved heap around TBD handle the case.\n"); */
+  /*   exit(1); */
+  /* } */
+
+  /* store->limit = store->space + new_size; */
+  /* store->size = new_size; */
 }
 
-wabi_word*
+void
 wabi_store_collect_prepare(wabi_store store)
 {
-  wabi_word *new_space, *old_space;
-  wabi_size size3;
+  wabi_word *swap;
+  memset(store->old_space, 0, WABI_WORD_SIZE * store->size);
+  swap = store->new_space;
+  store->new_space = store->old_space;
+  store->old_space = swap;
 
-  // printf("Before collection %i over %lu\n", wabi_store_used(store), store->size);
-  size3 = (wabi_size) ceil(store->size * wabi_invlow_threshold);
-  old_space = store->space;
-  new_space = (wabi_word*) malloc(size3 * WABI_WORD_SIZE);
-  if(new_space && (new_space + size3 <= wabi_store_limit)) {
-    store->space = new_space;
-    store->limit = new_space + size3;
-    store->heap = new_space;
-    store->size = size3;
-    store->old_space = old_space;
-    return new_space;
-  }
-  return NULL;
+  store->heap = store->new_space;
+  store->limit = store->new_space + store->size;
+
 }
 
 
@@ -404,7 +446,6 @@ wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
   wabi_store_collect_resize(store);
-  // printf("After collection %i over %lu\n", wabi_store_used(store), store->size);
   return 1;
 }
 
@@ -435,7 +476,7 @@ wabi_store_check(wabi_store store, wabi_val val)
   if(val == NULL) {
     return 1;
   }
-  if (val < store->space || val >=store->limit) {
+  if (val < store->new_space || val >=store->limit) {
     printf("DANGLING POINTER FOUND: %s\n", wabi_tag_to_string(val));
     return 0;
   }
