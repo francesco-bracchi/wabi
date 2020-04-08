@@ -313,10 +313,12 @@ wabi_cmp_eq_builtin(wabi_vm vm)
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-  }
+  if(!WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_bindings;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
@@ -351,10 +353,12 @@ wabi_cmp_gt_builtin(wabi_vm vm)
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-  }
+  if(!WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_bindings;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
@@ -389,10 +393,12 @@ wabi_cmp_lt_builtin(wabi_vm vm)
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->control;
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-  }
+  if(!WABI_IS(wabi_tag_pair, ctrl))
+    return wabi_error_bindings;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);

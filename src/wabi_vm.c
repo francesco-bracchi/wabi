@@ -9,6 +9,7 @@
 #include "wabi_system.h"
 #include "wabi_value.h"
 #include "wabi_pair.h"
+#include "wabi_binary.h"
 #include "wabi_symbol.h"
 #include "wabi_env.h"
 #include "wabi_cmp.h"
@@ -18,15 +19,18 @@
 #include "wabi_error.h"
 #include "wabi_cont.h"
 #include "wabi_env.h"
+#include "wabi_map.h"
 #include "wabi_value.h"
-
-/*** TMP ***/
-#include <stdio.h>
-#include "wabi_pr.h"
-
 
 // #define WABI_VM_DEBUG 1
 
+
+#ifdef WABI_VM_DEBUG
+
+#include <stdio.h>
+#include "wabi_pr.h"
+
+#endif
 
 static const wabi_cont wabi_cont_done = NULL;
 
@@ -68,6 +72,7 @@ wabi_vm_collect(wabi_vm vm)
 {
   wabi_store store;
   int res;
+
   store = &(vm->store);
   wabi_store_collect_prepare(store);
 
@@ -76,6 +81,8 @@ wabi_vm_collect(wabi_vm vm)
   if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
   if(vm->env) vm->env = wabi_store_copy_val(store, vm->env);
   if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
+  if(vm->quote) vm->quote = wabi_store_copy_val(store, vm->quote);
+  if(vm->hmap) vm->hmap = wabi_store_copy_val(store, vm->hmap);
   res = wabi_store_collect(store);
 #ifdef WABI_VM_DEBUG
   if(!wabi_vm_check(vm)) {
@@ -121,6 +128,8 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
     }
     vm->symbol_table = symbol_table;
     vm->nil = wabi_vm_nil(vm);
+    vm->quote = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q"));
+    vm->hmap = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap"));
     vm->error = wabi_error_none;
     vm->continuation = (wabi_val) wabi_cont_done;
   }
@@ -406,7 +415,10 @@ wabi_vm_reduce(wabi_vm vm)
     /* envr: (bind ex e0 ps as) */
     /* cont: ((eval) . s) */
     if(wabi_combiner_is_derived((wabi_val) ((wabi_cont_call) cont)->combiner)) {
-      ctrl0 = (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->body;
+      ctrl0 = (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->compiled_body;
+      if(*ctrl0 == wabi_val_nil) {
+        ctrl0 = (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->body;
+      }
       if(WABI_IS(wabi_tag_pair, ctrl0)) {
         env = (wabi_env) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->static_env;
         env = wabi_env_extend(vm, env);
@@ -567,7 +579,7 @@ wabi_vm_run(wabi_vm vm) {
   for(;;) {
 
 #ifdef WABI_VM_DEBUG
-    printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.space), vm->store.size);
+    printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.new_space), vm->store.size);
     printf("c[%s]: ", wabi_tag_to_string(vm->control));
     wabi_prn(vm->control);
     printf("e: ");
@@ -577,7 +589,7 @@ wabi_vm_run(wabi_vm vm) {
     printf("r: %lu\n", WABI_REDUCTIONS_LIMIT - reductions);
     printf("\n-----------------------------------------------\n");
 #endif
-    // reductions--;
+    reductions--;
     wabi_vm_reduce(vm);
 
     switch(vm->error) {

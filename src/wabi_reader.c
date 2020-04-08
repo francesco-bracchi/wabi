@@ -109,6 +109,64 @@ wabi_reader_read_list(wabi_vm vm, char** c)
 
 
 static inline wabi_val
+wabi_reader_read_map(wabi_vm vm, char** c)
+{
+  wabi_val a, d;
+  wabi_reader_ws(c);
+  if(**c == '}') {
+    (*c)++;
+
+    d = wabi_vm_alloc(vm, 1);
+    if(d) {
+      *d = wabi_val_nil;
+    }
+    return d;
+  }
+  else {
+    a = wabi_reader_read_val(vm, c);
+    if(! a) return NULL;
+    wabi_reader_ws(c);
+    d = wabi_reader_read_map(vm, c);
+    if(! d) return NULL;
+    return (wabi_val) wabi_cons(vm, a, d);
+  }
+}
+
+
+static inline wabi_val
+wabi_reader_read_quote(wabi_vm vm, char** c)
+{
+  wabi_val a, x;
+  wabi_reader_ws(c);
+  a = wabi_reader_read_val(vm, c);
+  if(! a) return NULL;
+  wabi_reader_ws(c);
+  x = (wabi_val) wabi_cons(vm, a, vm->nil);
+  if(!x) return NULL;
+  return (wabi_val) wabi_cons(vm, vm->quote, x);
+}
+
+
+static inline wabi_val
+wabi_reader_read_afn(wabi_vm vm, char** c)
+{
+  wabi_val a, x, bin, afn;
+  wabi_reader_ws(c);
+  a = wabi_reader_read_val(vm, c);
+  if(! a) return NULL;
+  wabi_reader_ws(c);
+  x = (wabi_val) wabi_cons(vm, a, vm->nil);
+  if(!x) return NULL;
+  bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "afn");
+  if(! bin) return NULL;
+  afn = wabi_symbol_new(vm, bin);
+  if(! afn) return NULL;
+  return (wabi_val) wabi_cons(vm, afn, x);
+}
+
+
+
+static inline wabi_val
 wabi_reader_read_num(wabi_vm vm, char** c)
 {
   long num;
@@ -150,7 +208,7 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   wabi_val res;
   buff = malloc(1024);
   bptr = buff;
-  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '(') && (**c != '"') && (**c != ';')) {
+  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '}') && (**c != '(') && (**c != '"') && (**c != ';')) {
     if(**c == '\\') (*c)++;
     *bptr = **c;
     bptr++;
@@ -187,9 +245,21 @@ wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)
 {
   wabi_reader_ws(c);
+  if(**c == '!') {
+    (*c)++;
+    return wabi_reader_read_quote(vm, c);
+  }
+  if(**c == '#') {
+    (*c)++;
+    return wabi_reader_read_afn(vm, c);
+  }
   if(**c == '(') {
     (*c)++;
     return wabi_reader_read_list(vm, c);
+  }
+  if(**c == '{') {
+    (*c)++;
+    return (wabi_val) wabi_cons(vm, vm->hmap, wabi_reader_read_map(vm, c));
   }
   if(wabi_reader_is_num(**c)) {
     return wabi_reader_read_num(vm, c);

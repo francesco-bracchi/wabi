@@ -36,9 +36,9 @@ wabi_cont_prompt_bt(wabi_vm vm)
       }
       if(WABI_IS(wabi_tag_pair, ctrl)) {
         cont = wabi_cont_next((wabi_cont) vm->continuation);
-        cont = wabi_cont_push_prog(vm, env, ctrl, cont);
+        cont = wabi_cont_push_prompt(vm, tag, cont);
         if(cont) {
-          cont = wabi_cont_push_prompt(vm, tag, cont);
+          cont = wabi_cont_push_prog(vm, env, ctrl, cont);
           if(cont) {
             cont = wabi_cont_push_eval(vm, cont);
             vm->control = fst;
@@ -97,7 +97,7 @@ wabi_cont_control_bt(wabi_vm vm)
   if(!kval)
     return wabi_error_nomem;
 
-  // todo: optimize, keep a stack of continuations for each tag
+  // todo: optimize,
   while(cont && !(WABI_IS(wabi_tag_cont_prompt, cont) && wabi_eq((wabi_val)((wabi_cont_prompt) cont)->tag, tag))) {
     cont = wabi_cont_next(cont);
   }

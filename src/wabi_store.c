@@ -17,7 +17,7 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x00FFFFFFFFFFFFFF;
 
-static const double wabi_store_ratio = 40.0;
+// static const double wabi_store_ratio = 10.0;
 
 int
 wabi_store_init(wabi_store store,
@@ -71,6 +71,26 @@ wabi_store_compact_binary(wabi_store store, wabi_val src)
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
 
   wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
+}
+
+
+static inline void
+wabi_store_trim_cont(wabi_store store, wabi_combiner_continuation src)
+{
+  /* wabi_word tag; */
+  /* wabi_cont cont, cont0, new_cont, new_cont0; */
+
+  /* tag = (wabi_word) WABI_WORD_VAL(src->tag); */
+  /* cont = (wabi_cont) src->cont; */
+
+  /* while(1) { */
+  /*   if(WABI_IS(wabi_tag_cont_prompt, cont) && ((wabi_cont_prompt) cont)->tag == tag) { */
+  /*     if(cont0) cont0->next = wabi_tag_cont_prompt; */
+  /*     return; */
+  /*   } */
+  /*   cont0 = cont; */
+  /*   cont = (wabi_cont) WABI_WORD_VAL(cont->next); */
+  /* } */
 }
 
 
@@ -130,12 +150,16 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     store->heap += 3;
     break;
 
-  case wabi_tag_app:
-  case wabi_tag_oper:
   case wabi_tag_cont_args:
   case wabi_tag_cont_sel:
     wordcopy(res, src, 4);
     store->heap += 4;
+    break;
+
+  case wabi_tag_app:
+  case wabi_tag_oper:
+    wordcopy(res, src, 5);
+    store->heap += 5;
     break;
 
   case wabi_tag_env:
@@ -144,6 +168,10 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     wordcopy(res + WABI_ENV_SIZE, (wabi_word*) ((wabi_env) src)->data, size);
     ((wabi_env) res)->data = (wabi_word) (res + WABI_ENV_SIZE);
     store->heap += WABI_ENV_SIZE + size;
+    break;
+  case wabi_tag_cont:
+  case wabi_tag_cont_oper:
+    // wabi_store_trim_cont(store, (wabi_combiner_continuation) src);
     break;
   }
 
@@ -239,7 +267,7 @@ wabi_store_collect_heap(wabi_store store)
       if(*(scan + 2)) {
         *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       }
-      scan += 3;
+      scan += WABI_COMBINER_BUILTIN_SIZE;
       break;
 
 
@@ -248,8 +276,9 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
+      *(scan + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 4));
       WABI_SET_TAG(scan, wabi_tag_oper);
-      scan += 4;
+      scan += WABI_COMBINER_DERIVED_SIZE;
       break;
 
     case wabi_tag_app:
@@ -257,8 +286,9 @@ wabi_store_collect_heap(wabi_store store)
       *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
       *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
       *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
+      *(scan + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 4));
       WABI_SET_TAG(scan, wabi_tag_app);
-      scan += 4;
+      scan += WABI_COMBINER_DERIVED_SIZE;
       break;
 
     case wabi_tag_env:
@@ -370,60 +400,11 @@ wabi_store_free(wabi_store store)
  return (store->limit - store->heap);
 }
 
-void
-wabi_store_collect_resize(wabi_store store)
+static inline
+double
+wabi_store_used_ratio(wabi_store store)
 {
-  wabi_size new_size, _free, _used;
-  double rat;
-  wabi_word* old_space;
-  wabi_word* new_space;
-
-  _free = wabi_store_free(store);
-  _used = wabi_store_used(store);
-  rat = (double) _free / _used;
-  // printf("ratio %lf\n", rat);
-
-  if(rat >= wabi_store_ratio * 2) {
-    // printf("SHRINK\n");
-    // shrink
-    new_size = (wabi_size) ceil(_used * wabi_store_ratio);
-    store->new_space = realloc(store->new_space, WABI_WORD_SIZE * new_size);
-    store->old_space = realloc(store->old_space, WABI_WORD_SIZE * new_size);
-    store->size = new_size;
-    store->limit = store->new_space + new_size;
-    return;
-  }
-
-  if(rat <= wabi_store_ratio / 2) {
-    // expand
-    // printf("EXPAND\n");
-    new_size = (wabi_size) ceil(_used * wabi_store_ratio);
-    new_space = realloc(store->new_space, WABI_WORD_SIZE * new_size);
-    old_space = realloc(store->old_space, WABI_WORD_SIZE * new_size);
-    store->size = new_size;
-    store->limit = store->new_space + new_size;
-    if(new_space != store->new_space) {
-      fprintf(stderr, "resizing has moved heap around TBD handle the case.\n");
-      exit(1);
-    }
-    store->new_space = new_space;
-    store->old_space = old_space;
-    store->size = new_size;
-    return;
-  }
-  /* wabi_size used, new_size; */
-  /* wabi_word *new_space; */
-
-  /* used = wabi_store_used(store); */
-  /* new_size = (wabi_size) ceil(used * wabi_invlow_threshold); */
-  /* new_space = realloc(store->space, WABI_WORD_SIZE * new_size); */
-  /* if(new_space != store->space) { */
-  /*   fprintf(stderr, "resizing has moved heap around TBD handle the case.\n"); */
-  /*   exit(1); */
-  /* } */
-
-  /* store->limit = store->space + new_size; */
-  /* store->size = new_size; */
+  return (double) wabi_store_used(store) / store->size;
 }
 
 void
@@ -445,7 +426,6 @@ int
 wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
-  wabi_store_collect_resize(store);
   return 1;
 }
 

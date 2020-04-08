@@ -17,7 +17,7 @@
 #include "wabi_env.h"
 #include "wabi_error.h"
 
-#define WABI_COMBINER_DERIVED_SIZE 4
+#define WABI_COMBINER_DERIVED_SIZE 5
 #define WABI_COMBINER_BUILTIN_SIZE 3
 #define WABI_COMBINER_CONTINUATION_SIZE 2
 
@@ -28,6 +28,7 @@ typedef struct wabi_combiner_derived_struct {
   wabi_word caller_env_name;
   wabi_word parameters;
   wabi_word body;
+  wabi_word compiled_body;
 } wabi_combiner_derived_t;
 
 

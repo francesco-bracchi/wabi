@@ -15,6 +15,8 @@ typedef struct wabi_vm_struct {
 
   wabi_val symbol_table;
   wabi_val nil;
+  wabi_val quote;
+  wabi_val hmap;
   wabi_store_t store;
   wabi_size fuel;
   wabi_error_type error;

@@ -146,13 +146,6 @@
    (nil? cs) nil
    (odds (cdr cs))))
 
-(defn len
-    (as)
-  (rec len (as as t 0)
-    (if
-     (nil? as) t
-     (len (cdr as) (inc t)))))
-
 (defn map1
     (f as)
   (if
@@ -212,11 +205,21 @@
 (def zero?
   (part = 0))
 
+(def one?
+  (part = 1))
+
 (def pos?
   (part < 0))
 
 (def neg?
   (part > 0))
+
+(defn len
+    (as)
+  (rec len (as as t 0)
+    (if
+     (nil? as) t
+     (len (cdr as) (inc t)))))
 
 (defn take
     (n as)
@@ -301,15 +304,69 @@
 (def hd
   car)
 
+(defn app
+    as
+  (rec app (a (car as) as (cdr as))
+    (if
+     (nil? as) a
+     (nil? a) (app (car as) (cdr as))
+     (cons (car a) (app (cdr a) as)))))
+
+(defn flat
+    (a)
+  (if
+   (nil? a) nil
+   (not (pair? a)) (list a)
+   (app (-> a car flat)
+        (-> a cdr flat))))
+
 (defx when
-    e (t? . b)
+    e (t? . bs)
   (eval e
-    (list if t? (list* do b))))
+    (list if t? (list* do bs))))
 
 (defx unless
-    e (t? . b)
+    e (t? . bs)
   (eval e
-    (list* when (list not t?) b)))
+    (list* when (list not t?) bs)))
+
+;; (defx awhen
+;;     e (t? . bs)
+;;   (eval e
+;;     (list* let (list !it t?)
+;;            (list* when !it bs))))
+
+;; (defx aunless
+;;     e (t? . bs)
+;;   (eval e
+;;     (list* let (list !it t?)
+;;            (list* unless !it bs))))
+
+;;this is an anamorhic fexpr, some pronouns are introduced!
+;; their-env -> the calling environmnet
+;; me -> the function itself
+;; them -> the arguments
+;; it (or @1) -> the first argument
+;; @2 @3 @4 @5 -> the arguments other than it
+(defx afx
+    e bs
+  (eval (ext! e)
+    (list* defx !me
+           !their-env !them
+           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them it @1) bs)))))
+
+
+;;this is an anamorhic function, some pronouns are introduced!
+;; me -> the function itself
+;; them -> the arguments
+;; it (or @1) -> the first argument
+;; @2 @3 @4 @5 -> the arguments other than it
+(defx afn
+    e bs
+  (eval (ext! e)
+    (list* defn !me
+           !them
+           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them it @1) bs)))))
 
 (defn insp
     as
@@ -321,28 +378,32 @@
 
 ;; TESTS
 
-(defx time
+(defx bench
     e as
   (let (t0 (clock)
         v  (eval e (list* do as))
         t (clock))
+    (list (/ (- t t0) 1000) as v)))
+
+(defx time
+    e as
+  (let ((d as r) (apply bench as))
+    (pr !benchmarks !for)
     (each pr as)
-    (pr (q time) (/ (- t t0) 1000) (q ms))
-    v))
+    (pr !-------)
+    (pr !time d !ms)
+    (pr)
+    r))
 
 (defx test
     e (a b)
   (let ((ax bx) (map (part eval e) (list a b)))
-    (pr (q test)
-        (list (q =) a b)
+    (pr !test
+        (list != a b)
         (if
-         (= ax bx) (q ok)
-         (list (q error) ax bx)))))
+         (= ax bx) !ok
+         (list !error ax bx)))))
 
-(defx afn
-    e as
-  (eval e
-    (list* fn (q as) (list (list* let (q ((a0 a1 a2 a3 a4 a5 . _) as)) as)))))
 
 ;; fib
 (defn fib
@@ -352,16 +413,18 @@
    (= n 1) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
+
 (def kont
   (prompt x
     (let (u (control x k k))
       (+ u 3))))
 
+
 (test (kont 10) 13)
+
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
-
 (test (fold + 0 nil) 0)
 (test (fold + 0 (list 1 2 3)) 6)
 (test (fold + 10 (list 1 2 3)) 16)
@@ -401,6 +464,21 @@
 (test (when false 20 10) nil)
 (test (unless true 20 10) nil)
 (test (unless false 20 10) 10)
+
+(test (app) nil)
+(test (app nil) nil)
+(test (app nil nil) nil)
+(test (app (ran 3) (map (part + 3) (ran 3))) (ran 6))
+(test (app (ran 3)
+           (map (part + 3) (ran 3))
+           (map (part + 6) (ran 3)))
+      (ran 9))
+
+
+(test (flat nil) nil)
+(test (flat !(a . d)) !(a d))
+(test (flat !(((a)))) !(a))
+(test (flat !((a b) (c d))) !(a b c d))
 
 (test (prompt x 10) 10)
 (test (prompt x 10 20) 20)
@@ -508,10 +586,138 @@
 
 ;; (pr (kont 100))
 
-(test (map (afn (+ a0 1)) (ran 5)) (map inc (ran 5)))
+(test (map #(+ it 1) (ran 5)) (map inc (ran 5)))
 
-(test (assoc (hmap) 10 "ten") (hmap 10 "ten"))
+(test (map #(if (zero? it) 0 (one? it) 1 (+ (me (- it 1)) (me (- it 2)))) (ran 6)) (map fib (ran 6)))
+
+(test (apply #(fold + 0 them) (ran 10)) (apply + (ran 10)))
+
+(test (fold #(+ @1 @2) 0 (ran 10)) (fold + 0 (ran 10)))
+
+(test (#(id @3) 10) nil)
+
+(test (assoc {} 10 !ten) {10 !ten})
+
+;;; (time (fib 35))
+
+;; (defx fun
+;;     e (as . bs)
+;;   (eval e
+;;     (list !fn as (list* !prompt !ret bs))))
+
+;; (defn ret
+;;     as
+;;   (let ((b . bs) as)
+;;     (if
+;;      (nil? bs) (control ret k b)
+;;      (control ret k as))))
+
+
+;; (def x
+;;   (fun (a b)
+;;        (if (> a b) (ret a b)
+;;            (ret b a))))
+
+
+;; (def xs
+;;   (prompt foo
+;;     (pr 10)
+;;     (pr 20)
+;;     (pr (control foo k k))
+;;     (pr 30)
+;;     (pr 40)))
+
+;; (pr !-------------)
+;; (xs 25)
+
+
+;; (defn raise
+;;     (type info)
+;;   (control !condition restart
+;;     (list false type (eval e info) restart)))
+
+
+;; (defx cond-case
+;;     e ((type0 (var-info var-restart) . hs) . xs)
+;;   (let ((success? type/result info restart)
+;;         (prompt condition
+;;           (list true (eval e (list* do xs)))))
+;;     (if
+;;      success? type/result
+;;      (= type/result type0) (eval e (list* let (list var-info info var-restart restart) hs))
+;;      (raise type info))))
 
 
 
-(time (pr (fib 35)))
+;; (let-cond (file-not-found (try-similar cond-info cond-restart)
+;;            permission-denied (restart "")
+;;            parse-error nil)
+;;   (with-open (f0 "first-file.log" "r"
+;;               f1 "second-file.log" "r")
+;;     (concat
+;;      (-> f0 read-lines parse-lines)
+;;      (-> f1 read-lines parse-lines))))
+
+
+;; (do
+;;  (defn foo (a)
+;;    (def b 10)
+;;    (eval (env) a))
+;;  (foo !(def c (+ b 32))))
+
+
+
+;; (defn flat
+;;     (a)
+;;   (if
+;;    (not (pair? a)) (list a)
+;;    (pair? a) (app
+
+;; (defn compile
+;;     (c)
+;;   (let (ps (visit!
+;;   (rec compile (b (combiner-body c)
+;;                 e (combiner-static-env c)
+;;                 ps (combiner-parameters c)
+;;                 en (combiner-caller-env-name c))
+;;     (if
+;;      (and (sym? b) (in? b ps)) b
+
+;;      (sym? b) (compile-symbol b e)
+;;      (pair? b)
+;;      (
+
+;;      (not (pair? b)) b
+;;      (sym? (car b)) (compile-call (car b) (cdr b))
+;;      (compile (cons (compile (car b) e ps en) (cdr b)))
+
+
+
+(def good-special-forms (list if do prompt control))
+
+(defn compile-expr
+    (e ps x)
+  (rec compile (x x)
+    (if
+     (and (sym? x) (in? x ps)) x
+     (sym? x) (eval e x)
+     (not (pair? x)) x
+     (let (a (compile (car x)))
+       (cons a
+             (if
+              (app? a) (map compile (cdr x))
+              (in? a good-special-forms) (map compile (cdr x))
+              (cdr x)))))))
+
+(defn compile-combiner!
+    (c)
+  (let (e  (combiner-static-env c)
+        bs (combiner-body c)
+        en (combiner-caller-env-name c)
+        ps (combiner-parameters c)
+        ss (filter sym? (flat (cons en ps))))
+    (combiner-compiled-body-set! c (insp (map (part compile-expr e ss) bs)))))
+
+;; (compile-combiner! fib)
+
+(time (pr (fib 36)))

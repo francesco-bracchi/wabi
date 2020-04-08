@@ -386,6 +386,22 @@ wabi_builtin_not_bt(wabi_vm vm, wabi_val e) {
 
 WABI_BUILTIN_WRAP1(wabi_builtin_not, wabi_builtin_not_bt);
 
+
+static inline wabi_error_type
+wabi_builtin_sym_qmark_bt(wabi_vm vm, wabi_val e) {
+  wabi_val res;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(res) {
+    *res = WABI_IS(wabi_tag_symbol, e) ? wabi_val_true : wabi_val_false;
+    vm->control = res;
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    return wabi_error_none;
+  }
+  return wabi_error_nomem;
+}
+
+WABI_BUILTIN_WRAP1(wabi_builtin_sym_qmark, wabi_builtin_sym_qmark_bt);
+
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -407,6 +423,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   res = WABI_DEFN(vm, env, "clock", "clock", wabi_builtin_clock);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "not", "not", wabi_builtin_not);
+  if(res) return NULL;
+  res = WABI_DEFN(vm, env, "sym?", "sym?", wabi_builtin_sym_qmark);
   if(res) return NULL;
 
   res = wabi_constant_builtins(vm, env);

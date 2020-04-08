@@ -4,10 +4,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+
 #include "wabi_value.h"
 #include "wabi_env.h"
 #include "wabi_vm.h"
-#include "wabi_cmp.h"
 #include "wabi_symbol.h"
 #include "wabi_map.h"
 #include "wabi_error.h"
@@ -52,8 +53,9 @@ wabi_env_lookup_local(wabi_env env, wabi_symbol k)
     k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
     if(k0 != k) continue;
     res = (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
-    if (j >= WABI_ENV_LOW_LIMIT) {
+    if(j >= WABI_ENV_LOW_LIMIT) {
       // this stuff moves the most recent visited symbols at the first part of the list
+      // can a better algorithm be devised?
       l = rand() % WABI_ENV_LOW_LIMIT;
       sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
       sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
@@ -96,6 +98,23 @@ wabi_env_lookup(wabi_env env, wabi_symbol k)
   } while(env);
   return NULL;
 }
+
+
+wabi_env
+wabi_env_extend(wabi_vm vm, wabi_env prev)
+{
+  wabi_env res;
+  res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
+  if(res) {
+    res->prev = (wabi_word) prev;
+    res->numE = 0;
+    res->maxE = WABI_ENV_INITIAL_SIZE;
+    res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
+    WABI_SET_TAG(res, wabi_tag_env);
+  }
+  return res;
+}
+
 
 static inline wabi_error_type
 wabi_env_p_bt(wabi_vm vm, wabi_val e0)

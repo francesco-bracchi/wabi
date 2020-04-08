@@ -50,6 +50,7 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
+     ("(\\(plc\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(when\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(unless\\)[ \r\n\t()]" 1 font-lock-keyword-face)

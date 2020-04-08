@@ -64,6 +64,7 @@ wabi_combiner_builtin_fx(wabi_vm vm)
           fx->caller_env_name = (wabi_word) e;
           fx->parameters = (wabi_word) fs;
           fx->body = (wabi_word) ctrl;
+          fx->compiled_body = (wabi_word) vm->nil;
           WABI_SET_TAG(fx, wabi_tag_oper);
 
           vm->control = (wabi_val) fx;
@@ -354,6 +355,52 @@ wabi_combiner_body_bt(wabi_vm vm, wabi_val f)
 
 
 static inline wabi_error_type
+wabi_combiner_compiled_body_bt(wabi_vm vm, wabi_val f)
+{
+  wabi_val res;
+  switch(WABI_TAG(f)) {
+  case wabi_tag_oper:
+  case wabi_tag_app:
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->control = (wabi_val) ((wabi_combiner_derived) f)->compiled_body;
+    return wabi_error_none;
+  default:
+      res = wabi_vm_alloc(vm, 1);
+      if(res) {
+      *res = wabi_val_nil; // vm->nil; vm->true; vm->false;
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+      vm->control = res;
+      return wabi_error_none;
+    }
+    return wabi_error_nomem;
+  }
+}
+
+static inline wabi_error_type
+wabi_combiner_compiled_body_set_qmark_bt(wabi_vm vm, wabi_val f, wabi_val cf)
+{
+  wabi_val res;
+  switch(WABI_TAG(f)) {
+  case wabi_tag_oper:
+  case wabi_tag_app:
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    ((wabi_combiner_derived) f)->compiled_body = (wabi_word) cf;
+    vm->control = cf;
+    return wabi_error_none;
+  default:
+      res = wabi_vm_alloc(vm, 1);
+      if(res) {
+      *res = wabi_val_nil; // vm->nil; vm->true; vm->false;
+      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+      vm->control = res;
+      return wabi_error_none;
+    }
+    return wabi_error_nomem;
+  }
+}
+
+
+static inline wabi_error_type
 wabi_combiner_static_env_bt(wabi_vm vm, wabi_val f)
 {
   wabi_val res;
@@ -433,6 +480,8 @@ WABI_BUILTIN_WRAP1(wabi_combiner_builtin_body, wabi_combiner_body_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_static_env, wabi_combiner_static_env_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_parameters, wabi_combiner_parameters_bt)
 WABI_BUILTIN_WRAP1(wabi_combiner_builtin_caller_env_name, wabi_combiner_caller_env_name_bt)
+WABI_BUILTIN_WRAP1(wabi_combiner_builtin_compiled_body, wabi_combiner_compiled_body_bt)
+WABI_BUILTIN_WRAP2(wabi_combiner_builtin_compiled_body_set_qmark, wabi_combiner_compiled_body_set_qmark_bt)
 
 
 wabi_error_type
@@ -462,6 +511,10 @@ wabi_combiner_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "combiner-static-env", "combiner-static-env", wabi_combiner_builtin_static_env);
   if(res) return res;
   res = WABI_DEFN(vm, env, "combiner-parameters", "combiner-parameters", wabi_combiner_builtin_parameters);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "combiner-compiled-body", "combiner-compiled-body", wabi_combiner_builtin_compiled_body);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "combiner-compiled-body-set!", "combiner-compiled-body-set!", wabi_combiner_builtin_compiled_body_set_qmark);
   if(res) return res;
   res = WABI_DEFN(vm, env, "combiner-caller-env-name", "combiner-caller-env-name", wabi_combiner_builtin_caller_env_name);
   return res;
