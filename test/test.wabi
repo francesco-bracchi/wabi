@@ -44,6 +44,16 @@
     (eval e
       (list def n (list* fn as bs)))))
 
+(defx prmt
+    e (t . bs)
+  (eval e
+    (list* prompt (eval e t) bs)))
+
+(defx ctrl
+    e (t . bs)
+  (eval e
+    (list* control (eval e t) bs)))
+
 (defn fold
     (f i as)
   (if
@@ -304,21 +314,13 @@
 (def hd
   car)
 
-(defn app
-    as
-  (rec app (a (car as) as (cdr as))
-    (if
-     (nil? as) a
-     (nil? a) (app (car as) (cdr as))
-     (cons (car a) (app (cdr a) as)))))
-
 (defn flat
     (a)
   (if
    (nil? a) nil
    (not (pair? a)) (list a)
-   (app (-> a car flat)
-        (-> a cdr flat))))
+   (conc (-> a car flat)
+         (-> a cdr flat))))
 
 (defx when
     e (t? . bs)
@@ -404,7 +406,6 @@
          (= ax bx) !ok
          (list !error ax bx)))))
 
-
 ;; fib
 (defn fib
     (n)
@@ -413,15 +414,12 @@
    (= n 1) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-
 (def kont
-  (prompt x
-    (let (u (control x k k))
+  (prmt (+ 10 20)
+    (let (u (ctrl (* 2 15) k k))
       (+ u 3))))
 
-
 (test (kont 10) 13)
-
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
@@ -429,14 +427,21 @@
 (test (fold + 0 (list 1 2 3)) 6)
 (test (fold + 10 (list 1 2 3)) 16)
 (test (apply + (list 1 2 3)) 6)
+
 (test (conc) nil)
-(test (conc (list 1 2 3) nil) (list 1 2 3))
+(test (conc nil) nil)
+(test (conc nil nil) nil)
+(test (conc (ran 3) (map (part + 3) (ran 3))) (ran 6))
+(test (conc(ran 3)
+           (map (part + 3) (ran 3))
+           (map (part + 6) (ran 3)))
+      (ran 9))
+
 
 ;; if
 ;; zero terms -> nil
 ;; one term evaluates to that term
 ;; two more terms -> if the first term is truish the second term, otherwise apply to the rest
-
 (test (if) nil)
 
 ;; if just one term evaluates to term
@@ -464,16 +469,6 @@
 (test (when false 20 10) nil)
 (test (unless true 20 10) nil)
 (test (unless false 20 10) 10)
-
-(test (app) nil)
-(test (app nil) nil)
-(test (app nil nil) nil)
-(test (app (ran 3) (map (part + 3) (ran 3))) (ran 6))
-(test (app (ran 3)
-           (map (part + 3) (ran 3))
-           (map (part + 6) (ran 3)))
-      (ran 9))
-
 
 (test (flat nil) nil)
 (test (flat !(a . d)) !(a d))
@@ -720,4 +715,4 @@
 
 ;; (compile-combiner! fib)
 
-(time (pr (fib 36)))
+;;(time (pr (fib 36)))

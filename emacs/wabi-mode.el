@@ -8,11 +8,6 @@
   (let((table (make-syntax-table lisp-mode-syntax-table)))
     table))
 
-(defun wabi-list-of
-    (n)
-  (concat "(\\(" n +space+ "\\)*"))
-
-
 (defun wabi-add-keywords (mode)
   (font-lock-remove-keywords mode '("(\\(do\\)[ \r\n\t()]" 1 font-lock-keyword-face))
   (font-lock-add-keywords
@@ -46,12 +41,15 @@
       (2 font-lock-variable-name-face)
       (3 font-lock-function-name-face))
 
+
      ("(\\(rec\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
      ("(\\(plc\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
+     ("(\\(prmt\\)[ \r\n\t()]" 1 font-lock-keyword-face)
+     ("(\\(ctrl\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(when\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(unless\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(if\\)[ \r\n\t()]" 1 font-lock-keyword-face)
@@ -127,7 +125,9 @@
   (put 'definterface 'lisp-indent-function 1)
   (put 'do lisp-indent-function 1)
   (put 'control lisp-indent-function 2)
-  (put 'prompt lisp-indent-function 1))
+  (put 'prompt lisp-indent-function 1)
+  (put 'ctrl lisp-indent-function 2)
+  (put 'prmt lisp-indent-function 1))
 
 (define-derived-mode wabi-mode lisp-mode "Wabi mode"
   "A major mode to edit wabi files"
