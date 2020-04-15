@@ -522,6 +522,21 @@
 (test (/ 4 2) 2)
 (test (/ 4 3) 1)
 
+(test (= 10) true)
+(test (= 10 (+ 1 9)) true)
+(test (= 10 (+ 1 9) (* 2 5)) true)
+(test (= 10 (+ 1 9) (* 4 4)) false)
+
+(test (> 10) true)
+(test (> 20 10) true)
+(test (> 30 20 10) true)
+(test (> 30 20 21) false)
+
+(test (< 10) true)
+(test (< 10 20) true)
+(test (< 10 20 30) true)
+(test (< 10 20 19) false)
+
 (test (all? (part < 0) nil) true)
 (test (all? (part < 0) (list 1 2 3)) true)
 (test (all? (part < 0) (list 1 0 3)) false)
@@ -593,101 +608,7 @@
 
 (test (assoc {} 10 !ten) {10 !ten})
 
-;;; (time (fib 35))
-
-;; (defx fun
-;;     e (as . bs)
-;;   (eval e
-;;     (list !fn as (list* !prompt !ret bs))))
-
-;; (defn ret
-;;     as
-;;   (let ((b . bs) as)
-;;     (if
-;;      (nil? bs) (control ret k b)
-;;      (control ret k as))))
-
-
-;; (def x
-;;   (fun (a b)
-;;        (if (> a b) (ret a b)
-;;            (ret b a))))
-
-
-;; (def xs
-;;   (prompt foo
-;;     (pr 10)
-;;     (pr 20)
-;;     (pr (control foo k k))
-;;     (pr 30)
-;;     (pr 40)))
-
-;; (pr !-------------)
-;; (xs 25)
-
-
-;; (defn raise
-;;     (type info)
-;;   (control !condition restart
-;;     (list false type (eval e info) restart)))
-
-
-;; (defx cond-case
-;;     e ((type0 (var-info var-restart) . hs) . xs)
-;;   (let ((success? type/result info restart)
-;;         (prompt condition
-;;           (list true (eval e (list* do xs)))))
-;;     (if
-;;      success? type/result
-;;      (= type/result type0) (eval e (list* let (list var-info info var-restart restart) hs))
-;;      (raise type info))))
-
-
-
-;; (let-cond (file-not-found (try-similar cond-info cond-restart)
-;;            permission-denied (restart "")
-;;            parse-error nil)
-;;   (with-open (f0 "first-file.log" "r"
-;;               f1 "second-file.log" "r")
-;;     (concat
-;;      (-> f0 read-lines parse-lines)
-;;      (-> f1 read-lines parse-lines))))
-
-
-;; (do
-;;  (defn foo (a)
-;;    (def b 10)
-;;    (eval (env) a))
-;;  (foo !(def c (+ b 32))))
-
-
-
-;; (defn flat
-;;     (a)
-;;   (if
-;;    (not (pair? a)) (list a)
-;;    (pair? a) (app
-
-;; (defn compile
-;;     (c)
-;;   (let (ps (visit!
-;;   (rec compile (b (combiner-body c)
-;;                 e (combiner-static-env c)
-;;                 ps (combiner-parameters c)
-;;                 en (combiner-caller-env-name c))
-;;     (if
-;;      (and (sym? b) (in? b ps)) b
-
-;;      (sym? b) (compile-symbol b e)
-;;      (pair? b)
-;;      (
-
-;;      (not (pair? b)) b
-;;      (sym? (car b)) (compile-call (car b) (cdr b))
-;;      (compile (cons (compile (car b) e ps en) (cdr b)))
-
-
-
+;;; tentave compiling, inlining constant values
 (def good-special-forms (list if do prompt control))
 
 (defn compile-expr
@@ -711,8 +632,23 @@
         en (combiner-caller-env-name c)
         ps (combiner-parameters c)
         ss (filter sym? (flat (cons en ps))))
-    (combiner-compiled-body-set! c (insp (map (part compile-expr e ss) bs)))))
+    (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
+
+
+;; (time (each (fn (_) (fib 25)) (ran 40)))
 
 ;; (compile-combiner! fib)
 
-;;(time (pr (fib 36)))
+;; (time (each (fn (_) (fib 25)) (ran 40)))
+
+
+(defx de
+    e (a b . xs)
+  (if
+   (nil? xs) (eval e (list def a b))
+   (eval e
+     (list do
+           (list def a b)
+           (list* de xs)))))
+
+(pr (> 30 20 20 29))
