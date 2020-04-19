@@ -31,41 +31,6 @@ wabi_hash_step(wabi_hash_state_t *state,
 }
 
 void
-wabi_hash_val(wabi_hash_state_t *state, wabi_val val);
-
-void
-wabi_hash_entry(wabi_hash_state_t *state, wabi_map_entry entry)
-{
-  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
-  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
-}
-
-void
-wabi_hash_map(wabi_hash_state_t *state, wabi_map map)
-{
-  wabi_map_entry entry;
-  wabi_map_iter_t iter;
-  wabi_map_iterator_init(&iter, map);
-  while((entry = wabi_map_iterator_current(&iter))) {
-    wabi_hash_entry(state, entry);
-    wabi_map_iterator_next(&iter);
-  }
-}
-
-void
-wabi_hash_env(wabi_hash_state_t *state, wabi_env env)
-{
-  wabi_size j;
-  do {
-    for(j = 0; j< env->numE; j++) {
-      wabi_hash_val(state, (wabi_val) (env->data + j * WABI_ENV_PAIR_SIZE));
-      wabi_hash_val(state, (wabi_val) (env->data + 1 + j * WABI_ENV_PAIR_SIZE));
-    }
-    env = (wabi_env) WABI_WORD_VAL(env->prev);
-  } while(env);
-}
-
-void
 wabi_hash_combiner(wabi_hash_state_t *state, wabi_combiner c)
 {
   switch(WABI_TAG(c)) {
@@ -107,8 +72,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
   case wabi_tag_map_array:
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
-    wabi_hash_step(state, "M", 1);
-    wabi_hash_map(state, (wabi_map) val);
+    wabi_map_hash_(state, (wabi_map) val);
     return;
   case wabi_tag_env:
     wabi_env_hash(state, (wabi_env) val);

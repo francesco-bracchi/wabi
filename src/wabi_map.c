@@ -1020,9 +1020,34 @@ wabi_map_collect_val(wabi_store store, wabi_map map)
 }
 
 
+static inline void
+wabi_map_hash_entry(wabi_hash_state state, wabi_map_entry entry)
+{
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
+  wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
+}
+
+static inline void
+wabi_map_hash_map(wabi_hash_state state, wabi_map map)
+{
+  wabi_map_entry entry;
+  wabi_map_iter_t iter;
+  wabi_map_iterator_init(&iter, map);
+  while((entry = wabi_map_iterator_current(&iter))) {
+    wabi_map_hash_entry(state, entry);
+    wabi_map_iterator_next(&iter);
+  }
+}
+
 void
 wabi_map_hash_(wabi_hash_state state, wabi_map map)
 {
+  wabi_hash_step(state, "M", 1);
+  if(WABI_IS(wabi_tag_map_entry, map)) {
+    wabi_map_hash_entry(state, (wabi_map_entry) map);
+    return;
+  }
+  wabi_map_hash_map(state, map);
 }
 
 

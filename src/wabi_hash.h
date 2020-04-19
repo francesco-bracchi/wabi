@@ -18,6 +18,9 @@ wabi_word
 wabi_hash(wabi_val val);
 
 void
+wabi_hash_val(wabi_hash_state_t *state, wabi_val val);
+
+void
 wabi_hash_step(wabi_hash_state state, char *data, wabi_word size);
 
 #endif
