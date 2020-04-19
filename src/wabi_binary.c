@@ -62,6 +62,22 @@ wabi_binary_leaf_new_from_cstring(wabi_vm vm, char* cstring)
 }
 
 
+wabi_binary_node
+wabi_binary_node_new(wabi_vm vm, wabi_binary left, wabi_binary right) {
+  wabi_word length;
+  wabi_binary_node res;
+
+  length = wabi_binary_length(left) + wabi_binary_length(right);
+  res = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
+  if(res) {
+    res->length = length;
+    res->left = (wabi_word) left;
+    res->right = (wabi_word) right;
+    WABI_SET_TAG(res, wabi_tag_bin_node);
+  }
+  return res;
+}
+
 wabi_binary
 wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
@@ -132,7 +148,7 @@ wabi_binary_memcopy(char *dst, wabi_binary src) {
   } else {
     pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
     wabi_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->left);
+    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->right);
   }
 }
 
@@ -144,7 +160,6 @@ wabi_binary_copy_val(wabi_store store, wabi_binary src)
 
   wabi_binary_leaf new_leaf;
   wabi_word *new_blob;
-
   len = wabi_binary_length((wabi_binary) src);
   word_size = wabi_binary_word_size(len);
   new_leaf = (wabi_binary_leaf) store->heap;
@@ -211,7 +226,7 @@ wabi_binary_cmp_leaves(wabi_binary_leaf left,
   wabi_word count = (len_left < len_right ? len_left : len_right) - 1;
   char* left_char = ((char *) left->data_ptr) + from_left;
   char* right_char = ((char *) right->data_ptr) + from_right;
-  while(*left_char == *right_char && count) {
+  while(*left_char == *right_char && (count > 0)) {
     count--;
     left_char++;
     right_char++;
@@ -220,6 +235,9 @@ wabi_binary_cmp_leaves(wabi_binary_leaf left,
 }
 
 
+/***
+ * extensive testing
+ */
 static int
 wabi_binary_cmp_bin(wabi_binary left,
                     wabi_word from_left,
@@ -228,6 +246,15 @@ wabi_binary_cmp_bin(wabi_binary left,
                     wabi_word from_right,
                     wabi_word len_right)
 {
+  if(!len_left && !len_right ) {
+    return 0;
+  }
+  if(!len_left ) {
+    return 1;
+  }
+  if(!len_right) {
+    return -1;
+  }
   if(WABI_IS(wabi_tag_bin_node, left)) {
     wabi_binary left_left = (wabi_binary) ((wabi_binary_node) left)->left;
     wabi_binary left_right = (wabi_binary) ((wabi_binary_node) left)->right;
@@ -267,25 +294,33 @@ wabi_binary_cmp(wabi_binary left, wabi_binary right)
  */
 
 //TODO: make this variadic
-inline static wabi_error_type
-wabi_binary_concat_bt(wabi_vm vm, wabi_val l, wabi_val r)
+wabi_error_type
+wabi_binary_concat_builtin(wabi_vm vm)
 {
-  wabi_binary_node node;
-  wabi_size length;
-  if(wabi_binary_p(l) && wabi_binary_p(r)) {
-    length = wabi_binary_length((wabi_binary) l) + wabi_binary_length((wabi_binary) r);
-    node = (wabi_binary_node) wabi_vm_alloc(vm, WABI_BINARY_NODE_SIZE);
-    if(node) {
-      node->length = length;
-      node->left = (wabi_word) l;
-      node->right = (wabi_word) r;
-      WABI_SET_TAG(node, wabi_tag_bin_node);
-      vm->control = (wabi_val) node;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  wabi_val a, ctrl;
+  wabi_binary res;
+
+  ctrl = vm->control;
+
+  res = (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, "");
+  if(! res) return wabi_error_nomem;
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+
+    if(! wabi_binary_p(a))
+      return wabi_error_type_mismatch;
+
+    res = (wabi_binary) wabi_binary_node_new(vm, res, (wabi_binary) a);
+    if(! res) return wabi_error_nomem;
   }
-  return wabi_error_type_mismatch;
+
+  if(*ctrl != wabi_val_nil) {
+    return wabi_error_bindings;
+  }
+  vm->control = (wabi_val) res;
+  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  return wabi_error_nomem;
 }
 
 
@@ -335,7 +370,6 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
 
 
 WABI_BUILTIN_WRAP1(wabi_binary_length_builtin, wabi_binary_length_bt);
-WABI_BUILTIN_WRAP2(wabi_binary_concat_builtin, wabi_binary_concat_bt);
 WABI_BUILTIN_WRAP3(wabi_binary_sub_builtin, wabi_binary_sub_bt);
 
 

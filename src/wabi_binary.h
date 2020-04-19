@@ -88,15 +88,20 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 void
 wabi_binary_copy_val(wabi_store store, wabi_binary src);
 
+
 void
 wabi_binary_collect_val(wabi_store store, wabi_binary src);
+
 
 void
 wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin);
 
+
 int
 wabi_binary_cmp(wabi_binary left, wabi_binary right);
 
+
 wabi_error_type
 wabi_binary_builtins(wabi_vm vm, wabi_env env);
+
 #endif
