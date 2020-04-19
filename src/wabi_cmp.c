@@ -23,42 +23,6 @@ wabi_cmp_pair(wabi_pair left, wabi_pair right) {
 
 
 int
-wabi_cmp_map(wabi_map left, wabi_map right)
-{
-  wabi_map_iter_t left_iter, right_iter;
-  wabi_map_entry left_entry, right_entry;
-  int cmp;
-  wabi_map_iterator_init(&left_iter, left);
-  wabi_map_iterator_init(&right_iter, right);
-
-  do {
-    left_entry = wabi_map_iterator_current(&left_iter);
-    right_entry = wabi_map_iterator_current(&right_iter);
-
-    if(!left_entry && !right_entry) {
-      return 0;
-    }
-    else if(!right_entry) {
-      return 1;
-    }
-    else if(!left_entry) {
-      return -1;
-    }
-    else {
-      cmp = wabi_cmp(WABI_MAP_ENTRY_KEY(left_entry),
-                     WABI_MAP_ENTRY_KEY(right_entry));
-      if(cmp) return cmp;
-      cmp =  wabi_cmp(WABI_MAP_ENTRY_VALUE(left_entry),
-                      WABI_MAP_ENTRY_VALUE(right_entry));
-      if(cmp) return cmp;
-    }
-    wabi_map_iterator_next(&left_iter);
-    wabi_map_iterator_next(&right_iter);
-  } while(1);
-}
-
-
-int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
   long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
   return d ? (d > 0L ? 1 : -1) : 0;
@@ -180,7 +144,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_array:
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
-    return wabi_cmp_map((wabi_map) a, (wabi_map) b);
+    return wabi_map_cmp((wabi_map) a, (wabi_map) b);
   case wabi_tag_env:
     return wabi_env_cmp((wabi_env) a, (wabi_env) b);
   case wabi_tag_app:

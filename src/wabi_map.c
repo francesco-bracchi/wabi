@@ -1054,6 +1054,37 @@ wabi_map_hash_(wabi_hash_state state, wabi_map map)
 int
 wabi_map_cmp(wabi_map left, wabi_map right)
 {
+
+  wabi_map_iter_t left_iter, right_iter;
+  wabi_map_entry left_entry, right_entry;
+  int cmp;
+  wabi_map_iterator_init(&left_iter, left);
+  wabi_map_iterator_init(&right_iter, right);
+
+  do {
+    left_entry = wabi_map_iterator_current(&left_iter);
+    right_entry = wabi_map_iterator_current(&right_iter);
+
+    if(!left_entry && !right_entry) {
+      return 0;
+    }
+    else if(!right_entry) {
+      return 1;
+    }
+    else if(!left_entry) {
+      return -1;
+    }
+    else {
+      cmp = wabi_cmp(WABI_MAP_ENTRY_KEY(left_entry),
+                     WABI_MAP_ENTRY_KEY(right_entry));
+      if(cmp) return cmp;
+      cmp =  wabi_cmp(WABI_MAP_ENTRY_VALUE(left_entry),
+                      WABI_MAP_ENTRY_VALUE(right_entry));
+      if(cmp) return cmp;
+    }
+    wabi_map_iterator_next(&left_iter);
+    wabi_map_iterator_next(&right_iter);
+  } while(1);
 }
 
 
