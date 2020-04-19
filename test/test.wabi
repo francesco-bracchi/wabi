@@ -638,3 +638,7 @@
 ;; (compile-combiner! fib)
 
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
+
+(test (blen "") 0)
+(test (blen "ciao") 4)
+(test (bsub "ciao" 1 2) "ia")

@@ -4,6 +4,9 @@
 
 #include "wabi_value.h"
 #include "wabi_vm.h"
+#include "wabi_store.h"
+#include "wabi_hash.h"
+#include "wabi_env.h"
 
 typedef struct wabi_binary_leaf_struct
 {
@@ -32,7 +35,7 @@ typedef union wabi_binary_union
 typedef wabi_binary_t* wabi_binary;
 
 
-#define WABI_BINARY_LEAF_SIZE 3
+#define WABI_BINARY_LEAF_SIZE 2
 #define WABI_BINARY_NODE_SIZE 3
 
 
@@ -83,5 +86,14 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
 
 void
-wabi_binary_memcopy(char *dst, wabi_binary src);
+wabi_binary_copy_val(wabi_store store, wabi_binary src);
+
+void
+wabi_binary_collect_val(wabi_store store, wabi_binary src);
+
+void
+wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin);
+
+wabi_error_type
+wabi_binary_builtins(wabi_vm vm, wabi_env env);
 #endif

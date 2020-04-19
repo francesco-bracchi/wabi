@@ -12,6 +12,7 @@ typedef struct wabi_store_struct
   wabi_word* new_space;
   wabi_word* limit;
   wabi_word* heap;
+  wabi_word* scan;
   wabi_word* old_space;
   wabi_word size;
   short int low_threshold;

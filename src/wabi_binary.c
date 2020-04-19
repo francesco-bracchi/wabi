@@ -1,3 +1,15 @@
+/***
+ * Binaries
+ *
+ * Basic operations:
+ * 1. Length in bytes
+ * 2. concatenate
+ * 3. subsequence
+ *
+ * Binaries are represneted as "strings", altough they do no carry information
+ * about the encoding.
+ */
+
 #define wabi_binary_c
 
 #include <string.h>
@@ -10,7 +22,7 @@
 #include "wabi_number.h"
 #include "wabi_builtin.h"
 #include "wabi_error.h"
-
+#include "wabi_env.h"
 
 wabi_binary_leaf
 wabi_binary_leaf_new(wabi_vm vm, wabi_size size)
@@ -107,7 +119,89 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len)
     : wabi_binary_sub_node(vm, (wabi_binary_node) bin, from, len);
 }
 
+/**
+ * collecting
+ */
 
+static inline void
+wabi_binary_memcopy(char *dst, wabi_binary src) {
+  wabi_word pivot;
+
+  if(WABI_IS(wabi_tag_bin_leaf, src)) {
+    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
+  } else {
+    pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
+    wabi_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
+    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->left);
+  }
+}
+
+
+void
+wabi_binary_copy_val(wabi_store store, wabi_binary src)
+{
+  wabi_size len, word_size;
+
+  wabi_binary_leaf new_leaf;
+  wabi_word *new_blob;
+
+  len = wabi_binary_length((wabi_binary) src);
+  word_size = wabi_binary_word_size(len);
+  new_leaf = (wabi_binary_leaf) store->heap;
+  store->heap += 2;
+  new_blob = (wabi_word *) store->heap;
+  store->heap += 1 + word_size;
+  new_leaf->length = len;
+  new_leaf->data_ptr = (wabi_word) (new_blob+1);
+  *new_blob = 1 + word_size;
+  WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
+  WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
+
+  wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
+}
+
+void
+wabi_binary_collect_val(wabi_store store, wabi_binary src)
+{
+  // once in the new heap all binaries are of leaf type
+  store->scan += WABI_BINARY_LEAF_SIZE;
+}
+
+
+/**
+ * Hashing
+ */
+
+static inline void
+wabi_binary_leaf_hash(wabi_hash_state_t *state, wabi_binary_leaf leaf)
+{
+  wabi_hash_step(state, (char *) leaf->data_ptr, WABI_WORD_VAL(leaf->length));
+}
+
+static inline void
+wabi_binary_node_hash(wabi_hash_state_t *state, wabi_binary_node node)
+{
+  wabi_binary_hash(state, (wabi_binary) node->left);
+  wabi_binary_hash(state, (wabi_binary) node->right);
+}
+
+void
+wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin)
+{
+  // todo: make this if
+  if(WABI_TAG(bin) == wabi_tag_bin_leaf) {
+    wabi_binary_leaf_hash(state, (wabi_binary_leaf_t *) bin);
+    return;
+  }
+  wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
+}
+
+
+/**
+ * Builtins
+ */
+
+//TODO: make this variadic
 inline static wabi_error_type
 wabi_binary_concat_bt(wabi_vm vm, wabi_val l, wabi_val r)
 {
@@ -175,19 +269,20 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
 }
 
 
-void
-wabi_binary_memcopy(char *dst, wabi_binary src) {
-  wabi_word pivot;
-
-  if(WABI_IS(wabi_tag_bin_leaf, src)) {
-    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
-  } else {
-    pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->left);
-  }
-}
-
 WABI_BUILTIN_WRAP1(wabi_binary_length_builtin, wabi_binary_length_bt);
 WABI_BUILTIN_WRAP2(wabi_binary_concat_builtin, wabi_binary_concat_bt);
 WABI_BUILTIN_WRAP3(wabi_binary_sub_builtin, wabi_binary_sub_bt);
+
+
+wabi_error_type
+wabi_binary_builtins(wabi_vm vm, wabi_env env)
+{
+  wabi_error_type res;
+
+  res = WABI_DEFN(vm, env, "blen", "blen", wabi_binary_length_builtin);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "bcat", "bcat", wabi_binary_concat_builtin);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "bsub", "bsub", wabi_binary_sub_builtin);
+  return res;
+}

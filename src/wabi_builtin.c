@@ -435,6 +435,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_number_builtins(vm, env);
   if(res) return NULL;
+  res = wabi_binary_builtins(vm, env);
+  if(res) return NULL;
   res = wabi_cmp_builtins(vm, env);
   if(res) return NULL;
   res = wabi_env_builtins(vm, env);

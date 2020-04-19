@@ -50,30 +50,6 @@ wabi_store_destroy(wabi_store store)
 }
 
 
-void
-wabi_store_compact_binary(wabi_store store, wabi_val src)
-{
-  wabi_size len, word_size;
-
-  wabi_binary_leaf new_leaf;
-  wabi_word *new_blob;
-
-  len = wabi_binary_length((wabi_binary) src);
-  word_size = wabi_binary_word_size(len);
-  new_leaf = (wabi_binary_leaf) store->heap;
-  store->heap += 2;
-  new_blob = (wabi_word *) store->heap;
-  store->heap += 1 + word_size;
-  new_leaf->length = len;
-  new_leaf->data_ptr = (wabi_word) (new_blob+1);
-  *new_blob = 1 + word_size;
-  WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
-  WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
-
-  wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
-}
-
-
 static inline void
 wabi_store_trim_cont(wabi_store store, wabi_combiner_continuation src)
 {
@@ -121,7 +97,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
-    wabi_store_compact_binary(store, src);
+    wabi_binary_copy_val(store, (wabi_binary) src);
     break;
 
   case wabi_tag_constant:
@@ -201,188 +177,187 @@ wabi_store_collect_env(wabi_store store, wabi_env env)
 void
 wabi_store_collect_heap(wabi_store store)
 {
-  wabi_word *scan, size;
-  scan = store->new_space;
+  wabi_word size;
+  store->scan = store->new_space;
   do {
-    switch(WABI_TAG(scan)) {
+    switch(WABI_TAG((store->scan))) {
     /* case wabi_tag_var: */
     /* case wabi_tag_alien: */
     /* case wabi_tag_tagged: */
 
     case wabi_tag_bin_blob:
-      scan += WABI_WORD_VAL(*scan);
+      (store->scan) += WABI_WORD_VAL(*(store->scan));
       break;
 
     case wabi_tag_constant:
     case wabi_tag_fixnum:
-      scan++;
+      (store->scan)++;
       break;
 
     case wabi_tag_symbol:
-      *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      WABI_SET_TAG(scan, wabi_tag_symbol);
-      scan+=WABI_SYMBOL_SIZE;
+      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
+      WABI_SET_TAG((store->scan), wabi_tag_symbol);
+      (store->scan)+=WABI_SYMBOL_SIZE;
       break;
 
-    case wabi_tag_bin_node:
     case wabi_tag_bin_leaf:
-      scan += 2;
+      wabi_binary_collect_val(store, (wabi_binary) store->scan);
       break;
 
     case wabi_tag_pair:
-      *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      WABI_SET_TAG(scan, wabi_tag_pair);
-      scan += 2;
+      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      WABI_SET_TAG((store->scan), wabi_tag_pair);
+      (store->scan) += 2;
       break;
 
     case wabi_tag_map_entry:
-      *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      WABI_SET_TAG(scan, wabi_tag_map_entry);
-      scan += 2;
+      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      WABI_SET_TAG((store->scan), wabi_tag_map_entry);
+      (store->scan) += 2;
       break;
 
     case wabi_tag_map_array:
-      size = *(scan + 1);
-      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * size);
-      *scan = (wabi_word) store->heap;
+      size = *((store->scan) + 1);
+      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*(store->scan)), 2 * size);
+      *(store->scan) = (wabi_word) store->heap;
       store->heap += 2 * size;
-      WABI_SET_TAG(scan, wabi_tag_map_array);
-      scan += 2;
+      WABI_SET_TAG((store->scan), wabi_tag_map_array);
+      (store->scan) += 2;
       break;
 
     case wabi_tag_map_hash:
-      size = WABI_MAP_BITMAP_COUNT(*(scan + 1));
-      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*scan), 2 * size);
-      *scan = (wabi_word) store->heap;
+      size = WABI_MAP_BITMAP_COUNT(*((store->scan) + 1));
+      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*(store->scan)), 2 * size);
+      *(store->scan) = (wabi_word) store->heap;
       store->heap += 2 * size;
-      WABI_SET_TAG(scan, wabi_tag_map_hash);
-      scan += 2;
+      WABI_SET_TAG((store->scan), wabi_tag_map_hash);
+      (store->scan) += 2;
       break;
 
     case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      if(*(scan + 2)) {
-        *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      if(*((store->scan) + 2)) {
+        *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
       }
-      scan += WABI_COMBINER_BUILTIN_SIZE;
+      (store->scan) += WABI_COMBINER_BUILTIN_SIZE;
       break;
 
 
     case wabi_tag_oper:
-      *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
-      *(scan + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 4));
-      WABI_SET_TAG(scan, wabi_tag_oper);
-      scan += WABI_COMBINER_DERIVED_SIZE;
+      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      *((store->scan) + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 3));
+      *((store->scan) + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 4));
+      WABI_SET_TAG((store->scan), wabi_tag_oper);
+      (store->scan) += WABI_COMBINER_DERIVED_SIZE;
       break;
 
     case wabi_tag_app:
-      *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
-      *(scan + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 4));
-      WABI_SET_TAG(scan, wabi_tag_app);
-      scan += WABI_COMBINER_DERIVED_SIZE;
+      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      *((store->scan) + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 3));
+      *((store->scan) + 4) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 4));
+      WABI_SET_TAG((store->scan), wabi_tag_app);
+      (store->scan) += WABI_COMBINER_DERIVED_SIZE;
       break;
 
     case wabi_tag_env:
-      wabi_store_collect_env(store, (wabi_env) scan);
-      scan += wabi_store_env_size((wabi_env) scan);
+      wabi_store_collect_env(store, (wabi_env) (store->scan));
+      (store->scan) += wabi_store_env_size((wabi_env) (store->scan));
       break;
 
     case wabi_tag_cont_eval:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      WABI_SET_TAG(scan, wabi_tag_cont_eval);
-      scan += 1;
+      WABI_SET_TAG((store->scan), wabi_tag_cont_eval);
+      (store->scan) += 1;
       break;
 
     case wabi_tag_cont_prompt:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      WABI_SET_TAG(scan, wabi_tag_cont_eval);
-      scan += 2;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_eval);
+      (store->scan) += 2;
       break;
 
     case wabi_tag_cont_apply:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      WABI_SET_TAG(scan, wabi_tag_cont_apply);
-      scan += 3;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_apply);
+      (store->scan) += 3;
       break;
 
     case wabi_tag_cont_call:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      WABI_SET_TAG(scan, wabi_tag_cont_call);
-      scan += 3;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_call);
+      (store->scan) += 3;
       break;
 
     case wabi_tag_cont_def:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      WABI_SET_TAG(scan, wabi_tag_cont_def);
-      scan += 3;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_def);
+      (store->scan) += 3;
       break;
 
     case wabi_tag_cont_prog:
       // todo: unify all these cases
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      WABI_SET_TAG(scan, wabi_tag_cont_prog);
-      scan += 3;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_prog);
+      (store->scan) += 3;
       break;
 
     case wabi_tag_cont_args:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
-      WABI_SET_TAG(scan, wabi_tag_cont_args);
-      scan += 3;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      *((store->scan) + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 3));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_args);
+      (store->scan) += 3;
       break;
 
     case wabi_tag_cont_sel:
-      if(WABI_WORD_VAL(*scan)) {
-        *scan = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*scan));
+      if(WABI_WORD_VAL(*(store->scan))) {
+        *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       }
-      *(scan + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 1));
-      *(scan + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 2));
-      *(scan + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *(scan + 3));
-      WABI_SET_TAG(scan, wabi_tag_cont_sel);
-      scan += 4;
+      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
+      *((store->scan) + 2) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 2));
+      *((store->scan) + 3) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 3));
+      WABI_SET_TAG((store->scan), wabi_tag_cont_sel);
+      (store->scan) += 4;
       break;
 
     case wabi_tag_forward:
-      *scan = WABI_WORD_VAL(*scan);
-      scan++;
+      *(store->scan) = WABI_WORD_VAL(*(store->scan));
+      (store->scan)++;
       break;
     }
   }
-  while(scan < store->heap);
+  while((store->scan) < store->heap);
 }
 
 static inline
