@@ -12,7 +12,7 @@
 (def list
   (wrap qs))
 
-(def comment
+(def cmt
   (fx _ p nil))
 
 (def env
@@ -635,20 +635,6 @@
     (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
 
 
-;; (time (each (fn (_) (fib 25)) (ran 40)))
-
 ;; (compile-combiner! fib)
 
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
-
-
-(defx de
-    e (a b . xs)
-  (if
-   (nil? xs) (eval e (list def a b))
-   (eval e
-     (list do
-           (list def a b)
-           (list* de xs)))))
-
-(pr (> 30 20 20 29))
