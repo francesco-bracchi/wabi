@@ -59,25 +59,6 @@ wabi_cmp_map(wabi_map left, wabi_map right)
 
 
 int
-wabi_cmp_env(wabi_env left, wabi_env right) {
-  /* int cmp0; */
-  /* do { */
-  /*   cmp0 = wabi_cmp_map((wabi_map) left->data, (wabi_map) right->data); */
-  /*   if(cmp0) return cmp0; */
-
-  /*   left = (wabi_env) WABI_WORD_VAL(left->next); */
-  /*   right = (wabi_env) WABI_WORD_VAL(right->next); */
-  /*   if(left == right) return 0; */
-  /*   if(left == NULL) return 1; */
-  /*   if(right == NULL) return -1; */
-  /* } while(1); */
-  // todo: implement me
-  wabi_word diff = right - left;
-  return diff == 0U ? 0 : diff > 0U ? 1 : -1;
-}
-
-
-int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
   long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
   return d ? (d > 0L ? 1 : -1) : 0;
@@ -201,8 +182,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_entry:
     return wabi_cmp_map((wabi_map) a, (wabi_map) b);
   case wabi_tag_env:
-    // env can change... how can we maintain a constant hash?
-    return wabi_cmp_env((wabi_env) a, (wabi_env) b);
+    return wabi_env_cmp((wabi_env) a, (wabi_env) b);
   case wabi_tag_app:
   case wabi_tag_oper:
     return wabi_cmp_combiner_derived((wabi_combiner_derived) a, (wabi_combiner_derived) b);

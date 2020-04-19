@@ -35,8 +35,8 @@ typedef union wabi_binary_union
 typedef wabi_binary_t* wabi_binary;
 
 
-#define WABI_BINARY_LEAF_SIZE 2
-#define WABI_BINARY_NODE_SIZE 3
+#define WABI_BINARY_LEAF_SIZE wabi_sizeof(wabi_binary_leaf_t)
+#define WABI_BINARY_NODE_SIZE wabi_sizeof(wabi_binary_node_t)
 
 
 static inline wabi_size

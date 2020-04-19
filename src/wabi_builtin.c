@@ -22,6 +22,7 @@
 #include "wabi_error.h"
 #include "wabi_pr.h"
 #include "wabi_map.h"
+#include "wabi_hash.h"
 
 
 wabi_error_type
@@ -402,6 +403,22 @@ wabi_builtin_sym_qmark_bt(wabi_vm vm, wabi_val e) {
 
 WABI_BUILTIN_WRAP1(wabi_builtin_sym_qmark, wabi_builtin_sym_qmark_bt);
 
+static inline wabi_error_type
+wabi_builtin_hash_bt(wabi_vm vm, wabi_val v) {
+  wabi_val res;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(res) {
+    *res = wabi_hash(v);
+    WABI_SET_TAG(res, wabi_tag_fixnum);
+    vm->control = res;
+    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    return wabi_error_none;
+  }
+  return wabi_error_nomem;
+}
+
+WABI_BUILTIN_WRAP1(wabi_builtin_hash, wabi_builtin_hash_bt);
+
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -425,6 +442,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   res = WABI_DEFN(vm, env, "not", "not", wabi_builtin_not);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "sym?", "sym?", wabi_builtin_sym_qmark);
+  if(res) return NULL;
+  res = WABI_DEFN(vm, env, "hash", "hash", wabi_builtin_hash);
   if(res) return NULL;
 
   res = wabi_constant_builtins(vm, env);

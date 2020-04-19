@@ -74,6 +74,8 @@ static const wabi_word wabi_word_value_mask = 0x00FFFFFFFFFFFFFF;
 static const wabi_word wabi_word_tag_mask = 0xFF00000000000000;
 static const int wabi_word_tag_offset = 64 - 8;
 
+#define wabi_sizeof(str) (sizeof(str) >> 3)
+
 static inline char*
 wabi_tag_to_string(wabi_word* w)
 {

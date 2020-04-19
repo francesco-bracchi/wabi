@@ -201,9 +201,9 @@ wabi_binary_node_hash(wabi_hash_state_t *state, wabi_binary_node node)
 }
 
 void
-wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin)
+wabi_binary_hash(wabi_hash_state state, wabi_binary bin)
 {
-  // todo: make this if
+  wabi_hash_step(state, "B", 1);
   if(WABI_TAG(bin) == wabi_tag_bin_leaf) {
     wabi_binary_leaf_hash(state, (wabi_binary_leaf_t *) bin);
     return;
@@ -211,7 +211,7 @@ wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin)
   wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
 }
 
-/***
+/**
  * Comparing
  */
 

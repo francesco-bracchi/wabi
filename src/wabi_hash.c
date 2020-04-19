@@ -102,7 +102,6 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     return;
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
-    wabi_hash_step(state, "B", 1);
     wabi_binary_hash(state, (wabi_binary) val);
     return;
   case wabi_tag_map_array:
@@ -112,8 +111,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_map(state, (wabi_map) val);
     return;
   case wabi_tag_env:
-    wabi_hash_step(state, "E", 1);
-    wabi_hash_env(state, (wabi_env) val);
+    wabi_env_hash(state, (wabi_env) val);
     return;
   case wabi_tag_app:
   case wabi_tag_bt_app:
@@ -131,7 +129,8 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
 wabi_word
 wabi_hash(wabi_val val)
 {
-  wabi_hash_state_t hash_state;;
+  wabi_hash_state_t hash_state;
+
   wabi_hash_state_init(&hash_state);
   wabi_hash_val(&hash_state, val);
   if(!hash_state.err) {
