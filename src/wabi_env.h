@@ -48,4 +48,13 @@ wabi_env_new(wabi_vm vm)
   return wabi_env_extend(vm, NULL);
 }
 
+
+void
+wabi_env_copy_val(wabi_store store, wabi_env env);
+
+
+void
+wabi_env_collect_val(wabi_store store, wabi_env env);
+
+
 #endif

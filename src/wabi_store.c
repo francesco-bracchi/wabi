@@ -70,12 +70,6 @@ wabi_store_trim_cont(wabi_store store, wabi_combiner_continuation src)
 }
 
 
-static inline wabi_size
-wabi_store_env_size(wabi_env env)
-{
-  return WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
-}
-
 
 wabi_word*
 wabi_store_copy_val(wabi_store store, wabi_word *src)
@@ -139,11 +133,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     break;
 
   case wabi_tag_env:
-    size = ((wabi_env) src)->numE * WABI_ENV_PAIR_SIZE;
-    wordcopy(res, src, WABI_ENV_SIZE);
-    wordcopy(res + WABI_ENV_SIZE, (wabi_word*) ((wabi_env) src)->data, size);
-    ((wabi_env) res)->data = (wabi_word) (res + WABI_ENV_SIZE);
-    store->heap += WABI_ENV_SIZE + size;
+    wabi_env_copy_val(store, (wabi_env) src);
     break;
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
@@ -154,24 +144,6 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   *src = (wabi_word) res;
   WABI_SET_TAG(src, wabi_tag_forward);
   return res;
-}
-
-static inline void
-wabi_store_collect_env(wabi_store store, wabi_env env)
-{
-  wabi_size j;
-  wabi_word *k, *v;
-  if(WABI_WORD_VAL(env->prev)) {
-    env->prev = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(env->prev));
-  }
-  env->maxE = env->numE;
-  for(j = 0; j < env->numE; j++) {
-    k = ((wabi_val) env->data) + 2 * j;
-    v = ((wabi_val) env->data) + 1 + 2 * j;
-    *k = (wabi_word) wabi_store_copy_val(store, (wabi_val) *k);
-    *v = (wabi_word) wabi_store_copy_val(store, (wabi_val) *v);
-  }
-  WABI_SET_TAG(env, wabi_tag_env);
 }
 
 void
@@ -267,8 +239,7 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_env:
-      wabi_store_collect_env(store, (wabi_env) (store->scan));
-      (store->scan) += wabi_store_env_size((wabi_env) (store->scan));
+      wabi_env_collect_val(store, (wabi_env) store->scan);
       break;
 
     case wabi_tag_cont_eval:
