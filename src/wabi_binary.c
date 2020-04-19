@@ -196,6 +196,71 @@ wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin)
   wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
 }
 
+/***
+ * Comparing
+ */
+
+static inline int
+wabi_binary_cmp_leaves(wabi_binary_leaf left,
+                       wabi_word from_left,
+                       wabi_word len_left,
+                       wabi_binary_leaf right,
+                       wabi_word from_right,
+                       wabi_word len_right)
+{
+  wabi_word count = (len_left < len_right ? len_left : len_right) - 1;
+  char* left_char = ((char *) left->data_ptr) + from_left;
+  char* right_char = ((char *) right->data_ptr) + from_right;
+  while(*left_char == *right_char && count) {
+    count--;
+    left_char++;
+    right_char++;
+  }
+  return *left_char == *right_char ? len_left - len_right : *left_char - *right_char;
+}
+
+
+static int
+wabi_binary_cmp_bin(wabi_binary left,
+                    wabi_word from_left,
+                    wabi_word len_left,
+                    wabi_binary right,
+                    wabi_word from_right,
+                    wabi_word len_right)
+{
+  if(WABI_IS(wabi_tag_bin_node, left)) {
+    wabi_binary left_left = (wabi_binary) ((wabi_binary_node) left)->left;
+    wabi_binary left_right = (wabi_binary) ((wabi_binary_node) left)->right;
+    wabi_word pivot = wabi_binary_length(left_left);
+    if(from_left >= pivot) {
+      return wabi_binary_cmp_bin(left_right, from_left - pivot, len_left, right, from_right, len_right);
+    }
+    wabi_word left_len0 = pivot - from_left;
+    if(len_left <= left_len0) {
+      // is this ever visited?
+      return wabi_binary_cmp_bin(left_left, from_left, len_left, right, from_right, len_right);
+    }
+    if(len_right <= left_len0) {
+      return wabi_binary_cmp_bin(left_left, from_left, left_len0, right, from_right, len_right);
+    }
+    int cmp0 = wabi_binary_cmp_bin(left_left, from_left, left_len0, right, from_right, left_len0);
+    if(cmp0) return cmp0;
+    return wabi_binary_cmp_bin(left_right, 0, len_left - left_len0, right, from_right + left_len0, len_right - left_len0);
+  }
+
+  if(WABI_IS(wabi_tag_bin_node, right)) {
+    return - wabi_binary_cmp_bin(right, from_right, len_right, left, from_left, len_left);
+  }
+  return wabi_binary_cmp_leaves((wabi_binary_leaf) left, from_left, len_left,
+                                (wabi_binary_leaf) right, from_right, len_right);
+}
+
+int
+wabi_binary_cmp(wabi_binary left, wabi_binary right)
+{
+  return wabi_binary_cmp_bin(left, 0, wabi_binary_length(left), right, 0, wabi_binary_length(right));
+}
+
 
 /**
  * Builtins

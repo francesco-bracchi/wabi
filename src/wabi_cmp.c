@@ -13,67 +13,6 @@
 #include "wabi_builtin.h"
 #include "wabi_cmp.h"
 
-int
-wabi_cmp_leaves(wabi_binary_leaf left,
-                wabi_word from_left,
-                wabi_word len_left,
-                wabi_binary_leaf right,
-                wabi_word from_right,
-                wabi_word len_right)
-{
-  wabi_word count = (len_left < len_right ? len_left : len_right) - 1;
-  char* left_char = ((char *) left->data_ptr) + from_left;
-  char* right_char = ((char *) right->data_ptr) + from_right;
-  while(*left_char == *right_char && count) {
-    count--;
-    left_char++;
-    right_char++;
-  }
-  return *left_char == *right_char ? len_left - len_right : *left_char - *right_char;
-}
-
-
-int
-wabi_cmp_bin(wabi_binary left,
-             wabi_word from_left,
-             wabi_word len_left,
-             wabi_binary right,
-             wabi_word from_right,
-             wabi_word len_right)
-{
-  if(WABI_TAG((wabi_val) left) == wabi_tag_bin_node) {
-    wabi_binary left_left = (wabi_binary) ((wabi_binary_node) left)->left;
-    wabi_binary left_right = (wabi_binary) ((wabi_binary_node) left)->right;
-    wabi_word pivot = wabi_binary_length(left_left);
-    if(from_left >= pivot) {
-      return wabi_cmp_bin(left_right, from_left - pivot, len_left, right, from_right, len_right);
-    }
-    wabi_word left_len0 = pivot - from_left;
-    if(len_left <= left_len0) {
-      // is this ever visited?
-      return wabi_cmp_bin(left_left, from_left, len_left, right, from_right, len_right);
-    }
-    if(len_right <= left_len0) {
-      return wabi_cmp_bin(left_left, from_left, left_len0, right, from_right, len_right);
-    }
-    int cmp0 = wabi_cmp_bin(left_left, from_left, left_len0, right, from_right, left_len0);
-    if(cmp0) return cmp0;
-    return wabi_cmp_bin(left_right, 0, len_left - left_len0, right, from_right + left_len0, len_right - left_len0);
-  }
-
-  if(WABI_TAG((wabi_val) right) == wabi_tag_bin_node) {
-    return - wabi_cmp_bin(right, from_right, len_right, left, from_left, len_left);
-  }
-  return wabi_cmp_leaves((wabi_binary_leaf) left, from_left, len_left,
-                         (wabi_binary_leaf) right, from_right, len_right);
-}
-
-
-int
-wabi_cmp_binary(wabi_binary left, wabi_binary right)
-{
-  return wabi_cmp_bin(left, 0, wabi_binary_length(left), right, 0, wabi_binary_length(right));
-}
 
 int
 wabi_cmp_pair(wabi_pair left, wabi_pair right) {
@@ -148,7 +87,7 @@ wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
 int
 wabi_cmp_builtin_combiner(wabi_combiner_builtin a, wabi_combiner_builtin b)
 {
-  return wabi_cmp_binary((wabi_binary) a->c_name, (wabi_binary) b->c_name);
+  return wabi_binary_cmp((wabi_binary) a->c_name, (wabi_binary) b->c_name);
 }
 
 
@@ -254,7 +193,7 @@ wabi_cmp(wabi_val a, wabi_val b)
     return wabi_cmp(wabi_symbol_to_binary((wabi_symbol) a), wabi_symbol_to_binary((wabi_symbol) b));
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
-    return wabi_cmp_binary((wabi_binary) a, (wabi_binary) b);
+    return wabi_binary_cmp((wabi_binary) a, (wabi_binary) b);
   case wabi_tag_pair:
     return wabi_cmp_pair((wabi_pair) a, (wabi_pair) b);
   case wabi_tag_map_array:

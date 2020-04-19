@@ -642,3 +642,5 @@
 (test (blen "") 0)
 (test (blen "ciao") 4)
 (test (bsub "ciao" 1 2) "ia")
+(test (> "ciao" "ao") false)
+(test (> "ao" "ciao") true)
