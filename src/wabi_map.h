@@ -5,12 +5,8 @@
 #include "wabi_value.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
+#include "wabi_store.h"
 
-#define WABI_MAP_SIZE 2
-#define WABI_MAP_ARRAY_LIMIT 32
-#define WABI_MAP_INITIAL_OFFSET 53
-#define WABI_MAP_OFFSET_INCREMENT 6
-#define WABI_MAP_BYTE_SIZE WABI_WORD_SIZE * WABI_MAP_SIZE
 #define WABI_MAP_ITER_STACK_SIZE 10
 
 typedef struct wabi_map_array_struct
@@ -61,6 +57,13 @@ typedef struct wabi_map_iter_struct {
 } wabi_map_iter_t;
 
 typedef wabi_map_iter_t* wabi_map_iter;
+
+#define WABI_MAP_SIZE wabi_sizeof(wabi_map_t)
+#define WABI_MAP_ARRAY_LIMIT 32
+#define WABI_MAP_INITIAL_OFFSET 53
+#define WABI_MAP_OFFSET_INCREMENT 6
+#define WABI_MAP_BYTE_SIZE WABI_WORD_SIZE * WABI_MAP_SIZE
+
 
 #define WABI_POPCNT(v) __builtin_popcountl(v)
 #define WABI_MAP_ARRAY_SIZE(map) ((map)->size)
@@ -113,6 +116,22 @@ wabi_map_iterator_next(wabi_map_iter iter);
 
 wabi_word
 wabi_map_length(wabi_map map);
+
+
+void
+wabi_map_copy_val(wabi_store store, wabi_map map);
+
+
+void
+wabi_map_collect_val(wabi_store store, wabi_map map);
+
+
+void
+wabi_map_hash_(wabi_hash_state state, wabi_map map);
+
+
+int
+wabi_map_cmp(wabi_map left, wabi_map right);
 
 
 wabi_error_type

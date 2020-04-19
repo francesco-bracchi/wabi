@@ -17,7 +17,6 @@
 
 static const wabi_word* wabi_store_limit = (wabi_word *)0x00FFFFFFFFFFFFFF;
 
-// static const double wabi_store_ratio = 10.0;
 
 int
 wabi_store_init(wabi_store store,
@@ -48,27 +47,6 @@ wabi_store_destroy(wabi_store store)
   if(store->new_space) free(store->new_space);
   if(store->old_space) free(store->old_space);
 }
-
-
-static inline void
-wabi_store_trim_cont(wabi_store store, wabi_combiner_continuation src)
-{
-  /* wabi_word tag; */
-  /* wabi_cont cont, cont0, new_cont, new_cont0; */
-
-  /* tag = (wabi_word) WABI_WORD_VAL(src->tag); */
-  /* cont = (wabi_cont) src->cont; */
-
-  /* while(1) { */
-  /*   if(WABI_IS(wabi_tag_cont_prompt, cont) && ((wabi_cont_prompt) cont)->tag == tag) { */
-  /*     if(cont0) cont0->next = wabi_tag_cont_prompt; */
-  /*     return; */
-  /*   } */
-  /*   cont0 = cont; */
-  /*   cont = (wabi_cont) WABI_WORD_VAL(cont->next); */
-  /* } */
-}
-
 
 
 wabi_word*
@@ -106,8 +84,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_map_entry:
   case wabi_tag_map_hash:
   case wabi_tag_cont_eval:
-    wordcopy(res, src, 2);
-    store->heap += 2;
+    wabi_map_copy_val(store, (wabi_map) src);
     break;
 
   case wabi_tag_cont_apply:
@@ -184,28 +161,9 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_map_entry:
-      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
-      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
-      WABI_SET_TAG((store->scan), wabi_tag_map_entry);
-      (store->scan) += 2;
-      break;
-
     case wabi_tag_map_array:
-      size = *((store->scan) + 1);
-      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*(store->scan)), 2 * size);
-      *(store->scan) = (wabi_word) store->heap;
-      store->heap += 2 * size;
-      WABI_SET_TAG((store->scan), wabi_tag_map_array);
-      (store->scan) += 2;
-      break;
-
     case wabi_tag_map_hash:
-      size = WABI_MAP_BITMAP_COUNT(*((store->scan) + 1));
-      wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(*(store->scan)), 2 * size);
-      *(store->scan) = (wabi_word) store->heap;
-      store->heap += 2 * size;
-      WABI_SET_TAG((store->scan), wabi_tag_map_hash);
-      (store->scan) += 2;
+      wabi_map_collect_val(store, (wabi_map) store->scan);
       break;
 
     case wabi_tag_bt_app:

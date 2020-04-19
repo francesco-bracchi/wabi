@@ -611,6 +611,8 @@
 (test (hd nil) (car nil))
 (test (fst nil) (car nil))
 
+(fib 20)
+
 ;; (pr (kont 100))
 
 (test (map #(+ it 1) (ran 5)) (map inc (ran 5)))

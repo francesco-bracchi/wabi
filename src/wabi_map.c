@@ -11,17 +11,14 @@ q * 1. an empty map is an array map 0 length
 
 #define wabi_map_c
 
-#include <string.h>
-
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 #include "wabi_pair.h"
 #include "wabi_map.h"
+#include "wabi_store.h"
 #include "wabi_builtin.h"
-
-#include <stdio.h>
 
 #define WABI_MAP_HALLOC 80
 
@@ -954,6 +951,90 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /*     return wabi_error_type_mismatch; */
 /*   } */
 /* } */
+
+
+
+void
+wabi_map_copy_val(wabi_store store, wabi_map map)
+{
+  // right now all the map union elements have the same length
+  wordcopy(store->heap, (wabi_word*) map, WABI_MAP_SIZE);
+  store->heap += WABI_MAP_SIZE;
+}
+
+
+static inline void
+wabi_map_collect_entry(wabi_store store, wabi_map_entry entry)
+{
+  entry->key = (wabi_word) wabi_store_copy_val(store, (wabi_val) entry->key);
+  entry->value = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(entry->value));
+  WABI_SET_TAG(entry, wabi_tag_map_entry);
+  store->scan += wabi_sizeof(wabi_map_entry_t);
+}
+
+
+static inline void
+wabi_map_collect_array(wabi_store store, wabi_map_array array)
+{
+  wabi_word size;
+  size = array->size;
+
+  wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(array->table), wabi_sizeof(wabi_map_entry_t) * size);
+  array->table = (wabi_word) store->heap;
+  store->heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(array, wabi_tag_map_array);
+  store->scan += wabi_sizeof(wabi_map_array_t);
+}
+
+
+static inline void
+wabi_map_collect_hash(wabi_store store, wabi_map_hash map)
+{
+  wabi_word size;
+  size = WABI_MAP_BITMAP_COUNT(map->bitmap);
+
+  wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(map->table), wabi_sizeof(wabi_map_entry_t) * size);
+  map->table = (wabi_word) store->heap;
+  store->heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(map, wabi_tag_map_hash);
+  store->scan += wabi_sizeof(wabi_map_hash_t);
+}
+
+
+void
+wabi_map_collect_val(wabi_store store, wabi_map map)
+{
+  switch(WABI_TAG(map)) {
+  case wabi_tag_map_entry:
+    wabi_map_collect_entry(store, (wabi_map_entry) map);
+    return;
+
+  case wabi_tag_map_array:
+    wabi_map_collect_array(store, (wabi_map_array) map);
+    return;
+
+  case wabi_tag_map_hash:
+    wabi_map_collect_hash(store, (wabi_map_hash) map);
+    return;
+  }
+}
+
+
+void
+wabi_map_hash_(wabi_hash_state state, wabi_map map)
+{
+}
+
+
+int
+wabi_map_cmp(wabi_map left, wabi_map right)
+{
+}
+
+
+
+
+
 
 wabi_error_type
 wabi_map_builtins(wabi_vm vm, wabi_env env)
