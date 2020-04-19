@@ -169,8 +169,8 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     ((wabi_env) res)->data = (wabi_word) (res + WABI_ENV_SIZE);
     store->heap += WABI_ENV_SIZE + size;
     break;
-  case wabi_tag_cont:
-  case wabi_tag_cont_oper:
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
     // wabi_store_trim_cont(store, (wabi_combiner_continuation) src);
     break;
   }

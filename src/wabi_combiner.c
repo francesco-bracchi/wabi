@@ -107,19 +107,19 @@ wabi_combiner_wrap_bt(wabi_vm vm, wabi_val fx)
       return wabi_error_none;
     }
     return wabi_error_nomem;
-  case wabi_tag_cont_oper:
+  case wabi_tag_ct_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
     if(! res) return wabi_error_nomem;
 
     memcpy(res, fx, sizeof(wabi_combiner_continuation_t));
-    WABI_SET_TAG(res, wabi_tag_cont);
+    WABI_SET_TAG(res, wabi_tag_ct_app);
     vm->control = res;
     vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     return wabi_error_none;
 
   case wabi_tag_app:
   case wabi_tag_bt_app:
-  case wabi_tag_cont:
+  case wabi_tag_ct_app:
     vm->control = fx;
     vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     return wabi_error_none;
@@ -156,18 +156,18 @@ wabi_combiner_unwrap_bt(wabi_vm vm, wabi_val fn)
       return wabi_error_none;
     }
     return wabi_error_nomem;
-  case wabi_tag_cont:
+  case wabi_tag_ct_app:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
     if(! res) return wabi_error_nomem;
 
     memcpy(res, fn, sizeof(wabi_combiner_continuation_t));
-    WABI_SET_TAG(res, wabi_tag_cont_oper);
+    WABI_SET_TAG(res, wabi_tag_ct_oper);
     vm->control = res;
     vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     return wabi_error_none;
   case wabi_tag_oper:
   case wabi_tag_bt_oper:
-  case wabi_tag_cont_oper:
+  case wabi_tag_ct_oper:
     vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
     vm->control = fn;
     return wabi_error_none;
@@ -187,11 +187,11 @@ wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_val v)
     // todo optimize in a single bitwise operation?
     switch(WABI_TAG(v)) {
     case wabi_tag_app:
-    case wabi_tag_bt_app:
     case wabi_tag_oper:
+    case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
-    case wabi_tag_cont:
-    case wabi_tag_cont_oper:
+    case wabi_tag_ct_app:
+    case wabi_tag_ct_oper:
       *res = wabi_val_true;
       break;
     default:
@@ -217,7 +217,7 @@ wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_val v)
     switch(WABI_TAG(v)) {
     case wabi_tag_app:
     case wabi_tag_bt_app:
-    case wabi_tag_cont:
+    case wabi_tag_ct_app:
       *res = wabi_val_true;
       break;
     default:
@@ -242,7 +242,7 @@ wabi_combiner_operative_p_bt(wabi_vm vm, wabi_val v)
     switch(WABI_TAG(v)) {
     case wabi_tag_oper:
     case wabi_tag_bt_oper:
-    case wabi_tag_cont_oper:
+    case wabi_tag_ct_oper:
       *res = wabi_val_true;
       break;
     default:
@@ -315,8 +315,8 @@ wabi_combiner_cont_p_bt(wabi_vm vm, wabi_val v)
   if(res) {
     // todo optimize in a single bitwise operation?
     switch(WABI_TAG(v)) {
-    case wabi_tag_cont:
-    case wabi_tag_cont_oper:
+    case wabi_tag_ct_app:
+    case wabi_tag_ct_oper:
       *res = wabi_val_true;
       break;
     default:

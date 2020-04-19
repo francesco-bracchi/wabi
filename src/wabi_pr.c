@@ -388,8 +388,8 @@ wabi_pr(wabi_val val) {
     printf("F#");
     wabi_pr((wabi_val) WABI_WORD_VAL(*val));
     break;
-  case wabi_tag_cont:
-  case wabi_tag_cont_oper:
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
     wabi_pr_cont_combiner((wabi_combiner_continuation) val);
     break;
   default:
