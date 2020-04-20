@@ -513,7 +513,6 @@ wabi_map_dissoc(wabi_vm vm,
 /**
  * GET Operation
  */
-
 wabi_val
 wabi_map_hash_get_rec(wabi_map_hash map,
                       wabi_val key,

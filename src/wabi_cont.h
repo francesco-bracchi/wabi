@@ -9,6 +9,8 @@
 #include "wabi_value.h"
 #include "wabi_env.h"
 #include "wabi_vm.h"
+#include "wabi_store.h"
+
 
 typedef struct wabi_cont_eval_struct {
   wabi_word next;
@@ -86,14 +88,14 @@ typedef union wabi_cont_union {
 
 typedef wabi_cont_t* wabi_cont;
 
-#define WABI_CONT_EVAL_SIZE 2
-#define WABI_CONT_PROMPT_SIZE 3
-#define WABI_CONT_APPLY_SIZE 3
-#define WABI_CONT_CALL_SIZE 3
-#define WABI_CONT_SEL_SIZE 4
-#define WABI_CONT_ARGS_SIZE 4
-#define WABI_CONT_DEF_SIZE 3
-#define WABI_CONT_PROG_SIZE 3
+#define WABI_CONT_EVAL_SIZE wabi_sizeof(wabi_cont_eval_t)
+#define WABI_CONT_PROMPT_SIZE wabi_sizeof(wabi_cont_prompt_t)
+#define WABI_CONT_APPLY_SIZE wabi_sizeof(wabi_cont_apply_t)
+#define WABI_CONT_CALL_SIZE wabi_sizeof(wabi_cont_call_t)
+#define WABI_CONT_SEL_SIZE wabi_sizeof(wabi_cont_sel_t)
+#define WABI_CONT_ARGS_SIZE  wabi_sizeof(wabi_cont_args_t)
+#define WABI_CONT_DEF_SIZE wabi_sizeof(wabi_cont_def_t)
+#define WABI_CONT_PROG_SIZE wabi_sizeof(wabi_cont_prog_t)
 
 static inline wabi_cont
 wabi_cont_push_eval(wabi_vm vm, wabi_cont next)
@@ -108,6 +110,7 @@ wabi_cont_push_eval(wabi_vm vm, wabi_cont next)
   return (wabi_cont) cont;
 }
 
+
 static inline wabi_cont
 wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont next)
 {
@@ -121,6 +124,7 @@ wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont next)
   }
   return (wabi_cont) cont;
 }
+
 
 static inline wabi_cont
 wabi_cont_push_apply(wabi_vm vm, wabi_env env, wabi_val args, wabi_cont next)
@@ -137,6 +141,7 @@ wabi_cont_push_apply(wabi_vm vm, wabi_env env, wabi_val args, wabi_cont next)
   return (wabi_cont) cont;
 }
 
+
 static inline wabi_cont
 wabi_cont_push_call(wabi_vm vm, wabi_env env, wabi_val combiner, wabi_cont next)
 {
@@ -151,6 +156,7 @@ wabi_cont_push_call(wabi_vm vm, wabi_env env, wabi_val combiner, wabi_cont next)
   }
   return (wabi_cont) cont;
 }
+
 
 static inline wabi_cont
 wabi_cont_push_sel(wabi_vm vm, wabi_env env, wabi_val left, wabi_val right, wabi_cont next)
@@ -168,6 +174,7 @@ wabi_cont_push_sel(wabi_vm vm, wabi_env env, wabi_val left, wabi_val right, wabi
   return (wabi_cont) cont;
 }
 
+
 static inline wabi_cont
 wabi_cont_push_args(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, wabi_cont next)
 {
@@ -183,6 +190,7 @@ wabi_cont_push_args(wabi_vm vm, wabi_env env, wabi_val data, wabi_val done, wabi
   }
   return (wabi_cont) cont;
 }
+
 
 static inline wabi_cont
 wabi_cont_push_def(wabi_vm vm, wabi_env env, wabi_val pattern, wabi_cont next)
@@ -200,6 +208,7 @@ wabi_cont_push_def(wabi_vm vm, wabi_env env, wabi_val pattern, wabi_cont next)
   return (wabi_cont) cont;
 }
 
+
 static inline wabi_cont
 wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont next)
 {
@@ -215,8 +224,18 @@ wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont ne
   return (wabi_cont) cont;
 }
 
+
+void
+wabi_cont_copy_val(wabi_store store, wabi_cont cont);
+
+
+void
+wabi_cont_collect_val(wabi_store store, wabi_cont cont);
+
+
 wabi_cont
 wabi_cont_concat(wabi_vm vm, wabi_val l, wabi_cont k);
+
 
 #define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
 

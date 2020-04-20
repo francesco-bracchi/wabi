@@ -6,8 +6,6 @@
 #include "wabi_vm.h"
 #include "wabi_env.h"
 
-#define WABI_PAIR_SIZE 2
-
 typedef struct wabi_pair_struct
 {
   wabi_word cdr;
@@ -16,6 +14,7 @@ typedef struct wabi_pair_struct
 
 typedef wabi_pair_t* wabi_pair;
 
+#define WABI_PAIR_SIZE wabi_sizeof(wabi_pair_t)
 
 /** CY775VF */
 /** CY775FV */
