@@ -663,5 +663,7 @@
 
 (test {(env) 10} {(env) 10})
 
+(test (> (list 2) (list 1)) true)
+(test (> (list 1) (list 2)) false)
 
-(time (fib 35))
+;; (time (fib 35))

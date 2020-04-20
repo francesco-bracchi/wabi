@@ -16,14 +16,6 @@
 
 
 int
-wabi_cmp_pair(wabi_pair left, wabi_pair right) {
-  int cmp0 = wabi_cmp(wabi_car(left), wabi_car(right));
-  if(cmp0) return cmp0;
-  return wabi_cmp(wabi_cdr(left), wabi_cdr(right));
-}
-
-
-int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
   long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
   return d ? (d > 0L ? 1 : -1) : 0;
@@ -80,7 +72,7 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_bin_node:
     return wabi_binary_cmp((wabi_binary) a, (wabi_binary) b);
   case wabi_tag_pair:
-    return wabi_cmp_pair((wabi_pair) a, (wabi_pair) b);
+    return wabi_pair_cmp((wabi_pair) a, (wabi_pair) b);
   case wabi_tag_map_array:
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:

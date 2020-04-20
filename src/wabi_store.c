@@ -80,8 +80,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     break;
 
   case wabi_tag_pair:
-    wordcopy(res, src, WABI_PAIR_SIZE);
-    store->heap += WABI_PAIR_SIZE;
+    wabi_pair_copy_val(store, (wabi_pair) src);
     break;
 
   case wabi_tag_map_array:
@@ -157,10 +156,7 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_pair:
-      *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
-      *((store->scan) + 1) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) *((store->scan) + 1));
-      WABI_SET_TAG(store->scan, wabi_tag_pair);
-      (store->scan) += WABI_PAIR_SIZE;
+      wabi_pair_collect_val(store, (wabi_pair) store->scan);
       break;
 
     case wabi_tag_map_entry:

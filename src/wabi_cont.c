@@ -200,6 +200,7 @@ wabi_cont_collect_val(wabi_store store, wabi_cont cont)
 void
 wabi_cont_hash(wabi_hash_state state, wabi_cont cont)
 {
+  wabi_hash_step(state, "O", 1);
   while(cont) {
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:

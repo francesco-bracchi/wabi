@@ -50,7 +50,7 @@ wabi_hash_combiner(wabi_hash_state_t *state, wabi_combiner c)
 }
 
 void
-wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
+wabi_hash_val(wabi_hash_state state, wabi_val val)
 {
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
@@ -62,9 +62,7 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_val(state, wabi_symbol_to_binary((wabi_symbol) val));
     return;
   case wabi_tag_pair:
-    wabi_hash_step(state, "P", 1);
-    wabi_hash_val(state, wabi_car((wabi_pair) val));
-    wabi_hash_val(state, wabi_cdr((wabi_pair) val));
+    wabi_pair_hash(state, (wabi_pair) val);
     return;
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
@@ -94,7 +92,6 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
   case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
-    wabi_hash_step(state, "O", 1);
     wabi_cont_hash(state, (wabi_cont) val);
     return;
   }
