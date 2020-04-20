@@ -8,6 +8,7 @@
 #include "wabi_symbol.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
+#include "wabi_cont.h"
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
@@ -85,8 +86,18 @@ wabi_hash_val(wabi_hash_state_t *state, wabi_val val)
     wabi_hash_step(state, (char*) val, 1);
     wabi_hash_combiner(state, (wabi_combiner) val);
     return;
+
+  case wabi_tag_cont_eval:
+  case wabi_tag_cont_apply:
+  case wabi_tag_cont_call:
+  case wabi_tag_cont_sel:
+  case wabi_tag_cont_args:
+  case wabi_tag_cont_def:
+  case wabi_tag_cont_prog:
+    wabi_hash_step(state, "O", 1);
+    wabi_cont_hash(state, (wabi_cont) val);
+    return;
   }
-  // todo: add all the continuation stuff?
   state->err = 1;
 }
 

@@ -94,7 +94,7 @@ wabi_binary_collect_val(wabi_store store, wabi_binary src);
 
 
 void
-wabi_binary_hash(wabi_hash_state_t *state, wabi_binary bin);
+wabi_binary_hash(wabi_hash_state state, wabi_binary bin);
 
 
 int

@@ -191,7 +191,7 @@ wabi_vm_bind(wabi_vm vm,
   return wabi_error_bindings;
 }
 
-void
+static inline void
 wabi_vm_reduce(wabi_vm vm)
 {
   wabi_val ctrl, ctrl0;

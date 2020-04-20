@@ -654,7 +654,7 @@
     (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
 
 
-;; (compile-combiner! fib)
+(compile-combiner! fib)
 
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
 
@@ -662,3 +662,6 @@
 (test (hash "ciao") (hash (bcat "ci" "ao")))
 
 (test {(env) 10} {(env) 10})
+
+
+(time (fib 35))

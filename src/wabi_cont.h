@@ -237,6 +237,14 @@ wabi_cont
 wabi_cont_concat(wabi_vm vm, wabi_val l, wabi_cont k);
 
 
+void
+wabi_cont_hash(wabi_hash_state state, wabi_cont cont);
+
+
+wabi_error_type
+wabi_cont_cmp(wabi_cont a, wabi_cont b);
+
+
 #define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
 
 #endif
