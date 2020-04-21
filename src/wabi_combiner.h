@@ -17,10 +17,6 @@
 #include "wabi_env.h"
 #include "wabi_error.h"
 
-#define WABI_COMBINER_DERIVED_SIZE 5
-#define WABI_COMBINER_BUILTIN_SIZE 3
-#define WABI_COMBINER_CONTINUATION_SIZE 2
-
 typedef wabi_error_type (*wabi_builtin_fun)(wabi_vm);
 
 typedef struct wabi_combiner_derived_struct {
@@ -56,6 +52,10 @@ typedef union wabi_combiner_union {
 } wabi_combiner_t;
 
 typedef wabi_combiner_t* wabi_combiner;
+
+#define WABI_COMBINER_DERIVED_SIZE wabi_sizeof(wabi_combiner_derived_t)
+#define WABI_COMBINER_BUILTIN_SIZE wabi_sizeof(wabi_combiner_builtin_t)
+#define WABI_COMBINER_CONTINUATION_SIZE wabi_sizeof(wabi_combiner_continuation_t)
 
 
 wabi_combiner
@@ -110,5 +110,13 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont)
   }
   return (wabi_combiner) res;
 }
+
+
+void
+wabi_combiner_copy_val(wabi_store store, wabi_combiner c);
+
+
+void
+wabi_combiner_collect_val(wabi_store store, wabi_combiner c);
 
 #endif

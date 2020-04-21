@@ -42,6 +42,87 @@ wabi_application_builtin_new(wabi_vm vm,
 }
 
 
+/**
+ * Collecting
+ */
+
+void
+wabi_combiner_copy_val(wabi_store store, wabi_combiner c)
+{
+  switch(WABI_TAG(c)) {
+
+  case wabi_tag_app:
+  case wabi_tag_oper:
+    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_DERIVED_SIZE);
+    store->heap += WABI_COMBINER_DERIVED_SIZE;
+    break;
+
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_BUILTIN_SIZE);
+    store->heap += WABI_COMBINER_BUILTIN_SIZE;
+    break;
+
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
+    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_CONTINUATION_SIZE);
+    store->heap += WABI_COMBINER_CONTINUATION_SIZE;
+    break;
+  }
+}
+
+
+void
+wabi_combiner_collect_val(wabi_store store, wabi_combiner c)
+{
+  wabi_word tag;
+
+  tag = WABI_TAG(c);
+  switch(tag) {
+  case wabi_tag_app:
+  case wabi_tag_oper:
+    ((wabi_combiner_derived) c)->static_env =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_derived) c)->static_env));
+    ((wabi_combiner_derived) c)->caller_env_name =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_derived) c)->caller_env_name);
+    ((wabi_combiner_derived) c)->parameters =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_derived) c)->parameters);
+    ((wabi_combiner_derived) c)->body =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_derived) c)->body);
+    ((wabi_combiner_derived) c)->compiled_body =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_derived) c)->compiled_body);
+    WABI_SET_TAG(c, tag);
+    store->scan += WABI_COMBINER_DERIVED_SIZE;
+    return;
+
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    ((wabi_combiner_builtin) c)->c_name =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_builtin) c)->c_name);
+    if(((wabi_combiner_builtin) c)->c_xtra) {
+      ((wabi_combiner_builtin) c)->c_xtra =
+        (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_builtin) c)->c_ptr));
+    }
+    store->scan += WABI_COMBINER_BUILTIN_SIZE;
+    return;
+
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
+    ((wabi_combiner_continuation) c)->tag =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_continuation) c)->tag));
+    ((wabi_combiner_continuation) c)->cont =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->cont);
+    WABI_SET_TAG(c, tag);
+    store->scan += WABI_COMBINER_CONTINUATION_SIZE;
+    return;
+  }
+}
+
+
+/**
+ * Basic vocabulary stuff
+ */
+
 static inline wabi_error_type
 wabi_combiner_builtin_fx(wabi_vm vm)
 {
