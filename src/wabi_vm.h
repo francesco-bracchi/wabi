@@ -12,7 +12,7 @@ typedef struct wabi_vm_struct {
   wabi_val control;
   wabi_val env;
   wabi_val continuation;
-
+  wabi_val prompt;
   wabi_val symbol_table;
   wabi_val nil;
   wabi_val quote;
@@ -23,6 +23,8 @@ typedef struct wabi_vm_struct {
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;
+
+#define WABI_VM_FILL_TANK 100000
 
 void
 wabi_vm_run(wabi_vm vm);

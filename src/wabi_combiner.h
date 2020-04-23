@@ -12,6 +12,7 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_binary.h"
+#include "wabi_pair.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
@@ -41,7 +42,10 @@ typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
 typedef struct wabi_combiner_continuation_struct {
   wabi_word tag;
   wabi_word cont;
+  wabi_word prompt;
 } wabi_combiner_continuation_t;
+
+
 
 typedef wabi_combiner_continuation_t* wabi_combiner_continuation;
 
@@ -100,15 +104,37 @@ wabi_combiner_is_derived(wabi_val combiner)
 }
 
 static inline wabi_combiner
-wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont)
+wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont, wabi_pair prompt)
 {
   wabi_combiner_continuation res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
   if(res) {
     res->tag = (wabi_word) tag;
     res->cont = (wabi_word) cont;
+    res->prompt = (wabi_word) prompt;
     WABI_SET_TAG(res, wabi_tag_ct_app);
   }
   return (wabi_combiner) res;
+}
+
+
+static inline wabi_val
+wabi_combiner_continuationinuation_tag(wabi_combiner_continuation cont)
+{
+  return (wabi_val) WABI_WORD_VAL(cont->tag);
+}
+
+
+static inline wabi_cont
+wabi_combiner_continuationinuation_cont(wabi_combiner_continuation cont)
+{
+  return (wabi_cont) cont->cont;
+}
+
+
+static inline wabi_pair
+wabi_combiner_continuationinuation_prompt(wabi_combiner_continuation cont)
+{
+  return (wabi_pair) cont->prompt;
 }
 
 

@@ -244,7 +244,12 @@ wabi_cont_hash(wabi_hash_state state, wabi_cont cont);
 wabi_error_type
 wabi_cont_cmp(wabi_cont a, wabi_cont b);
 
+static inline wabi_cont
+wabi_cont_next(wabi_cont cont)
+{
+  return (wabi_cont) WABI_WORD_VAL((cont)->next);
+}
 
-#define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
+// #define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
 
 #endif

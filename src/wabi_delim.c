@@ -10,7 +10,7 @@ wabi_error_type
 wabi_cont_prompt_bt(wabi_vm vm)
 {
   wabi_env env;
-  wabi_val fst, ctrl, tag;
+  wabi_val fst, ctrl, tag, prmt;
   wabi_cont cont;
 
   ctrl = vm->control;
@@ -31,6 +31,9 @@ wabi_cont_prompt_bt(wabi_vm vm)
 
   if(! cont) return wabi_error_nomem;
 
+  prmt = (wabi_val) wabi_cons(vm, (wabi_val) cont, (wabi_val) vm->prompt);
+  if(! prmt) return wabi_error_nomem;
+
   if(WABI_IS(wabi_tag_pair, ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if(! cont) return wabi_error_nomem;
@@ -40,6 +43,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
 
   vm->control = fst;
   vm->continuation = (wabi_val) cont;
+  vm->prompt = prmt;
   return wabi_error_none;
 }
 
@@ -49,6 +53,7 @@ wabi_cont_control_bt(wabi_vm vm)
 {
   wabi_env env;
   wabi_val kname, ctrl, tag, fst;
+  wabi_pair pstack;
   wabi_cont cont;
   wabi_combiner kval;
   wabi_error_type err;
@@ -78,17 +83,22 @@ wabi_cont_control_bt(wabi_vm vm)
   if(!env) return wabi_error_nomem;
 
   cont = wabi_cont_next((wabi_cont) vm->continuation);
+  pstack = (wabi_pair) vm->prompt;
+  kval = wabi_combiner_continuation_new(vm, tag, cont, pstack);
 
-  kval = wabi_combiner_continuation_new(vm, tag, cont);
-  if(!kval)
-    return wabi_error_nomem;
-  // todo: optimize,
-  while(cont && !(WABI_IS(wabi_tag_cont_prompt, cont) && wabi_eq((wabi_val)((wabi_cont_prompt) cont)->tag, tag))) {
-    cont = wabi_cont_next(cont);
+  if(!kval) return wabi_error_nomem;
+
+  for(;;) {
+    if(!WABI_IS(wabi_tag_pair, pstack)) {
+      return wabi_error_no_prompt;
+    }
+    cont = (wabi_cont) wabi_car(pstack);
+    if(wabi_eq(tag, (wabi_val) ((wabi_cont_prompt) cont)->tag)) {
+      cont = wabi_cont_next(cont);
+      break;
+    }
+    pstack = (wabi_pair) wabi_cdr(pstack);
   }
-  if(!cont) return wabi_error_no_prompt;
-
-  cont = wabi_cont_next(cont);
 
   err = wabi_env_set(vm, env, kname, (wabi_val) kval);
   if(err) return err;

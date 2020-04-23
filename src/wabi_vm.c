@@ -24,7 +24,6 @@
 
 // #define WABI_VM_DEBUG 1
 
-
 #ifdef WABI_VM_DEBUG
 
 #include <stdio.h>
@@ -44,29 +43,6 @@ wabi_vm_nil(wabi_vm vm)
   return v;
 }
 
-#ifdef WABI_VM_DEBUG
-
-int
-wabi_vm_check(wabi_vm vm)
-{
-  wabi_store store;
-  int x;
-
-  store = &(vm->store);
-
-  printf("control\n");
-  x = vm->control && wabi_store_check(store, vm->control);
-  if(!x) return x;
-  printf("continuation\n");
-  x = vm->continuation && wabi_store_check(store, vm->continuation);
-  if(!x) return x;
-  printf("env\n");
-  x = vm->env && wabi_store_check(store, vm->env);
-  return x;
-}
-
-#endif
-
 int
 wabi_vm_collect(wabi_vm vm)
 {
@@ -78,20 +54,13 @@ wabi_vm_collect(wabi_vm vm)
 
   if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
   if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
+  if(vm->prompt) vm->prompt = wabi_store_copy_val(store, vm->prompt);
   if(vm->symbol_table) vm->symbol_table = wabi_store_copy_val(store, vm->symbol_table);
   if(vm->env) vm->env = wabi_store_copy_val(store, vm->env);
   if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
   if(vm->quote) vm->quote = wabi_store_copy_val(store, vm->quote);
   if(vm->hmap) vm->hmap = wabi_store_copy_val(store, vm->hmap);
   res = wabi_store_collect(store);
-#ifdef WABI_VM_DEBUG
-  if(!wabi_vm_check(vm)) {
-    printf("Dangling pointer found\n");
-  }
-  else {
-    printf("Heap is consistent\n");
-  }
-#endif
   if(res) {
     vm->error = wabi_error_nomem;
     return res;
@@ -116,9 +85,6 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
   int store_init;
   wabi_val symbol_table;
 
-  vm->fuel = 100000;
-  vm->continuation = NULL;
-  vm->symbol_table = NULL;
   store_init = wabi_store_init(&(vm->store), store_size);
   if(store_init) {
     symbol_table = (wabi_val) wabi_map_empty(vm);
@@ -126,12 +92,14 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
       vm->error = wabi_error_nomem;
       return;
     }
+    vm->fuel = WABI_VM_FILL_TANK;
     vm->symbol_table = symbol_table;
     vm->nil = wabi_vm_nil(vm);
     vm->quote = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q"));
     vm->hmap = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap"));
     vm->error = wabi_error_none;
     vm->continuation = (wabi_val) wabi_cont_done;
+    vm->prompt = vm->nil;
   }
 }
 
@@ -213,6 +181,7 @@ wabi_vm_reduce(wabi_vm vm)
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_prompt:
     vm->continuation = (wabi_val) wabi_cont_next(cont);
+    vm->prompt = (wabi_val) wabi_cdr((wabi_pair) vm->prompt);
     return;
   case wabi_tag_cont_eval:
     /* ctrl: (f . as) */

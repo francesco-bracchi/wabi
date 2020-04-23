@@ -124,6 +124,7 @@ wabi_store_collect_heap(wabi_store store)
   store->scan = store->new_space;
 
   do {
+    // printf("collect %s\n", wabi_tag_to_string(store->scan));
     switch(WABI_TAG((store->scan))) {
     /* case wabi_tag_var: */
     /* case wabi_tag_alien: */
