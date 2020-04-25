@@ -48,6 +48,7 @@
 
      ("(\\(plc\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
+     ("(\\(letr\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(prmt\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(ctrl\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(when\\)[ \r\n\t()]" 1 font-lock-keyword-face)
@@ -107,6 +108,7 @@
 
 (defun wabi-indent ()
   (put 'let 'lisp-indent-function 'defun)
+  (put 'letr 'lisp-indent-function 'defun)
   (put 'rec 'lisp-indent-function 2)
   (put 'def 'lisp-indent-function 1)
   (put 'defn 'lisp-indent-function 'defun)

@@ -192,8 +192,27 @@
 
 (defx let
     e (bs . xs)
+  "evaluates the even parts of bs, and **then** creates a new environment
+   and binds the results to the odd parts of bs. Then evaluates xs in the
+   context of the newly created environment.
+
+   The order is important in the continuation game, if we create
+   the environmnet first, we can call a continuation only once, every
+   subsequent call will try to define a symbol in an environment, that
+   is a runtime error."
+  (eval e (list* (list* fn (odds bs) xs) (evens bs))))
+
+(defx letr
+    e (bs . xs)
+  "`letr` is like `let` except it first creates the new enviornment then
+   evaluates the even parts in the context of the newly created environment.
+
+   The order is important in the continuation game, if using letr and
+   continuation, you can only continue once, since redefining a word is
+   a rutime error. On the other hand letr allow local values to see all
+   newly interoduced values "
   (def e1 (ext! e))
-  (eval e1 (list* do (map (part list def) (odds bs) (evens bs))))
+  (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
   (eval e1 (list* do xs)))
 
 (defn comp
@@ -355,7 +374,7 @@
   (eval (ext! e)
     (list* defx !me
            !their-env !them
-           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them it @1) bs)))))
+           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
 
 
 ;;this is an anamorhic function, some pronouns are introduced!
@@ -368,7 +387,7 @@
   (eval (ext! e)
     (list* defn !me
            !them
-           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them it @1) bs)))))
+           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
 
 (defn insp
     as
@@ -430,6 +449,7 @@
 (test (< "" "a") true)
 
 (test (bsub "ciao" 0 0) "")
+
 (test (bcat) "")
 (test (bcat "") "")
 (test (bcat "" "a") "a")
@@ -646,11 +666,11 @@
 
 (defn compile-combiner!
     (c)
-  (let (e  (combiner-static-env c)
-        bs (combiner-body c)
-        en (combiner-caller-env-name c)
-        ps (combiner-parameters c)
-        ss (filter sym? (flat (cons en ps))))
+  (letr (e  (combiner-static-env c)
+         bs (combiner-body c)
+         en (combiner-caller-env-name c)
+         ps (combiner-parameters c)
+         ss (filter sym? (flat (cons en ps))))
     (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
 
 
@@ -665,5 +685,3 @@
 
 (test (> (list 2) (list 1)) true)
 (test (> (list 1) (list 2)) false)
-
-;; (time (fib 35))

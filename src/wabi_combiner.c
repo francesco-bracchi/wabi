@@ -108,12 +108,12 @@ wabi_combiner_collect_val(wabi_store store, wabi_combiner c)
 
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
-    /* ((wabi_combiner_continuation) c)->tag = */
-    /*   (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_continuation) c)->tag)); */
-    /* ((wabi_combiner_continuation) c)->cont = */
-    /*   (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->cont); */
-    /* ((wabi_combiner_continuation) c)->prompt = */
-    /*   (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->prompt); */
+    ((wabi_combiner_continuation) c)->tag =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_continuation) c)->tag));
+    ((wabi_combiner_continuation) c)->cont =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->cont);
+    ((wabi_combiner_continuation) c)->prompt =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->prompt);
     WABI_SET_TAG(c, tag);
     store->scan += WABI_COMBINER_CONTINUATION_SIZE;
     return;

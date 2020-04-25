@@ -118,21 +118,21 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont, wabi_pa
 
 
 static inline wabi_val
-wabi_combiner_continuationinuation_tag(wabi_combiner_continuation cont)
+wabi_combiner_continuation_tag(wabi_combiner_continuation cont)
 {
   return (wabi_val) WABI_WORD_VAL(cont->tag);
 }
 
 
 static inline wabi_cont
-wabi_combiner_continuationinuation_cont(wabi_combiner_continuation cont)
+wabi_combiner_continuation_cont(wabi_combiner_continuation cont)
 {
   return (wabi_cont) cont->cont;
 }
 
 
 static inline wabi_pair
-wabi_combiner_continuationinuation_prompt(wabi_combiner_continuation cont)
+wabi_combiner_continuation_prompt(wabi_combiner_continuation cont)
 {
   return (wabi_pair) cont->prompt;
 }

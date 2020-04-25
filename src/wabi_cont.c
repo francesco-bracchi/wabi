@@ -35,26 +35,32 @@ wabi_cont_concat_in(wabi_vm vm, wabi_val tag0, wabi_val lcont, wabi_cont k)
     break;
   case wabi_tag_cont_apply:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_APPLY_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_apply_t));
     break;
   case wabi_tag_cont_call:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_CALL_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_call_t));
     break;
   case wabi_tag_cont_sel:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_SEL_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_sel_t));
     break;
   case wabi_tag_cont_args:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_ARGS_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_args_t));
     break;
   case wabi_tag_cont_def:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_DEF_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_def_t));
     break;
   case wabi_tag_cont_prog:
     res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_PROG_SIZE);
+    if(! res) return NULL;
     memcpy(res, lcont, sizeof(wabi_cont_prog_t));
     break;
   default:
@@ -70,8 +76,9 @@ wabi_cont_concat_in(wabi_vm vm, wabi_val tag0, wabi_val lcont, wabi_cont k)
 wabi_cont
 wabi_cont_concat(wabi_vm vm, wabi_val l, wabi_cont k)
 {
-  wabi_val tag = (wabi_val) WABI_WORD_VAL(((wabi_combiner_continuation)l)->tag);
-  wabi_val lcont = (wabi_val) ((wabi_combiner_continuation)l)->cont;
+  wabi_val tag, lcont;
+  tag = wabi_combiner_continuation_tag((wabi_combiner_continuation) l);
+  lcont = (wabi_val) wabi_combiner_continuation_cont((wabi_combiner_continuation) l);
   return wabi_cont_concat_in(vm, tag, lcont, k);
 }
 

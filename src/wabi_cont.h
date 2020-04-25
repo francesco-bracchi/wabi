@@ -11,7 +11,6 @@
 #include "wabi_vm.h"
 #include "wabi_store.h"
 
-
 typedef struct wabi_cont_eval_struct {
   wabi_word next;
 } wabi_cont_eval_t;
