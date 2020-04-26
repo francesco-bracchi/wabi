@@ -3,6 +3,7 @@
 #include "wabi_cmp.h"
 #include "wabi_vm.h"
 #include "wabi_combiner.h"
+#include "wabi_constant.h"
 
 #include "wabi_pr.h"
 #include <stdio.h>
@@ -43,15 +44,22 @@ wabi_cont_copy_val(wabi_store store, wabi_cont cont)
   store->heap += size;
 }
 
+static inline wabi_cont
+wabi_cont_copy(wabi_vm vm, wabi_cont cont) {
+  wabi_size size;
+  wabi_cont res;
+  size = wabi_cont_size(cont);
+  res = (wabi_cont) wabi_vm_alloc(vm, size);
+  if(res)
+    wordcopy((wabi_word*) res, (wabi_word*) cont, size);
+
+  return res;
+}
 
 void
 wabi_cont_collect_val(wabi_store store, wabi_cont cont)
 {
   wabi_word tag, *next;
-
-  next = (wabi_word*) wabi_cont_next(cont);
-  if(next)
-    cont->next = (wabi_word) wabi_store_copy_val(store, next);
 
   switch(tag = WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
@@ -117,6 +125,10 @@ wabi_cont_collect_val(wabi_store store, wabi_cont cont)
   default:
     break;
   }
+  next = (wabi_word*) wabi_cont_next(cont);
+  if(next) {
+    cont->next = (wabi_word) wabi_store_copy_val(store, next);
+  }
   WABI_SET_TAG(cont, tag);
 }
 
@@ -179,8 +191,63 @@ wabi_cont_hash(wabi_hash_state state, wabi_cont cont)
 void
 wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
 {
-  // TBD
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  wabi_cont res_cont, prev_cont, new_prev_cont, new_cont, right_cont;
+  wabi_cont_prompt res_prompt, new_prompt, prev_new_prompt, right_prompt;
+
+  wabi_val ctrl, fst;
+
+  ctrl = vm->control;
+
+  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+    vm->error = wabi_error_type_mismatch;
+    return;
+  }
+  fst = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(!wabi_is_nil(ctrl)) {
+    vm->error = wabi_error_type_mismatch;
+    return;
+  }
+  new_cont = (wabi_cont) wabi_cont_copy(vm, cont);
+  if(! new_cont) {
+    vm->error = wabi_error_nomem;
+    return;
+  }
+  res_cont = new_cont;
+  res_prompt = (wabi_cont_prompt) wabi_cont_done;
+  new_prompt = (wabi_cont_prompt) wabi_cont_done;
+
+  for(;;) {
+    if(WABI_IS(wabi_tag_cont_prompt, cont) && !wabi_cont_next((wabi_cont) cont))
+      break;
+    prev_cont = cont;
+    new_prev_cont = new_cont;
+    cont = wabi_cont_next(cont);
+    new_cont = wabi_cont_copy(vm, cont);
+    if(! new_cont) {
+      vm->error = wabi_error_nomem;
+      return;
+    }
+    if(new_prev_cont) new_prev_cont->next = ((wabi_word) new_cont) | WABI_TAG(prev_cont);
+
+    if(WABI_IS(wabi_tag_cont_prompt, cont)) {
+      prev_new_prompt = new_prompt;
+      new_prompt = (wabi_cont_prompt) new_cont;
+      if(prev_new_prompt) prev_new_prompt->next_prompt = (wabi_word) new_prompt;
+      if(! res_prompt) res_prompt = new_prompt;
+    }
+  }
+  right_cont = wabi_cont_next((wabi_cont) vm->continuation);
+  right_prompt = (wabi_cont_prompt) vm->prompt;
+
+  new_cont->next = (wabi_word) right_cont | WABI_TAG(new_cont);
+
+  vm->control = fst;
+  vm->continuation = (wabi_val) res_cont;
+  if(new_prompt) {
+    new_prompt->next_prompt = (wabi_word) right_prompt;
+    vm->prompt = (wabi_val) res_prompt;
+  }
   return;
 }
 

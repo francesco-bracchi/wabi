@@ -100,9 +100,8 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
   case wabi_tag_cont_args:
+  case wabi_tag_cont_prompt:
   case wabi_tag_cont_sel:
-    printf("COPING CONT\n");
-    wabi_prn((wabi_val) src);
     wabi_cont_copy_val(store, (wabi_cont) src);
     break;
 

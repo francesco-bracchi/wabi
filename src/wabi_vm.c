@@ -50,6 +50,7 @@ wabi_vm_collect(wabi_vm vm)
   store = &(vm->store);
   wabi_store_collect_prepare(store);
 
+  // printf("Collecting...\n");
   if(vm->control) vm->control = wabi_store_copy_val(store, vm->control);
   if(vm->continuation) vm->continuation = wabi_store_copy_val(store, vm->continuation);
   if(vm->prompt) vm->prompt = wabi_store_copy_val(store, vm->prompt);
@@ -58,7 +59,6 @@ wabi_vm_collect(wabi_vm vm)
   if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
   if(vm->quote) vm->quote = wabi_store_copy_val(store, vm->quote);
   if(vm->hmap) vm->hmap = wabi_store_copy_val(store, vm->hmap);
-  // printf("Collecting...\n");
   res = wabi_store_collect(store);
   // printf("done.\n");
   if(res) {

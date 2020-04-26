@@ -433,12 +433,12 @@
    (= n 1) 1
    (+ (fib (- n 1)) (fib (- n 2)))))
 
-;; (def kont
-;;   (prmt (+ 10 20)
-;;     (let (u (ctrl (* 2 15) k k))
-;;       (+ u 3))))
+(def kont
+  (prmt (+ 10 20)
+    (let (u (ctrl (* 2 15) k k))
+      (+ u 3))))
 
-;; (test (kont 10) 13)
+(test (kont 10) 13)
 
 (test (blen "") 0)
 (test (blen "ciao") 4)
@@ -685,3 +685,5 @@
 
 (test (> (list 2) (list 1)) true)
 (test (> (list 1) (list 2)) false)
+
+(test (kont 100) 103)

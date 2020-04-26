@@ -91,7 +91,7 @@ typedef wabi_cont_t* wabi_cont;
 static const wabi_cont wabi_cont_done = NULL;
 
 #define WABI_CONT_EVAL_SIZE wabi_sizeof(wabi_cont_eval_t)
-#define WABI_CONT_PROMPT_SIZE wabi_sizeof(wabi_cont_prompt_t)
+#define WABI_CONT_PROMPT_SIZE 10// wabi_sizeof(wabi_cont_prompt_t)
 #define WABI_CONT_APPLY_SIZE wabi_sizeof(wabi_cont_apply_t)
 #define WABI_CONT_CALL_SIZE wabi_sizeof(wabi_cont_call_t)
 #define WABI_CONT_SEL_SIZE wabi_sizeof(wabi_cont_sel_t)
@@ -122,7 +122,7 @@ wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont_prompt next_prompt,
   if(cont) {
     cont->next = (wabi_word) next;
     cont->tag = (wabi_word) tag;
-    // cont->next_prompt = (wabi_word) next_prompt;
+    cont->next_prompt = (wabi_word) next_prompt;
     WABI_SET_TAG(cont, wabi_tag_cont_prompt);
   }
   return (wabi_cont) cont;

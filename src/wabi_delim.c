@@ -85,7 +85,6 @@ wabi_cont_control_bt(wabi_vm vm)
   kval = wabi_combiner_continuation_new(vm, cont);
 
   if(!kval) return wabi_error_nomem;
-  printf("KONT %p\n", kval);
   for(;;) {
     if(! prompt)
       return wabi_error_no_prompt;
