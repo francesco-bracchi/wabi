@@ -40,9 +40,7 @@ typedef struct wabi_combiner_builtin_struct {
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
 
 typedef struct wabi_combiner_continuation_struct {
-  wabi_word tag;
   wabi_word cont;
-  wabi_word prompt;
 } wabi_combiner_continuation_t;
 
 
@@ -103,39 +101,18 @@ wabi_combiner_is_derived(wabi_val combiner)
   return WABI_IS(wabi_tag_app, combiner) || WABI_IS(wabi_tag_oper, combiner);
 }
 
-static inline wabi_combiner
-wabi_combiner_continuation_new(wabi_vm vm, wabi_val tag, wabi_cont cont, wabi_pair prompt)
-{
-  wabi_combiner_continuation res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-  if(res) {
-    res->tag = (wabi_word) tag;
-    res->cont = (wabi_word) cont;
-    res->prompt = (wabi_word) prompt;
-    WABI_SET_TAG(res, wabi_tag_ct_app);
-  }
-  return (wabi_combiner) res;
-}
-
-
-static inline wabi_val
-wabi_combiner_continuation_tag(wabi_combiner_continuation cont)
-{
-  return (wabi_val) WABI_WORD_VAL(cont->tag);
-}
-
+wabi_combiner
+wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont);
 
 static inline wabi_cont
 wabi_combiner_continuation_cont(wabi_combiner_continuation cont)
 {
-  return (wabi_cont) cont->cont;
+  return (wabi_cont) WABI_WORD_VAL(cont->cont);
 }
 
 
-static inline wabi_pair
-wabi_combiner_continuation_prompt(wabi_combiner_continuation cont)
-{
-  return (wabi_pair) cont->prompt;
-}
+wabi_combiner
+wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont);
 
 
 void

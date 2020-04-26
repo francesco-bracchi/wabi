@@ -20,6 +20,7 @@
 #include "wabi_cont.h"
 #include "wabi_env.h"
 #include "wabi_map.h"
+#include "wabi_combiner.h"
 #include "wabi_value.h"
 
 // #define WABI_VM_DEBUG 1
@@ -30,8 +31,6 @@
 #include "wabi_pr.h"
 
 #endif
-
-static const wabi_cont wabi_cont_done = NULL;
 
 static inline wabi_val
 wabi_vm_nil(wabi_vm vm)
@@ -48,7 +47,6 @@ wabi_vm_collect(wabi_vm vm)
 {
   wabi_store store;
   int res;
-
   store = &(vm->store);
   wabi_store_collect_prepare(store);
 
@@ -60,7 +58,9 @@ wabi_vm_collect(wabi_vm vm)
   if(vm->nil) vm->nil = wabi_store_copy_val(store, vm->nil);
   if(vm->quote) vm->quote = wabi_store_copy_val(store, vm->quote);
   if(vm->hmap) vm->hmap = wabi_store_copy_val(store, vm->hmap);
+  // printf("Collecting...\n");
   res = wabi_store_collect(store);
+  // printf("done.\n");
   if(res) {
     vm->error = wabi_error_nomem;
     return res;
@@ -99,7 +99,7 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
     vm->hmap = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap"));
     vm->error = wabi_error_none;
     vm->continuation = (wabi_val) wabi_cont_done;
-    vm->prompt = vm->nil;
+    vm->prompt = (wabi_val) wabi_cont_done;
   }
 }
 
@@ -181,7 +181,7 @@ wabi_vm_reduce(wabi_vm vm)
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_prompt:
     vm->continuation = (wabi_val) wabi_cont_next(cont);
-    vm->prompt = (wabi_val) wabi_cdr((wabi_pair) vm->prompt);
+    vm->prompt = (wabi_val) wabi_cont_prompt_next_prompt((wabi_cont_prompt) cont);
     return;
   case wabi_tag_cont_eval:
     /* ctrl: (f . as) */
@@ -360,19 +360,7 @@ wabi_vm_reduce(wabi_vm vm)
   case wabi_tag_cont_call:
     /***** CONT *****/
     if(wabi_combiner_is_continuation((wabi_val) ((wabi_cont_call) cont)->combiner)) {
-      cont0 = wabi_cont_concat(vm,
-                               (wabi_val) (wabi_combiner_continuation) ((wabi_cont_call) cont)->combiner,
-                               wabi_cont_next(cont));
-      if(! cont0) {
-        vm->error = wabi_error_nomem;
-        return;
-      }
-      if(!WABI_IS(wabi_tag_pair, ctrl)) {
-        vm->error = wabi_error_bindings;
-        return;
-      }
-      vm->control = wabi_car((wabi_pair) ctrl);
-      vm->continuation = (wabi_val) cont0;
+      wabi_cont_concat_cont(vm, wabi_combiner_continuation_cont((wabi_combiner_continuation) ((wabi_cont_call) cont)->combiner));
       return;
     }
 
@@ -443,6 +431,7 @@ wabi_vm_reduce(wabi_vm vm)
       return;
     }
     // things that implements invoke
+
     vm->error = wabi_error_type_mismatch;
     return;
 

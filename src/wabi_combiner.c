@@ -18,10 +18,11 @@ wabi_operator_builtin_new(wabi_vm vm,
   // todo: verify cfun pointer is less then 2^59
   wabi_combiner_builtin res;
   res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-
-  res->c_ptr = (wabi_word) cfun;
-  res->c_name = (wabi_word) cname;
-  WABI_SET_TAG(res, wabi_tag_bt_oper);
+  if(res) {
+    res->c_ptr = (wabi_word) cfun;
+    res->c_name = (wabi_word) cname;
+    WABI_SET_TAG(res, wabi_tag_bt_oper);
+  }
   return (wabi_combiner) res;
 }
 
@@ -34,10 +35,24 @@ wabi_application_builtin_new(wabi_vm vm,
   // todo: verify cfun pointer is less then 2^59
   wabi_combiner_builtin res;
   res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
+  if(res) {
+    res->c_ptr = (wabi_word) cfun;
+    res->c_name = (wabi_word) cname;
+    WABI_SET_TAG(res, wabi_tag_bt_app);
+  }
+  return (wabi_combiner) res;
+}
 
-  res->c_ptr = (wabi_word) cfun;
-  res->c_name = (wabi_word) cname;
-  WABI_SET_TAG(res, wabi_tag_bt_app);
+wabi_combiner
+wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont)
+{
+  wabi_combiner_continuation res;
+  res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
+  if(res) {
+    printf("THE CONTINUATION COMBINER AT %p\n", res);
+    res->cont = (wabi_word) cont;
+    WABI_SET_TAG(res, wabi_tag_ct_app);
+  }
   return (wabi_combiner) res;
 }
 
@@ -65,8 +80,10 @@ wabi_combiner_copy_val(wabi_store store, wabi_combiner c)
 
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
+    printf("COPING COMBINER CONTINUATION %p to %p\n", c, store->heap);
     wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_CONTINUATION_SIZE);
     store->heap += WABI_COMBINER_CONTINUATION_SIZE;
+    printf("heap moved to %p\n", store->heap);
     break;
   }
 }
@@ -76,6 +93,8 @@ void
 wabi_combiner_collect_val(wabi_store store, wabi_combiner c)
 {
   wabi_word tag;
+
+  wabi_combiner_continuation cc;
 
   tag = WABI_TAG(c);
   switch(tag) {
@@ -108,13 +127,12 @@ wabi_combiner_collect_val(wabi_store store, wabi_combiner c)
 
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
-    ((wabi_combiner_continuation) c)->tag =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_continuation) c)->tag));
-    ((wabi_combiner_continuation) c)->cont =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->cont);
-    ((wabi_combiner_continuation) c)->prompt =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_continuation) c)->prompt);
+    printf("SCAN %p\n", store->scan);
+    cc = (wabi_combiner_continuation) c;
+    printf("befor coping: %p, %lx\n", wabi_combiner_continuation_cont(c), WABI_TAG(wabi_combiner_continuation_cont(c)));
+    cc->cont = (wabi_word) wabi_store_copy_val(store, (wabi_val) wabi_combiner_continuation_cont(cc));
     WABI_SET_TAG(c, tag);
+    printf("after coping: %p, %lx\n", wabi_combiner_continuation_cont(c), WABI_TAG(wabi_combiner_continuation_cont(c)));
     store->scan += WABI_COMBINER_CONTINUATION_SIZE;
     return;
   }

@@ -259,7 +259,13 @@ wabi_pr_cont0(wabi_cont val)
       printf(")");
       break;
     default:
-      printf("BOH");
+      if(WABI_IS(wabi_tag_forward, val)) {
+        wabi_pr_cont0((wabi_cont) WABI_DEREF((wabi_val) val));
+        break;
+      }
+      printf("(NAC");
+      wabi_pr((wabi_val) val);
+      printf(")");
       break;
     }
 }
@@ -268,22 +274,16 @@ wabi_pr_cont0(wabi_cont val)
 void
 wabi_pr_cont_combiner(wabi_combiner_continuation val)
 {
-  wabi_val tag;
   wabi_cont cont;
-  tag = (wabi_val) WABI_WORD_VAL(val->tag);
-  cont = (wabi_cont) val->cont;
+  cont = (wabi_cont) WABI_WORD_VAL(val->cont);
 
-  printf("~cont[");
-  wabi_pr(tag);
-  printf("](");
+  printf("~cont(");
 
   do {
-    if(WABI_IS(wabi_tag_cont_prompt, cont) && wabi_eq(tag, (wabi_val) ((wabi_cont_prompt) cont)->tag)) {
-      break;
-    }
     wabi_pr_cont0(cont);
-    cont = (wabi_cont) WABI_WORD_VAL(cont->next);
-  } while(1);
+    cont = (wabi_cont) wabi_cont_next(cont);
+    if(cont) printf(" ");
+  } while(cont);
 
   printf(")");
 }

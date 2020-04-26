@@ -54,6 +54,8 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   wabi_word* res;
   wabi_size size;
 
+  // printf("copy %s\n", wabi_tag_to_string(store->heap));
+
   res = store->heap;
   switch(WABI_TAG(src)) {
 
@@ -99,6 +101,8 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   case wabi_tag_cont_prog:
   case wabi_tag_cont_args:
   case wabi_tag_cont_sel:
+    printf("COPING CONT\n");
+    wabi_prn((wabi_val) src);
     wabi_cont_copy_val(store, (wabi_cont) src);
     break;
 
@@ -124,7 +128,7 @@ wabi_store_collect_heap(wabi_store store)
   store->scan = store->new_space;
 
   do {
-    // printf("collect %s\n", wabi_tag_to_string(store->scan));
+    // printf("collecting %s\n", wabi_tag_to_string(store->scan));
     switch(WABI_TAG((store->scan))) {
     /* case wabi_tag_var: */
     /* case wabi_tag_alien: */
@@ -142,7 +146,7 @@ wabi_store_collect_heap(wabi_store store)
     case wabi_tag_symbol:
       *(store->scan) = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*(store->scan)));
       WABI_SET_TAG((store->scan), wabi_tag_symbol);
-      (store->scan)+=WABI_SYMBOL_SIZE;
+      store->scan+=WABI_SYMBOL_SIZE;
       break;
 
     case wabi_tag_bin_leaf:

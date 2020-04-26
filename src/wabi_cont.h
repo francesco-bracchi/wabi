@@ -20,6 +20,7 @@ typedef wabi_cont_eval_t* wabi_cont_eval;
 typedef struct wabi_cont_prompt_struct {
   wabi_word next;
   wabi_word tag;
+  wabi_word next_prompt;
 } wabi_cont_prompt_t;
 
 typedef wabi_cont_prompt_t* wabi_cont_prompt;
@@ -87,6 +88,8 @@ typedef union wabi_cont_union {
 
 typedef wabi_cont_t* wabi_cont;
 
+static const wabi_cont wabi_cont_done = NULL;
+
 #define WABI_CONT_EVAL_SIZE wabi_sizeof(wabi_cont_eval_t)
 #define WABI_CONT_PROMPT_SIZE wabi_sizeof(wabi_cont_prompt_t)
 #define WABI_CONT_APPLY_SIZE wabi_sizeof(wabi_cont_apply_t)
@@ -111,7 +114,7 @@ wabi_cont_push_eval(wabi_vm vm, wabi_cont next)
 
 
 static inline wabi_cont
-wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont next)
+wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont_prompt next_prompt, wabi_cont next)
 {
   wabi_cont_prompt cont;
 
@@ -119,9 +122,24 @@ wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont next)
   if(cont) {
     cont->next = (wabi_word) next;
     cont->tag = (wabi_word) tag;
+    // cont->next_prompt = (wabi_word) next_prompt;
     WABI_SET_TAG(cont, wabi_tag_cont_prompt);
   }
   return (wabi_cont) cont;
+}
+
+
+static inline wabi_cont_prompt
+wabi_cont_prompt_next_prompt(wabi_cont_prompt prompt)
+{
+  return (wabi_cont_prompt) prompt->next_prompt;
+}
+
+
+static inline wabi_tag
+wabi_cont_prompt_tag(wabi_cont_prompt prompt)
+{
+  return (wabi_tag) prompt->tag;
 }
 
 
@@ -231,10 +249,8 @@ wabi_cont_copy_val(wabi_store store, wabi_cont cont);
 void
 wabi_cont_collect_val(wabi_store store, wabi_cont cont);
 
-
-wabi_cont
-wabi_cont_concat(wabi_vm vm, wabi_val l, wabi_cont k);
-
+void
+wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont);
 
 void
 wabi_cont_hash(wabi_hash_state state, wabi_cont cont);
@@ -246,7 +262,7 @@ wabi_cont_cmp(wabi_cont a, wabi_cont b);
 static inline wabi_cont
 wabi_cont_next(wabi_cont cont)
 {
-  return (wabi_cont) WABI_WORD_VAL((cont)->next);
+  return (wabi_cont) WABI_WORD_VAL(cont->next);
 }
 
 // #define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))

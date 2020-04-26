@@ -9,124 +9,38 @@
 
 #define wabi_cont_c
 
-/**
- * do not eagerly concatenate, do it lazily, without consuming more memory
- */
 
-static inline wabi_cont
-wabi_cont_concat_in(wabi_vm vm, wabi_val tag0, wabi_val lcont, wabi_cont k)
+static inline wabi_size
+wabi_cont_size(wabi_cont cont)
 {
-  wabi_word wtag;
-  wabi_cont res, nxt;
-
-  switch(wtag = WABI_TAG(lcont)) {
-  case wabi_tag_cont_prompt:
-    if(wabi_eq(tag0, (wabi_val) ((wabi_cont_prompt) lcont)->tag)) {
-      return k;
-    }
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_PROMPT_SIZE);
-    memcpy(res, lcont, sizeof(wabi_cont_prompt_t));
-    break;
-
+  switch(WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_EVAL_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_eval_t));
-    break;
+    return WABI_CONT_EVAL_SIZE;
+  case wabi_tag_cont_prompt:
+    return WABI_CONT_PROMPT_SIZE;
   case wabi_tag_cont_apply:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_APPLY_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_apply_t));
-    break;
+    return WABI_CONT_APPLY_SIZE;
   case wabi_tag_cont_call:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_CALL_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_call_t));
-    break;
+    return WABI_CONT_CALL_SIZE;
   case wabi_tag_cont_sel:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_SEL_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_sel_t));
-    break;
+    return WABI_CONT_SEL_SIZE;
   case wabi_tag_cont_args:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_ARGS_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_args_t));
-    break;
+    return WABI_CONT_ARGS_SIZE;
   case wabi_tag_cont_def:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_DEF_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_def_t));
-    break;
+    return WABI_CONT_DEF_SIZE;
   case wabi_tag_cont_prog:
-    res = (wabi_cont) wabi_vm_alloc(vm, WABI_CONT_PROG_SIZE);
-    if(! res) return NULL;
-    memcpy(res, lcont, sizeof(wabi_cont_prog_t));
-    break;
+    return WABI_CONT_PROG_SIZE;
   default:
-    return NULL;
+    return -1;
   }
-  nxt = wabi_cont_concat_in(vm, tag0, (wabi_val) WABI_WORD_VAL(((wabi_cont) lcont)->next), k);
-  if(! nxt) return NULL;
-  res->next = (wabi_word) nxt;
-  WABI_SET_TAG(res, wtag);
-  return res;
 }
-
-wabi_cont
-wabi_cont_concat(wabi_vm vm, wabi_val l, wabi_cont k)
-{
-  wabi_val tag, lcont;
-  tag = wabi_combiner_continuation_tag((wabi_combiner_continuation) l);
-  lcont = (wabi_val) wabi_combiner_continuation_cont((wabi_combiner_continuation) l);
-  return wabi_cont_concat_in(vm, tag, lcont, k);
-}
-
 
 void
 wabi_cont_copy_val(wabi_store store, wabi_cont cont)
 {
-  switch(WABI_TAG(cont)) {
-  case wabi_tag_cont_eval:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_EVAL_SIZE);
-    store->heap += WABI_CONT_EVAL_SIZE;
-    break;
-  case wabi_tag_cont_prompt:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_PROMPT_SIZE);
-    store->heap += WABI_CONT_PROMPT_SIZE;
-    break;
-  case wabi_tag_cont_apply:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_APPLY_SIZE);
-    store->heap += WABI_CONT_APPLY_SIZE;
-    break;
-
-  case wabi_tag_cont_call:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_CALL_SIZE);
-    store->heap += WABI_CONT_CALL_SIZE;
-    break;
-
-  case wabi_tag_cont_sel:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_SEL_SIZE);
-    store->heap += WABI_CONT_SEL_SIZE;
-    break;
-
-  case wabi_tag_cont_args:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_ARGS_SIZE);
-    store->heap += WABI_CONT_ARGS_SIZE;
-    break;
-
-  case wabi_tag_cont_def:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_DEF_SIZE);
-    store->heap += WABI_CONT_DEF_SIZE;
-    break;
-
-  case wabi_tag_cont_prog:
-    wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_PROG_SIZE);
-    store->heap += WABI_CONT_PROG_SIZE;
-    break;
-  default:
-    break;
-  }
+  wabi_size size = wabi_cont_size(cont);
+  wordcopy(store->heap, (wabi_word*) cont, size);
+  store->heap += size;
 }
 
 
@@ -135,13 +49,23 @@ wabi_cont_collect_val(wabi_store store, wabi_cont cont)
 {
   wabi_word tag, *next;
 
+  next = (wabi_word*) wabi_cont_next(cont);
+  if(next)
+    cont->next = (wabi_word) wabi_store_copy_val(store, next);
+
   switch(tag = WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
     store->scan += WABI_CONT_EVAL_SIZE;
     break;
   case wabi_tag_cont_prompt:
-    ((wabi_cont_prompt) cont)->tag =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prompt) cont)->tag);
+    if (((wabi_cont_prompt) cont)->tag) {
+      ((wabi_cont_prompt) cont)->tag =
+        (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prompt) cont)->tag);
+    }
+    if(((wabi_cont_prompt) cont)->next_prompt) {
+      ((wabi_cont_prompt) cont)->next_prompt =
+        (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prompt) cont)->next_prompt);
+    }
     store->scan += WABI_CONT_PROMPT_SIZE;
     break;
   case wabi_tag_cont_apply:
@@ -193,10 +117,6 @@ wabi_cont_collect_val(wabi_store store, wabi_cont cont)
   default:
     break;
   }
-  next = (wabi_word*) wabi_cont_next(cont);
-  if(next)
-    cont->next = (wabi_word) wabi_store_copy_val(store, next);
-
   WABI_SET_TAG(cont, tag);
 }
 
@@ -256,6 +176,13 @@ wabi_cont_hash(wabi_hash_state state, wabi_cont cont)
   }
 }
 
+void
+wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
+{
+  // TBD
+  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  return;
+}
 
 wabi_error_type
 wabi_cont_cmp(wabi_cont a, wabi_cont b)
