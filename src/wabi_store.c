@@ -95,14 +95,35 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     break;
 
   case wabi_tag_cont_eval:
+    wabi_cont_eval_copy_val(store, (wabi_cont_eval) src);
+    break;
+
   case wabi_tag_cont_apply:
+    wabi_cont_apply_copy_val(store, (wabi_cont_apply) src);
+    break;
+
   case wabi_tag_cont_call:
+    wabi_cont_call_copy_val(store, (wabi_cont_call) src);
+    break;
+
   case wabi_tag_cont_def:
+    wabi_cont_def_copy_val(store, (wabi_cont_def) src);
+    break;
+
   case wabi_tag_cont_prog:
+    wabi_cont_prog_copy_val(store, (wabi_cont_prog) src);
+    break;
+
   case wabi_tag_cont_args:
+    wabi_cont_args_copy_val(store, (wabi_cont_args) src);
+    break;
+
   case wabi_tag_cont_prompt:
+    wabi_cont_prompt_copy_val(store, (wabi_cont_prompt) src);
+    break;
+
   case wabi_tag_cont_sel:
-    wabi_cont_copy_val(store, (wabi_cont) src);
+    wabi_cont_sel_copy_val(store, (wabi_cont_sel) src);
     break;
 
   case wabi_tag_bt_app:

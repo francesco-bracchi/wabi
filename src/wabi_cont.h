@@ -242,9 +242,61 @@ wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont ne
 }
 
 
-void
-wabi_cont_copy_val(wabi_store store, wabi_cont cont);
+static inline void
+wabi_cont_eval_copy_val(wabi_store store, wabi_cont_eval cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_EVAL_SIZE);
+  store->heap += WABI_CONT_EVAL_SIZE;
+}
 
+static inline void
+wabi_cont_apply_copy_val(wabi_store store, wabi_cont_apply cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_APPLY_SIZE);
+  store->heap += WABI_CONT_APPLY_SIZE;
+}
+
+static inline void
+wabi_cont_call_copy_val(wabi_store store, wabi_cont_call cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_CALL_SIZE);
+  store->heap += WABI_CONT_CALL_SIZE;
+}
+
+static inline void
+wabi_cont_def_copy_val(wabi_store store, wabi_cont_def cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_DEF_SIZE);
+  store->heap += WABI_CONT_DEF_SIZE;
+}
+
+static inline void
+wabi_cont_prog_copy_val(wabi_store store, wabi_cont_prog cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_PROG_SIZE);
+  store->heap += WABI_CONT_PROG_SIZE;
+}
+
+static inline void
+wabi_cont_args_copy_val(wabi_store store, wabi_cont_args cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_ARGS_SIZE);
+  store->heap += WABI_CONT_ARGS_SIZE;
+}
+
+static inline void
+wabi_cont_prompt_copy_val(wabi_store store, wabi_cont_prompt cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_PROMPT_SIZE);
+  store->heap += WABI_CONT_PROMPT_SIZE;
+}
+
+static inline void
+wabi_cont_sel_copy_val(wabi_store store, wabi_cont_sel cont)
+{
+  wordcopy(store->heap, (wabi_word*) cont, WABI_CONT_SEL_SIZE);
+  store->heap += WABI_CONT_SEL_SIZE;
+}
 
 void
 wabi_cont_collect_val(wabi_store store, wabi_cont cont);
