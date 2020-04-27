@@ -115,8 +115,30 @@ wabi_combiner
 wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont);
 
 
-void
-wabi_combiner_copy_val(wabi_store store, wabi_combiner c);
+/**
+ * Collecting
+ */
+
+static inline void
+wabi_combiner_derived_copy_val(wabi_store store, wabi_combiner_derived c)
+{
+  wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_DERIVED_SIZE);
+  store->heap += WABI_COMBINER_DERIVED_SIZE;
+}
+
+static inline void
+wabi_combiner_builtin_copy_val(wabi_store store, wabi_combiner_builtin c)
+{
+  wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_BUILTIN_SIZE);
+  store->heap += WABI_COMBINER_BUILTIN_SIZE;
+}
+
+static inline void
+wabi_combiner_continuation_copy_val(wabi_store store, wabi_combiner_continuation c)
+{
+    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_CONTINUATION_SIZE);
+    store->heap += WABI_COMBINER_CONTINUATION_SIZE;
+}
 
 
 void

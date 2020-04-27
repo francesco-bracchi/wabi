@@ -128,11 +128,17 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
 
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
+    wabi_combiner_builtin_copy_val(store, (wabi_combiner_builtin) src);
+    break;
+
   case wabi_tag_app:
   case wabi_tag_oper:
+    wabi_combiner_derived_copy_val(store, (wabi_combiner_derived) src);
+    break;
+
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
-    wabi_combiner_copy_val(store, (wabi_combiner) src);
+    wabi_combiner_continuation_copy_val(store, (wabi_combiner_continuation) src);
     break;
   }
 

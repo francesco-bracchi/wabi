@@ -56,35 +56,6 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont)
 }
 
 
-/**
- * Collecting
- */
-
-void
-wabi_combiner_copy_val(wabi_store store, wabi_combiner c)
-{
-  switch(WABI_TAG(c)) {
-
-  case wabi_tag_app:
-  case wabi_tag_oper:
-    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_DERIVED_SIZE);
-    store->heap += WABI_COMBINER_DERIVED_SIZE;
-    break;
-
-  case wabi_tag_bt_app:
-  case wabi_tag_bt_oper:
-    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_BUILTIN_SIZE);
-    store->heap += WABI_COMBINER_BUILTIN_SIZE;
-    break;
-
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
-    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_CONTINUATION_SIZE);
-    store->heap += WABI_COMBINER_CONTINUATION_SIZE;
-    break;
-  }
-}
-
 
 void
 wabi_combiner_collect_val(wabi_store store, wabi_combiner c)
