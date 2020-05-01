@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 
+
 static inline void
 wabi_system_error_signal(wabi_vm vm)
 {
@@ -14,7 +15,26 @@ wabi_system_error_signal(wabi_vm vm)
 }
 
 
-void *wabi_system_consume_queue(void* args) {
+static inline void
+wabi_system_inc_vmc() {
+  pthread_mutex_lock(&wabi_sys.vmlock);
+  wabi_sys.vmcnt++;
+  pthread_mutex_unlock(&wabi_sys.vmlock);
+}
+
+
+static inline void
+wabi_system_dec_vmc() {
+  pthread_mutex_lock(&wabi_sys.vmlock);
+  wabi_sys.vmcnt--;
+  if(wabi_sys.vmcnt <= 0)
+    pthread_cond_signal(&wabi_sys.vmcond);
+  pthread_mutex_unlock(&wabi_sys.vmlock);
+}
+
+
+void*
+wabi_system_consume_queue(void* args) {
   for(;;) {
     wabi_vm vm = wabi_queue_deq(&wabi_sys.vm_queue);
     wabi_vm_run(vm, wabi_sys.config.fuel);
@@ -23,6 +43,9 @@ void *wabi_system_consume_queue(void* args) {
       wabi_queue_enq(&wabi_sys.vm_queue, vm);
       break;
     case wabi_error_none:
+      wabi_vm_destroy(vm);
+      wabi_system_dec_vmc();
+      free(vm);
       break;
     default:
       wabi_system_error_signal(vm);
@@ -42,6 +65,9 @@ wabi_system_init(wabi_system_config config)
   for(t = 0; t < config->num_threads; t++) {
     pthread_create(wabi_sys.threads + t, NULL, &wabi_system_consume_queue, NULL);
   }
+  pthread_mutex_init(&wabi_sys.vmlock, NULL);
+  pthread_cond_init(&wabi_sys.vmcond, NULL);
+  wabi_sys.vmcnt = 0;
 }
 
 
@@ -52,6 +78,9 @@ wabi_system_destroy()
   wabi_word t;
 
   wabi_queue_destroy(&(wabi_sys.vm_queue));
+
+  pthread_mutex_destroy(&wabi_sys.vmlock);
+  pthread_cond_destroy(&wabi_sys.vmcond);
 
   for(t = 0; t < wabi_sys.config.num_threads; t++)
     pthread_cancel(*(wabi_sys.threads + t));
@@ -70,5 +99,16 @@ wabi_system_new_vm()
 void
 wabi_system_run(wabi_vm vm) {
   printf("wabi_system_run\n");
+  wabi_system_inc_vmc();
   wabi_queue_enq(&wabi_sys.vm_queue, vm);
+}
+
+
+void
+wabi_system_wait()
+{
+  pthread_mutex_lock(&wabi_sys.vmlock);
+  while(wabi_sys.vmcnt > 0)
+    pthread_cond_wait(&wabi_sys.vmcond, &wabi_sys.vmlock);
+  pthread_mutex_unlock(&wabi_sys.vmlock);
 }

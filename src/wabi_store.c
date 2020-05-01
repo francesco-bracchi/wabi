@@ -297,7 +297,17 @@ wabi_store_collect(wabi_store store)
   return 1;
 }
 
-/** todo: handle the case of error (i.e. NOMEM); */
+wabi_val
+wabi_store_move_val_to_store(wabi_val val, wabi_store store)
+{
+  wabi_val res;
+  res = wabi_store_copy_val(store, val);
+  store->scan = res;
+  wabi_store_collect(store);
+  return res;
+}
+
+
 wabi_val
 wabi_store_copy_val_to_store(wabi_val val, wabi_store store)
 {

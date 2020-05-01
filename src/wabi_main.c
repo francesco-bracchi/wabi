@@ -27,7 +27,7 @@ main(int argc,
   long length;
   wabi_system_config_t config;
 
-  config.store_size = 250000;
+  config.store_size = 2500000;
   config.fuel = 3000000;
   config.num_threads = get_nprocs() + 1;
 
@@ -52,12 +52,6 @@ main(int argc,
   wabi_builtin_load(vm, e0, buffer);
   wabi_system_run(vm);
 
-  sleep(20);
-  printf("error: %s\n", wabi_error_name(vm->error));
-  if(vm->error) {
-    wabi_prn(vm->control);
-    wabi_prn(vm->continuation);
-  }
-  wabi_vm_destroy(vm);
+  wabi_system_wait();
   return (int) vm->error;
 }

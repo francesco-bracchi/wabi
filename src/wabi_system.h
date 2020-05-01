@@ -25,6 +25,9 @@ typedef struct wabi_system_struct
   wabi_system_config_t config;
   wabi_queue_t vm_queue;
   pthread_t *threads;
+  pthread_mutex_t vmlock;
+  pthread_cond_t vmcond;
+  wabi_size vmcnt;
 } wabi_system_t;
 
 typedef wabi_system_t* wabi_system;
@@ -43,5 +46,8 @@ wabi_system_new_vm();
 
 void
 wabi_system_run(wabi_vm vm);
+
+void
+wabi_system_wait();
 
 #endif
