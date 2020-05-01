@@ -54,25 +54,22 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   wabi_word* res;
   wabi_size size;
 
+  if(! src) return src;
   // printf("copy %s\n", wabi_tag_to_string(store->heap));
-
   res = store->heap;
   switch(WABI_TAG(src)) {
-
-  /* case wabi_tag_var: */
-  /* case wabi_tag_alien: */
-  /* case wabi_tag_tagged: */
-  /* case wabi_tag_bin_blob: */
-  /*   return res; */
 
   case wabi_tag_forward:
     return WABI_DEREF(src);
 
   case wabi_tag_constant:
   case wabi_tag_fixnum:
-  case wabi_tag_symbol:
     *res = *src;
     store->heap++;
+    break;
+
+  case wabi_tag_symbol:
+    wabi_symbol_copy_val(store, (wabi_symbol) src);
     break;
 
   case wabi_tag_bin_leaf:
@@ -85,9 +82,15 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
     break;
 
   case wabi_tag_map_array:
+    wabi_map_array_copy_val(store, (wabi_map_array) src);
+    break;
+
   case wabi_tag_map_entry:
+    wabi_map_entry_copy_val(store, (wabi_map_entry) src);
+    break;
+
   case wabi_tag_map_hash:
-    wabi_map_copy_val(store, (wabi_map) src);
+    wabi_map_hash_copy_val(store, (wabi_map_hash) src);
     break;
 
   case wabi_tag_env:
@@ -154,11 +157,7 @@ wabi_store_collect_heap(wabi_store store)
   store->scan = store->new_space;
 
   do {
-    // printf("collecting %s\n", wabi_tag_to_string(store->scan));
     switch(WABI_TAG((store->scan))) {
-    /* case wabi_tag_var: */
-    /* case wabi_tag_alien: */
-    /* case wabi_tag_tagged: */
 
     case wabi_tag_bin_blob:
       (store->scan) += WABI_WORD_VAL(*(store->scan));
@@ -184,18 +183,28 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_map_entry:
+      wabi_map_entry_collect_val(store, (wabi_map_entry) store->scan);
+      break;
     case wabi_tag_map_array:
+      wabi_map_array_collect_val(store, (wabi_map_array) store->scan);
+      break;
     case wabi_tag_map_hash:
-      wabi_map_collect_val(store, (wabi_map) store->scan);
+      wabi_map_hash_collect_val(store, (wabi_map_hash) store->scan);
       break;
 
     case wabi_tag_oper:
     case wabi_tag_app:
+      wabi_combiner_derived_collect_val(store, (wabi_combiner_derived) store->scan);
+      break;
+
     case wabi_tag_bt_app:
     case wabi_tag_bt_oper:
+      wabi_combiner_builtin_collect_val(store, (wabi_combiner_builtin) store->scan);
+      break;
+
     case wabi_tag_ct_app:
     case wabi_tag_ct_oper:
-      wabi_combiner_collect_val(store, (wabi_combiner) store->scan);
+      wabi_combiner_continuation_collect_val(store, (wabi_combiner_continuation) store->scan);
       break;
 
     case wabi_tag_env:
@@ -203,19 +212,40 @@ wabi_store_collect_heap(wabi_store store)
       break;
 
     case wabi_tag_cont_eval:
+      wabi_cont_eval_collect_val(store, (wabi_cont_eval) store->scan);
+      break;
+
     case wabi_tag_cont_prompt:
+      wabi_cont_prompt_collect_val(store, (wabi_cont_prompt) store->scan);
+      break;
+
     case wabi_tag_cont_apply:
+      wabi_cont_apply_collect_val(store, (wabi_cont_apply) store->scan);
+      break;
+
     case wabi_tag_cont_call:
+      wabi_cont_call_collect_val(store, (wabi_cont_call) store->scan);
+      break;
+
     case wabi_tag_cont_def:
+      wabi_cont_def_collect_val(store, (wabi_cont_def) store->scan);
+      break;
+
     case wabi_tag_cont_prog:
+      wabi_cont_prog_collect_val(store, (wabi_cont_prog) store->scan);
+      break;
+
     case wabi_tag_cont_args:
+      wabi_cont_args_collect_val(store, (wabi_cont_args) store->scan);
+      break;
+
     case wabi_tag_cont_sel:
-      wabi_cont_collect_val(store, (wabi_cont) store->scan);
+      wabi_cont_sel_collect_val(store, (wabi_cont_sel) store->scan);
       break;
 
     case wabi_tag_forward:
       *(store->scan) = WABI_WORD_VAL(*(store->scan));
-      (store->scan)++;
+      store->scan++;
       break;
     }
   }
@@ -223,8 +253,7 @@ wabi_store_collect_heap(wabi_store store)
 }
 
 
-static inline
-wabi_word
+static inline wabi_word
 wabi_store_used(wabi_store store)
 {
   return (store->heap - store->new_space);
@@ -266,4 +295,15 @@ wabi_store_collect(wabi_store store)
 {
   wabi_store_collect_heap(store);
   return 1;
+}
+
+/** todo: handle the case of error (i.e. NOMEM); */
+wabi_val
+wabi_store_copy_val_to_store(wabi_val val, wabi_store store)
+{
+  wabi_val res;
+  res = wabi_store_copy_val(store, val);
+  store->scan = res;
+  wabi_store_collect(store);
+  return res;
 }

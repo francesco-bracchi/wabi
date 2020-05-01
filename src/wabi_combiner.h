@@ -122,26 +122,44 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont);
 static inline void
 wabi_combiner_derived_copy_val(wabi_store store, wabi_combiner_derived c)
 {
-  wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_DERIVED_SIZE);
-  store->heap += WABI_COMBINER_DERIVED_SIZE;
+  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
 }
 
 static inline void
 wabi_combiner_builtin_copy_val(wabi_store store, wabi_combiner_builtin c)
 {
-  wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_BUILTIN_SIZE);
-  store->heap += WABI_COMBINER_BUILTIN_SIZE;
+  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_BUILTIN_SIZE);
 }
 
 static inline void
 wabi_combiner_continuation_copy_val(wabi_store store, wabi_combiner_continuation c)
 {
-    wordcopy(store->heap, (wabi_word*) c, WABI_COMBINER_CONTINUATION_SIZE);
-    store->heap += WABI_COMBINER_CONTINUATION_SIZE;
+  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
 }
 
 
-void
-wabi_combiner_collect_val(wabi_store store, wabi_combiner c);
+static inline void
+wabi_combiner_derived_collect_val(wabi_store store, wabi_combiner_derived c)
+{
+  wabi_store_collect_val_size(store, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
+}
+
+static inline void
+wabi_combiner_builtin_collect_val(wabi_store store, wabi_combiner_builtin c)
+{
+  ((wabi_combiner_builtin) c)->c_name =
+    (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_builtin) c)->c_name);
+  if(((wabi_combiner_builtin) c)->c_xtra) {
+    ((wabi_combiner_builtin) c)->c_xtra =
+      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_builtin) c)->c_ptr));
+  }
+  store->scan += WABI_COMBINER_BUILTIN_SIZE;
+}
+
+static inline void
+wabi_combiner_continuation_collect_val(wabi_store store, wabi_combiner_continuation c)
+{
+  wabi_store_collect_val_size(store, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
+}
 
 #endif

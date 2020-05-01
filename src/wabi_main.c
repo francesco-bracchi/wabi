@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ev.h>
+#include <sys/sysinfo.h>
+#include <unistd.h>
 
 #include "wabi_system.h"
 #include "wabi_env.h"
@@ -12,17 +14,26 @@
 #include "wabi_cont.h"
 #include "wabi_pr.h"
 
+#define WABI_VM_FILL_TANK 100000
+
 int
 main(int argc,
      char* argv[])
 {
 
-  wabi_vm_t vm;
+  wabi_vm vm;
   wabi_env e0;
   char *buffer;
   long length;
+  wabi_system_config_t config;
 
-  wabi_vm_init(&vm, 250000);
+  config.store_size = 250000;
+  config.fuel = 3000000;
+  config.num_threads = get_nprocs() + 1;
+
+  wabi_system_init(&config);
+  vm = wabi_system_new_vm();
+
   if(argc < 2) {
     fprintf(stderr, "usage: wabi <filename>\n");
     return 1;
@@ -37,15 +48,16 @@ main(int argc,
   buffer[length] = '\0';
   fclose (f);
 
-  e0 = wabi_builtin_stdenv(&vm);
-  wabi_builtin_load(&vm, e0, buffer);
-  wabi_vm_run(&vm);
-  printf("error: %s\n", wabi_error_name(vm.error));
-  if(vm.error) {
-    wabi_prn(vm.control);
-    wabi_prn(vm.continuation);
-  }
+  e0 = wabi_builtin_stdenv(vm);
+  wabi_builtin_load(vm, e0, buffer);
+  wabi_system_run(vm);
 
-  wabi_vm_destroy(&vm);
-  return (int) vm.error;
+  sleep(20);
+  printf("error: %s\n", wabi_error_name(vm->error));
+  if(vm->error) {
+    wabi_prn(vm->control);
+    wabi_prn(vm->continuation);
+  }
+  wabi_vm_destroy(vm);
+  return (int) vm->error;
 }

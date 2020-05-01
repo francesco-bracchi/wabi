@@ -174,7 +174,6 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
       return wabi_error_nomem;
     }
     if(*str) {
-      printf("THREE\n");
       return wabi_error_other;
     }
   } while(*str);

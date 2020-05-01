@@ -24,10 +24,8 @@ typedef struct wabi_vm_struct {
 
 typedef wabi_vm_t* wabi_vm;
 
-#define WABI_VM_FILL_TANK 100000
-
 void
-wabi_vm_run(wabi_vm vm);
+wabi_vm_run(wabi_vm vm, wabi_word fuel);
 
 void
 wabi_vm_init(wabi_vm vm, wabi_size store_size);

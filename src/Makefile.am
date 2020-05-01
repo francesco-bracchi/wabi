@@ -26,6 +26,7 @@ libwabi_la_SOURCES = \
 	wabi_delim.c \
 	wabi_combiner.h \
 	wabi_combiner.c \
+	wabi_queue.h \
 	wabi_system.h \
 	wabi_system.c \
 	wabi_store.h \
@@ -43,7 +44,7 @@ libwabi_la_SOURCES = \
 	wabi_reader.h \
 	wabi_reader.c
 
-libwabi_la_LIBADD=$(LIBEV) -lm
+libwabi_la_LIBADD=$(LIBEV) -lm -lpthread
 
 bin_PROGRAMS = wabi
 wabi_SOURCES = wabi_main.c

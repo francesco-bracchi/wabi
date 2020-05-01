@@ -137,4 +137,57 @@ wabi_map_cmp(wabi_map left, wabi_map right);
 wabi_error_type
 wabi_map_builtins(wabi_vm vm, wabi_env env);
 
+
+static inline void
+wabi_map_array_copy_val(wabi_store store, wabi_map_array map)
+{
+  wabi_store_copy_val_size(store, (wabi_val) map, WABI_MAP_SIZE);
+}
+
+static inline void
+wabi_map_entry_copy_val(wabi_store store, wabi_map_entry map)
+{
+  wabi_store_copy_val_size(store, (wabi_val) map, WABI_MAP_SIZE);
+}
+
+static inline void
+wabi_map_hash_copy_val(wabi_store store, wabi_map_hash map)
+{
+  wabi_store_copy_val_size(store, (wabi_val) map, WABI_MAP_SIZE);
+}
+
+static inline void
+wabi_map_entry_collect_val(wabi_store store, wabi_map_entry entry)
+{
+  wabi_store_collect_val_size(store, (wabi_val) entry, WABI_MAP_SIZE);
+}
+
+
+static inline void
+wabi_map_array_collect_val(wabi_store store, wabi_map_array array)
+{
+  wabi_word size;
+  size = array->size;
+
+  wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(array->table), wabi_sizeof(wabi_map_entry_t) * size);
+  array->table = (wabi_word) store->heap;
+  store->heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(array, wabi_tag_map_array);
+  store->scan += wabi_sizeof(wabi_map_array_t);
+}
+
+
+static inline void
+wabi_map_hash_collect_val(wabi_store store, wabi_map_hash map)
+{
+  wabi_word size;
+  size = WABI_MAP_BITMAP_COUNT(map->bitmap);
+
+  wordcopy(store->heap, (wabi_word*) WABI_WORD_VAL(map->table), wabi_sizeof(wabi_map_entry_t) * size);
+  map->table = (wabi_word) store->heap;
+  store->heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(map, wabi_tag_map_hash);
+  store->scan += wabi_sizeof(wabi_map_hash_t);
+}
+
 #endif

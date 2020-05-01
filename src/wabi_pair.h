@@ -49,20 +49,16 @@ wabi_cdr(wabi_pair pair)
 static inline void
 wabi_pair_copy_val(wabi_store store, wabi_pair pair)
 {
-  wordcopy(store->heap, (wabi_word*) pair, WABI_PAIR_SIZE);
-  store->heap += WABI_PAIR_SIZE;
+  wabi_store_copy_val_size(store, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void
 wabi_pair_collect_val(wabi_store store, wabi_pair pair)
 {
-  pair->cdr = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(pair->cdr));
-  pair->car = (wabi_word) wabi_store_copy_val(store, (wabi_word*) pair->car);
-  WABI_SET_TAG(pair, wabi_tag_pair);
-  store->scan += WABI_PAIR_SIZE;
+  wabi_store_collect_val_size(store, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
-static inline void 
+static inline void
 wabi_pair_hash(wabi_hash_state state, wabi_pair pair) {
   wabi_hash_step(state, "P", 1);
   wabi_hash_val(state, wabi_car(pair));
@@ -72,7 +68,7 @@ wabi_pair_hash(wabi_hash_state state, wabi_pair pair) {
 
 static inline int
 wabi_pair_cmp(wabi_pair left, wabi_pair right)
-{ 
+{
   int cmp0 = wabi_cmp(wabi_car(left), wabi_car(right));
   if(cmp0) return cmp0;
   return wabi_cmp(wabi_cdr(left), wabi_cdr(right));

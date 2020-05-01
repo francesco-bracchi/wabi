@@ -36,6 +36,7 @@ wabi_cont_size(wabi_cont cont)
   }
 }
 
+
 void
 wabi_cont_copy_val(wabi_store store, wabi_cont cont)
 {
@@ -43,6 +44,7 @@ wabi_cont_copy_val(wabi_store store, wabi_cont cont)
   wordcopy(store->heap, (wabi_word*) cont, size);
   store->heap += size;
 }
+
 
 static inline wabi_cont
 wabi_cont_copy(wabi_vm vm, wabi_cont cont) {
@@ -54,82 +56,6 @@ wabi_cont_copy(wabi_vm vm, wabi_cont cont) {
     wordcopy((wabi_word*) res, (wabi_word*) cont, size);
 
   return res;
-}
-
-void
-wabi_cont_collect_val(wabi_store store, wabi_cont cont)
-{
-  wabi_word tag, *next;
-
-  switch(tag = WABI_TAG(cont)) {
-  case wabi_tag_cont_eval:
-    store->scan += WABI_CONT_EVAL_SIZE;
-    break;
-  case wabi_tag_cont_prompt:
-    if (((wabi_cont_prompt) cont)->tag) {
-      ((wabi_cont_prompt) cont)->tag =
-        (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prompt) cont)->tag);
-    }
-    if(((wabi_cont_prompt) cont)->next_prompt) {
-      ((wabi_cont_prompt) cont)->next_prompt =
-        (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prompt) cont)->next_prompt);
-    }
-    store->scan += WABI_CONT_PROMPT_SIZE;
-    break;
-  case wabi_tag_cont_apply:
-    ((wabi_cont_apply) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_apply) cont)->env);
-    ((wabi_cont_apply) cont)->args =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_apply) cont)->args);
-    store->scan += WABI_CONT_APPLY_SIZE;
-    break;
-  case wabi_tag_cont_call:
-    ((wabi_cont_call) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_call) cont)->env);
-    ((wabi_cont_call) cont)->combiner =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_call) cont)->combiner);
-    store->scan += WABI_CONT_CALL_SIZE;
-    break;
-  case wabi_tag_cont_sel:
-    ((wabi_cont_sel) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_sel) cont)->env);
-    ((wabi_cont_sel) cont)->left =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_sel) cont)->left);
-    ((wabi_cont_sel) cont)->right =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_sel) cont)->right);
-    store->scan += WABI_CONT_SEL_SIZE;
-    break;
-  case wabi_tag_cont_args:
-    ((wabi_cont_args) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_args) cont)->env);
-    ((wabi_cont_args) cont)->data =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_args) cont)->data);
-    ((wabi_cont_args) cont)->done =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_args) cont)->done);
-    store->scan += WABI_CONT_ARGS_SIZE;
-    break;
-  case wabi_tag_cont_def:
-    ((wabi_cont_def) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_def) cont)->env);
-    ((wabi_cont_def) cont)->pattern =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_def) cont)->pattern);
-    store->scan += WABI_CONT_DEF_SIZE;
-    break;
-  case wabi_tag_cont_prog:
-    ((wabi_cont_prog) cont)->env =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prog) cont)->env);
-    ((wabi_cont_prog) cont)->expressions =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_cont_prog) cont)->expressions);
-    store->scan += WABI_CONT_PROG_SIZE;
-    break;
-  default:
-    break;
-  }
-  next = (wabi_word*) wabi_cont_next(cont);
-  if(next) {
-    cont->next = (wabi_word) wabi_store_copy_val(store, next);
-  }
-  WABI_SET_TAG(cont, tag);
 }
 
 

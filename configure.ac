@@ -18,7 +18,7 @@ AC_PROG_CC
 
 # Checks for header files.
 
-AC_CHECK_HEADERS([stdint.h stdlib.h ev.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h ev.h stddef.h pthread.h])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -26,9 +26,15 @@ AC_CONFIG_FILES([Makefile
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UINT64_T
+AC_TYPE_UINT32_T
+AC_TYPE_INT64_T
+AC_TYPE_INT32_T
+AC_C_INLINE
 
 # Checks for library functions.
 AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([pthread_create])
 
 # Check for EV
 AC_CHECK_LIB([ev], [ev_run], [LIBEV=-lev], [AC_MSG_ERROR(Unable to find libev library)])

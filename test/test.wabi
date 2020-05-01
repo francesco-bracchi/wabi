@@ -389,6 +389,7 @@
            !them
            (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
 
+
 (defn insp
     as
   (pr as)
@@ -674,7 +675,7 @@
     (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
 
 
-(compile-combiner! fib)
+;; (compile-combiner! fib)
 
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
 
@@ -687,3 +688,7 @@
 (test (> (list 1) (list 2)) false)
 
 (test (kont 100) 103)
+
+;; (time (each #(fib 24) (ran 100)))
+
+(time (fib 35))

@@ -151,20 +151,6 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
  * Collecting
  */
 
-void
-wabi_env_copy_val(wabi_store store, wabi_env env)
-{
-  wabi_size size;
-  wabi_word *res;
-
-  res = store->heap;
-  size = env->numE * WABI_ENV_PAIR_SIZE;
-  wordcopy(res, (wabi_word*) env, WABI_ENV_SIZE);
-  wordcopy(res + WABI_ENV_SIZE, (wabi_word*) env->data, size);
-  ((wabi_env)res)->data = (wabi_word) (res + WABI_ENV_SIZE);
-  store->heap += WABI_ENV_SIZE + size;
-}
-
 
 void
 wabi_env_collect_val(wabi_store store, wabi_env env)

@@ -22,6 +22,7 @@
 #include "wabi_map.h"
 #include "wabi_combiner.h"
 #include "wabi_value.h"
+#include "wabi_system.h"
 
 // #define WABI_VM_DEBUG 1
 
@@ -92,7 +93,7 @@ wabi_vm_init(wabi_vm vm, wabi_size store_size)
       vm->error = wabi_error_nomem;
       return;
     }
-    vm->fuel = WABI_VM_FILL_TANK;
+    vm->fuel = 0;
     vm->symbol_table = symbol_table;
     vm->nil = wabi_vm_nil(vm);
     vm->quote = wabi_symbol_new(vm, (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q"));
@@ -530,38 +531,25 @@ wabi_vm_reduce(wabi_vm vm)
 #define WABI_REDUCTIONS_LIMIT 1000000
 
 void
-wabi_vm_run(wabi_vm vm) {
-  wabi_size reductions;
+wabi_vm_run(wabi_vm vm, wabi_size fuel) {
+  vm->fuel = fuel;
+  vm->error = wabi_error_none;
 
-  reductions = WABI_REDUCTIONS_LIMIT;
   for(;;) {
-
-#ifdef WABI_VM_DEBUG
-    printf("mem: %lu/%lu\n", (vm->store.heap - vm->store.new_space), vm->store.size);
-    printf("c[%s]: ", wabi_tag_to_string(vm->control));
-    wabi_prn(vm->control);
-    printf("e: ");
-    wabi_prn(vm->env);
-    printf("k: ");
-    if(vm->continuation) wabi_prn(vm->continuation);
-    printf("r: %lu\n", WABI_REDUCTIONS_LIMIT - reductions);
-    printf("\n-----------------------------------------------\n");
-#endif
-    reductions--;
     wabi_vm_reduce(vm);
 
-    switch(vm->error) {
-    case wabi_error_nomem:
-      if(wabi_vm_collect(vm)) {
-        vm->error = wabi_error_none;
-        continue;
-      }
-    case wabi_error_none:
-      if(vm->continuation) continue;
-      return;
-    default:
+    if((wabi_cont) vm->continuation == wabi_cont_done) {
       return;
     }
+    if(vm->fuel < 0) {
+      vm->error = wabi_error_timeout;
+      return;
+    }
+    if(! vm->error)
+      continue;
+    if(vm->error == wabi_error_nomem && wabi_vm_collect(vm)) {
+      vm->error = wabi_error_none;
+      continue;
+    }
   }
-  vm->error = wabi_error_timeout;
 }
