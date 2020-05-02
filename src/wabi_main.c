@@ -24,8 +24,8 @@ main(int argc,
   char *buffer;
   long length;
 
-  sys.config.store_size = 2500000;
-  sys.config.fuel = 3000000;
+  sys.config.store_size = 25000000;
+  sys.config.fuel = 300000;
   sys.config.num_threads = get_nprocs() + 1;
 
   wabi_system_init(&sys);

@@ -60,6 +60,7 @@ wabi_env_set_expand(wabi_vm vm, wabi_env env)
   return wabi_error_nomem;
 }
 
+static wabi_size rnd = 0;
 
 static inline wabi_val
 wabi_env_lookup_local(wabi_env env, wabi_val k)
@@ -75,7 +76,7 @@ wabi_env_lookup_local(wabi_env env, wabi_val k)
     if(j >= WABI_ENV_LOW_LIMIT) {
       // this stuff moves the most recent visited symbols at the first part of the list
       // can a better algorithm be devised?
-      l = rand() % WABI_ENV_LOW_LIMIT;
+      rnd = l = (rnd+1) % WABI_ENV_LOW_LIMIT;
       sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
       sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
       *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE);
