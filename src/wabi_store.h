@@ -29,19 +29,14 @@ void
 wabi_store_destroy(wabi_store store);
 
 void
-wabi_store_collect_prepare(wabi_store store);
-
-wabi_word*
-wabi_store_copy_val(wabi_store store, wabi_word *src);
-
-int
-wabi_store_collect(wabi_store store);
+wabi_store_prepare(wabi_store store);
 
 
 static inline wabi_word*
 wabi_store_alloc(wabi_store store, wabi_size size)
 {
   wabi_word* res;
+
   if(store->heap + size < store->limit) {
     res = store->heap;
     store->heap += size;
@@ -60,37 +55,6 @@ static inline void*
 wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
 {
   return memcpy(dst, src, size * WABI_WORD_SIZE);
-}
-
-
-
-static inline void
-wabi_store_copy_val_size(wabi_store store, wabi_val obj, wabi_size size)
-{
-  wordcopy(store->heap, obj, size);
-  store->heap += size;
-}
-
-
-static inline void
-wabi_store_collect_val_size(wabi_store store, wabi_val obj, wabi_size size)
-{
-  wabi_size cnt;
-  wabi_word* pos;
-  wabi_word tag;
-
-  // reverse order, because the first word contains references to a kind of tail
-  // like pairs, the tail part is the first, byte, the same for continuations.
-  tag = WABI_WORD_TAG(*obj);
-  cnt = 0;
-  pos = obj + (size - 1);
-  while(cnt < size) {
-    *pos = (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(*pos));
-    cnt++;
-    pos--;
-  }
-  WABI_SET_TAG(obj, tag);
-  store->scan+= size;
 }
 
 #endif

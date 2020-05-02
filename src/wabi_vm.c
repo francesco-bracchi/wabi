@@ -44,26 +44,15 @@
 #include <stddef.h>
 #include "wabi_vm.h"
 #include "wabi_store.h"
-#include "wabi_cont.h"
-#include "wabi_combiner.h"
 #include "wabi_system.h"
-#include "wabi_value.h"
+#include "wabi_collect.h"
+#include "wabi_cont.h"
 #include "wabi_pair.h"
+#include "wabi_env.h"
+#include "wabi_combiner.h"
 #include "wabi_binary.h"
 #include "wabi_symbol.h"
-#include "wabi_env.h"
-#include "wabi_cmp.h"
-#include "wabi_number.h"
-#include "wabi_combiner.h"
-#include "wabi_store.h"
-#include "wabi_error.h"
-#include "wabi_cont.h"
-#include "wabi_env.h"
-#include "wabi_map.h"
-#include "wabi_combiner.h"
-#include "wabi_value.h"
 #include "wabi_constant.h"
-#include "wabi_system.h"
 
 
 static inline wabi_val
@@ -81,7 +70,8 @@ static inline wabi_val
 wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
 {
   wabi_binary_leaf bin;
-  wabi_symbol sym;
+  wabi_val sym;
+  int j = 0;
   bin = wabi_binary_leaf_new_from_cstring(vm, cstr);
   if(! bin) return NULL;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
@@ -94,8 +84,8 @@ wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
 static inline wabi_val
 wabi_vm_others(wabi_vm vm, wabi_val res)
 {
-
   res = wabi_vm_declare_other_sym(vm, "q", res);
+  if(! res) return NULL;
   res = wabi_vm_declare_other_sym(vm, "hmap", res);
   return res;
 }
@@ -119,6 +109,7 @@ wabi_vm_init(wabi_vm vm, wabi_size size)
   oth = wabi_vm_others(vm, nil);
   if(!oth) return 4;
 
+
   vm->ctrl = NULL;
   vm->env = NULL;
   vm->cont = (wabi_val) wabi_cont_done;
@@ -135,27 +126,21 @@ wabi_vm_init(wabi_vm vm, wabi_size size)
 int
 wabi_vm_collect(wabi_vm vm)
 {
-  wabi_store stor;
   int res;
-  stor = &(vm->stor);
-  wabi_store_collect_prepare(stor);
 
-  if(vm->ctrl) vm->ctrl = wabi_store_copy_val(stor, vm->ctrl);
-  if(vm->env) vm->env = wabi_store_copy_val(stor, vm->env);
-  if(vm->cont) vm->cont = wabi_store_copy_val(stor, vm->cont);
-  if(vm->prmt) vm->prmt = wabi_store_copy_val(stor, vm->prmt);
-  // TODO: use this: fix symbol collection
-  // vm->stbl = (wabi_val) wabi_map_empty(vm);
-  if(vm->stbl) vm->stbl = wabi_store_copy_val(stor, vm->stbl);
-  if(!vm->stbl) return 1;
-  if(vm->nil) vm->nil = wabi_store_copy_val(stor, vm->nil);
-  if(vm->oth) vm->oth = wabi_store_copy_val(stor, vm->oth);
+  wabi_store_prepare(&vm->stor);
 
-  res = wabi_store_collect(stor);
-  if(res) {
-    vm->ert = wabi_error_nomem;
-    return res;
-  }
+  if(vm->ctrl) vm->ctrl = wabi_copy_val(vm, vm->ctrl);
+  if(vm->env) vm->env = wabi_copy_val(vm, vm->env);
+  if(vm->cont) vm->cont = wabi_copy_val(vm, vm->cont);
+  if(vm->prmt) vm->prmt = wabi_copy_val(vm, vm->prmt);
+  /* vm->stbl = (wabi_val) wabi_map_empty(vm); */
+  /* if(!vm->stbl) return 1; */
+  if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
+  if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
+  if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);
+
+  wabi_collect(vm);
   vm->ert = wabi_error_none;
   return 0;
 }

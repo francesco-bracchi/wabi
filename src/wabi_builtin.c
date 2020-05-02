@@ -424,6 +424,7 @@ wabi_builtin_stdenv(wabi_vm vm)
 {
   wabi_error_type res;
   wabi_env env;
+
   env = wabi_env_new(vm);
 
   res = WABI_DEFX(vm, env, "def", "def", wabi_builtin_def);

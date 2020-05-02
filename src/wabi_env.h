@@ -5,9 +5,9 @@
 #include <stdint.h>
 
 #include "wabi_vm.h"
-#include "wabi_symbol.h"
 #include "wabi_error.h"
 #include "wabi_hash.h"
+#include "wabi_collect.h"
 
 typedef struct wabi_env_struct {
   wabi_word prev;
@@ -32,7 +32,7 @@ wabi_env
 wabi_env_extend(wabi_vm vm, wabi_env prev);
 
 wabi_error_type
-wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v);
+wabi_env_set(wabi_vm vm, wabi_env env, wabi_val k, wabi_val v);
 
 
 wabi_error_type
@@ -40,7 +40,7 @@ wabi_env_builtins(wabi_vm vm, wabi_env env);
 
 
 wabi_val
-wabi_env_lookup(wabi_env env, wabi_symbol k);
+wabi_env_lookup(wabi_env env, wabi_val k);
 
 
 static inline wabi_env
@@ -51,23 +51,23 @@ wabi_env_new(wabi_vm vm)
 
 
 static inline void
-wabi_env_copy_val(wabi_store store, wabi_env env)
+wabi_env_copy_val(wabi_vm vm, wabi_env env)
 {
   wabi_size size;
   wabi_word *res;
 
-  res = store->heap;
+  res = vm->stor.heap;
   size = env->numE * WABI_ENV_PAIR_SIZE;
   wordcopy(res, (wabi_word*) env, WABI_ENV_SIZE);
   wordcopy(res + WABI_ENV_SIZE, (wabi_word*) env->data, size);
   ((wabi_env)res)->data = (wabi_word) (res + WABI_ENV_SIZE);
-  store->heap += WABI_ENV_SIZE + size;
+  vm->stor.heap += WABI_ENV_SIZE + size;
 }
 
 
 
 void
-wabi_env_collect_val(wabi_store store, wabi_env env);
+wabi_env_collect_val(wabi_vm vm, wabi_env env);
 
 
 void

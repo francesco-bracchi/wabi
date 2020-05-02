@@ -153,7 +153,7 @@ wabi_binary_memcopy(char *dst, wabi_binary src) {
 
 
 void
-wabi_binary_copy_val(wabi_store store, wabi_binary src)
+wabi_binary_copy_val(wabi_vm vm, wabi_binary src)
 {
   wabi_size len, word_size;
 
@@ -161,10 +161,10 @@ wabi_binary_copy_val(wabi_store store, wabi_binary src)
   wabi_word *new_blob;
   len = wabi_binary_length((wabi_binary) src);
   word_size = wabi_binary_word_size(len);
-  new_leaf = (wabi_binary_leaf) store->heap;
-  store->heap += 2;
-  new_blob = (wabi_word *) store->heap;
-  store->heap += 1 + word_size;
+  new_leaf = (wabi_binary_leaf) vm->stor.heap;
+  vm->stor.heap += 2;
+  new_blob = (wabi_word *) vm->stor.heap;
+  vm->stor.heap += 1 + word_size;
   new_leaf->length = len;
   new_leaf->data_ptr = (wabi_word) (new_blob+1);
   *new_blob = 1 + word_size;
@@ -172,13 +172,6 @@ wabi_binary_copy_val(wabi_store store, wabi_binary src)
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
 
   wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
-}
-
-void
-wabi_binary_collect_val(wabi_store store, wabi_binary src)
-{
-  // once in the new heap all binaries are of leaf type
-  store->scan += WABI_BINARY_LEAF_SIZE;
 }
 
 

@@ -29,14 +29,13 @@
 #include "wabi_value.h"
 #include "wabi_env.h"
 #include "wabi_vm.h"
-#include "wabi_symbol.h"
 #include "wabi_map.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
 #include "wabi_hash.h"
 
 static inline void
-wabi_env_actually_set(wabi_env env, wabi_symbol k, wabi_val v)
+wabi_env_actually_set(wabi_env env, wabi_val k, wabi_val v)
 {
   *(((wabi_val) env->data) + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) k;
   *(((wabi_val) env->data) + 1 + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) v;
@@ -63,11 +62,10 @@ wabi_env_set_expand(wabi_vm vm, wabi_env env)
 
 
 static inline wabi_val
-wabi_env_lookup_local(wabi_env env, wabi_symbol k)
+wabi_env_lookup_local(wabi_env env, wabi_val k)
 {
   wabi_size j, l;
-  wabi_symbol k0;
-  wabi_val res;
+  wabi_val k0, res;
   wabi_word sk, sv;
 
   for(j = 0; j < env->numE; j++) {
@@ -92,7 +90,7 @@ wabi_env_lookup_local(wabi_env env, wabi_symbol k)
 
 
 wabi_error_type
-wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
+wabi_env_set(wabi_vm vm, wabi_env env, wabi_val k, wabi_val v)
 {
 
   wabi_error_type err;
@@ -109,7 +107,7 @@ wabi_env_set(wabi_vm vm, wabi_env env, wabi_symbol k, wabi_val v)
 
 
 wabi_val
-wabi_env_lookup(wabi_env env, wabi_symbol k)
+wabi_env_lookup(wabi_env env, wabi_val k)
 {
   wabi_val res;
   do {
@@ -153,22 +151,22 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
 
 
 void
-wabi_env_collect_val(wabi_store store, wabi_env env)
+wabi_env_collect_val(wabi_vm vm, wabi_env env)
 {
   wabi_size j;
   wabi_word *k, *v;
   if(WABI_WORD_VAL(env->prev)) {
-    env->prev = (wabi_word) wabi_store_copy_val(store, (wabi_val) WABI_WORD_VAL(env->prev));
+    env->prev = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(env->prev));
   }
   env->maxE = env->numE;
   for(j = 0; j < env->numE; j++) {
     k = ((wabi_val) env->data) + 2 * j;
     v = ((wabi_val) env->data) + 1 + 2 * j;
-    *k = (wabi_word) wabi_store_copy_val(store, (wabi_val) *k);
-    *v = (wabi_word) wabi_store_copy_val(store, (wabi_val) *v);
+    *k = (wabi_word) wabi_copy_val(vm, (wabi_val) *k);
+    *v = (wabi_word) wabi_copy_val(vm, (wabi_val) *v);
   }
   WABI_SET_TAG(env, wabi_tag_env);
-  store->scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
+  vm->stor.scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
 }
 
 /**

@@ -15,6 +15,7 @@
 #include "wabi_pair.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
+#include "wabi_collect.h"
 #include "wabi_env.h"
 #include "wabi_error.h"
 
@@ -120,46 +121,46 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont);
  */
 
 static inline void
-wabi_combiner_derived_copy_val(wabi_store store, wabi_combiner_derived c)
+wabi_combiner_derived_copy_val(wabi_vm vm, wabi_combiner_derived c)
 {
-  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
+  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
 }
 
 static inline void
-wabi_combiner_builtin_copy_val(wabi_store store, wabi_combiner_builtin c)
+wabi_combiner_builtin_copy_val(wabi_vm vm, wabi_combiner_builtin c)
 {
-  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_BUILTIN_SIZE);
+  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_BUILTIN_SIZE);
 }
 
 static inline void
-wabi_combiner_continuation_copy_val(wabi_store store, wabi_combiner_continuation c)
+wabi_combiner_continuation_copy_val(wabi_vm vm, wabi_combiner_continuation c)
 {
-  wabi_store_copy_val_size(store, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
+  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
 }
 
 
 static inline void
-wabi_combiner_derived_collect_val(wabi_store store, wabi_combiner_derived c)
+wabi_combiner_derived_collect_val(wabi_vm vm, wabi_combiner_derived c)
 {
-  wabi_store_collect_val_size(store, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
 }
 
 static inline void
-wabi_combiner_builtin_collect_val(wabi_store store, wabi_combiner_builtin c)
+wabi_combiner_builtin_collect_val(wabi_vm vm, wabi_combiner_builtin c)
 {
   ((wabi_combiner_builtin) c)->c_name =
-    (wabi_word) wabi_store_copy_val(store, (wabi_word*) ((wabi_combiner_builtin) c)->c_name);
+    (wabi_word) wabi_copy_val(vm, (wabi_word*) ((wabi_combiner_builtin) c)->c_name);
   if(((wabi_combiner_builtin) c)->c_xtra) {
     ((wabi_combiner_builtin) c)->c_xtra =
-      (wabi_word) wabi_store_copy_val(store, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_builtin) c)->c_ptr));
+      (wabi_word) wabi_copy_val(vm, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_builtin) c)->c_ptr));
   }
-  store->scan += WABI_COMBINER_BUILTIN_SIZE;
+  vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
 }
 
 static inline void
-wabi_combiner_continuation_collect_val(wabi_store store, wabi_combiner_continuation c)
+wabi_combiner_continuation_collect_val(wabi_vm vm, wabi_combiner_continuation c)
 {
-  wabi_store_collect_val_size(store, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
 }
 
 #endif

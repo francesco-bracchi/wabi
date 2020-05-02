@@ -4,7 +4,8 @@
 
 #include "wabi_vm.h"
 #include "wabi_value.h"
-#include "wabi_store.h"
+#include "wabi_map.h"
+#include "wabi_collect.h"
 
 #define WABI_SYMBOL_SIZE 1
 
@@ -21,9 +22,14 @@ wabi_symbol_to_binary(wabi_symbol sym)
 }
 
 
-static void
-wabi_symbol_copy_val(wabi_store store, wabi_symbol sym)
+static inline void
+wabi_symbol_copy_val(wabi_vm vm, wabi_symbol sym)
 {
-  wabi_store_copy_val_size(store, (wabi_val) sym, WABI_SYMBOL_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) sym, WABI_SYMBOL_SIZE);
 }
+
+
+void
+wabi_symbol_collect_val(wabi_vm vm, wabi_val sym);
+
 #endif

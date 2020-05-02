@@ -29,6 +29,8 @@ libwabi_la_SOURCES = \
 	wabi_queue.h \
 	wabi_system.h \
 	wabi_system.c \
+	wabi_collect.h \
+	wabi_collect.c \
 	wabi_store.h \
 	wabi_store.c \
 	wabi_io.h \

@@ -31,10 +31,13 @@ main(int argc,
   wabi_system_init(&sys);
 
   vm = wabi_system_new_vm(&sys);
-
+  if(! vm) {
+    fprintf(stderr, "Not enough memory!\n");
+    return 1;
+  }
   if(argc < 2) {
     fprintf(stderr, "usage: wabi <filename>\n");
-    return 1;
+    return 2;
   }
 
   FILE * f = fopen(argv[1], "rb");
@@ -45,11 +48,9 @@ main(int argc,
   fread(buffer, 1, length, f);
   buffer[length] = '\0';
   fclose (f);
-
   e0 = wabi_builtin_stdenv(vm);
   wabi_builtin_load(vm, e0, buffer);
   wabi_system_run(&sys, vm);
-
   wabi_system_wait(&sys);
   return (int) vm->ert;
 }

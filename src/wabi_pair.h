@@ -4,6 +4,7 @@
 
 #include "wabi_value.h"
 #include "wabi_vm.h"
+#include "wabi_collect.h"
 #include "wabi_env.h"
 #include "wabi_cmp.h"
 
@@ -47,15 +48,15 @@ wabi_cdr(wabi_pair pair)
 }
 
 static inline void
-wabi_pair_copy_val(wabi_store store, wabi_pair pair)
+wabi_pair_copy_val(wabi_vm vm, wabi_pair pair)
 {
-  wabi_store_copy_val_size(store, (wabi_val) pair, WABI_PAIR_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void
-wabi_pair_collect_val(wabi_store store, wabi_pair pair)
+wabi_pair_collect_val(wabi_vm vm, wabi_pair pair)
 {
-  wabi_store_collect_val_size(store, (wabi_val) pair, WABI_PAIR_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void

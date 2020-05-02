@@ -9,7 +9,6 @@
 #include "wabi_value.h"
 #include "wabi_env.h"
 #include "wabi_vm.h"
-#include "wabi_store.h"
 
 typedef struct wabi_cont_eval_struct {
   wabi_word next;
@@ -114,7 +113,7 @@ wabi_cont_push_eval(wabi_vm vm, wabi_cont next)
 
 
 static inline wabi_cont
-wabi_cont_push_prompt(wabi_vm vm, wabi_symbol tag, wabi_cont_prompt next_prompt, wabi_cont next)
+wabi_cont_push_prompt(wabi_vm vm, wabi_val tag, wabi_cont_prompt next_prompt, wabi_cont next)
 {
   wabi_cont_prompt cont;
 
@@ -249,101 +248,101 @@ wabi_cont_next(wabi_cont cont)
 
 
 static inline void
-wabi_cont_eval_copy_val(wabi_store store, wabi_cont_eval cont)
+wabi_cont_eval_copy_val(wabi_vm vm, wabi_cont_eval cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_EVAL_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_EVAL_SIZE);
 }
 
 static inline void
-wabi_cont_apply_copy_val(wabi_store store, wabi_cont_apply cont)
+wabi_cont_apply_copy_val(wabi_vm vm, wabi_cont_apply cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_APPLY_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_APPLY_SIZE);
 }
 
 static inline void
-wabi_cont_call_copy_val(wabi_store store, wabi_cont_call cont)
+wabi_cont_call_copy_val(wabi_vm vm, wabi_cont_call cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_CALL_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_CALL_SIZE);
 }
 
 static inline void
-wabi_cont_def_copy_val(wabi_store store, wabi_cont_def cont)
+wabi_cont_def_copy_val(wabi_vm vm, wabi_cont_def cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_DEF_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_DEF_SIZE);
 }
 
 static inline void
-wabi_cont_prog_copy_val(wabi_store store, wabi_cont_prog cont)
+wabi_cont_prog_copy_val(wabi_vm vm, wabi_cont_prog cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_PROG_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_PROG_SIZE);
 }
 
 static inline void
-wabi_cont_args_copy_val(wabi_store store, wabi_cont_args cont)
+wabi_cont_args_copy_val(wabi_vm vm, wabi_cont_args cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_ARGS_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_ARGS_SIZE);
 }
 
 static inline void
-wabi_cont_prompt_copy_val(wabi_store store, wabi_cont_prompt cont)
+wabi_cont_prompt_copy_val(wabi_vm vm, wabi_cont_prompt cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
 }
 
 static inline void
-wabi_cont_sel_copy_val(wabi_store store, wabi_cont_sel cont)
+wabi_cont_sel_copy_val(wabi_vm vm, wabi_cont_sel cont)
 {
-  wabi_store_copy_val_size(store, (wabi_val) cont, WABI_CONT_SEL_SIZE);
+  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_SEL_SIZE);
 }
 
 
 
 static inline void
-wabi_cont_eval_collect_val(wabi_store store, wabi_cont_eval cont)
+wabi_cont_eval_collect_val(wabi_vm vm, wabi_cont_eval cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_EVAL_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_EVAL_SIZE);
 }
 
 static inline void
-wabi_cont_apply_collect_val(wabi_store store, wabi_cont_apply cont)
+wabi_cont_apply_collect_val(wabi_vm vm, wabi_cont_apply cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_APPLY_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_APPLY_SIZE);
 }
 
 static inline void
-wabi_cont_call_collect_val(wabi_store store, wabi_cont_call cont)
+wabi_cont_call_collect_val(wabi_vm vm, wabi_cont_call cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_CALL_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_CALL_SIZE);
 }
 
 static inline void
-wabi_cont_def_collect_val(wabi_store store, wabi_cont_def cont)
+wabi_cont_def_collect_val(wabi_vm vm, wabi_cont_def cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_DEF_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_DEF_SIZE);
 }
 
 static inline void
-wabi_cont_prog_collect_val(wabi_store store, wabi_cont_prog cont)
+wabi_cont_prog_collect_val(wabi_vm vm, wabi_cont_prog cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_PROG_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_PROG_SIZE);
 }
 
 static inline void
-wabi_cont_args_collect_val(wabi_store store, wabi_cont_args cont)
+wabi_cont_args_collect_val(wabi_vm vm, wabi_cont_args cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_ARGS_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_ARGS_SIZE);
 }
 
 static inline void
-wabi_cont_prompt_collect_val(wabi_store store, wabi_cont_prompt cont)
+wabi_cont_prompt_collect_val(wabi_vm vm, wabi_cont_prompt cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
 }
 
 static inline void
-wabi_cont_sel_collect_val(wabi_store store, wabi_cont_sel cont)
+wabi_cont_sel_collect_val(wabi_vm vm, wabi_cont_sel cont)
 {
-  wabi_store_collect_val_size(store, (wabi_val) cont, WABI_CONT_SEL_SIZE);
+  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_SEL_SIZE);
 }
 
 void

@@ -4,7 +4,6 @@
 
 #include "wabi_value.h"
 #include "wabi_vm.h"
-#include "wabi_store.h"
 #include "wabi_hash.h"
 #include "wabi_env.h"
 
@@ -86,11 +85,15 @@ wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
 
 
 void
-wabi_binary_copy_val(wabi_store store, wabi_binary src);
+wabi_binary_copy_val(wabi_vm vm, wabi_binary src);
 
 
-void
-wabi_binary_collect_val(wabi_store store, wabi_binary src);
+static inline void
+wabi_binary_collect_val(wabi_vm vm, wabi_binary src)
+{
+  // once in the new heap all binaries are of leaf type
+  vm->stor.scan += WABI_BINARY_LEAF_SIZE;
+}
 
 
 void

@@ -8,6 +8,7 @@
 #include "wabi_pair.h"
 #include "wabi_binary.h"
 #include "wabi_error.h"
+#include "wabi_symbol.h"
 
 
 #define WABI_BUILTIN_WRAP1(name, fun)                           \
@@ -94,7 +95,7 @@
 #define WABI_DEFX(vm, env, name, btname, fun)                           \
   wabi_env_set(vm,                                                      \
                env,                                                     \
-               SYM(vm, name),                                           \
+               (wabi_val) SYM(vm, name),                                \
                (wabi_val) BTOPER(vm, btname, fun)                       \
                )
 
@@ -102,7 +103,7 @@
 #define WABI_DEFN(vm, env, name, btname, fun)                           \
   wabi_env_set(vm,                                                      \
                env,                                                     \
-               SYM(vm, name),                                           \
+               (wabi_val) SYM(vm, name),                                 \
                (wabi_val) BTAPP(vm, btname, fun)                        \
                )
 
@@ -110,7 +111,7 @@
 #define WABI_DEF(vm, env, name, val)                                    \
   wabi_env_set(vm,                                                      \
                env,                                                     \
-               SYM(vm, name),                                           \
+               (wabi_val) SYM(vm, name),                                 \
                (wabi_val) val                                           \
                )
 
