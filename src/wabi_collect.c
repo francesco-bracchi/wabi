@@ -16,7 +16,9 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   wabi_word* res;
   wabi_size size;
 
-  if(! src) return src;
+
+  if(!src || (src >= vm->stor.new_space && src < vm->stor.limit))
+    return src;
 
   res = vm->stor.heap;
   // printf("copy vm %p, val %p %s\n", vm, src, wabi_tag_to_string(src));

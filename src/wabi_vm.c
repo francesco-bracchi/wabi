@@ -130,12 +130,14 @@ wabi_vm_collect(wabi_vm vm)
 
   wabi_store_prepare(&vm->stor);
 
+  vm->stbl = (wabi_val) wabi_map_empty(vm);
+  if(!vm->stbl) return 1;
+  vm->stor.scan+=WABI_MAP_SIZE;
+
   if(vm->ctrl) vm->ctrl = wabi_copy_val(vm, vm->ctrl);
   if(vm->env) vm->env = wabi_copy_val(vm, vm->env);
   if(vm->cont) vm->cont = wabi_copy_val(vm, vm->cont);
   if(vm->prmt) vm->prmt = wabi_copy_val(vm, vm->prmt);
-  /* vm->stbl = (wabi_val) wabi_map_empty(vm); */
-  /* if(!vm->stbl) return 1; */
   if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
   if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
   if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);

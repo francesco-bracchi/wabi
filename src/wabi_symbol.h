@@ -32,4 +32,8 @@ wabi_symbol_copy_val(wabi_vm vm, wabi_symbol sym)
 void
 wabi_symbol_collect_val(wabi_vm vm, wabi_val sym);
 
+
+wabi_error_type
+wabi_symbol_builtins(wabi_vm vm, wabi_env env);
+
 #endif

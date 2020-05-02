@@ -5,6 +5,8 @@
 #include "wabi_vm.h"
 #include "wabi_symbol.h"
 #include "wabi_map.h"
+#include "wabi_cont.h"
+#include "wabi_builtin.h"
 
 static inline void
 wabi_symbol_set_stbl(wabi_vm vm, wabi_val binref, wabi_val sym) {
@@ -49,5 +51,45 @@ wabi_symbol_collect_val(wabi_vm vm, wabi_val sym)
   if(wabi_map_get((wabi_map) vm->stbl, binref))
     return;
 
-  // wabi_symbol_set_stbl(vm, binref, sym);
+  wabi_symbol_set_stbl(vm, binref, sym);
+}
+
+
+static inline wabi_error_type
+wabi_symbol_sym_p_bt(wabi_vm vm, wabi_val e) {
+  wabi_val res;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(res) {
+    *res = WABI_IS(wabi_tag_symbol, e) ? wabi_val_true : wabi_val_false;
+    vm->ctrl = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    return wabi_error_none;
+  }
+  return wabi_error_nomem;
+}
+
+WABI_BUILTIN_WRAP1(wabi_symbol_sym_p, wabi_symbol_sym_p_bt);
+
+
+wabi_error_type
+wabi_symbol_symbol_table(wabi_vm vm)
+{
+  vm->ctrl = vm->stbl;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_nomem;
+}
+
+
+wabi_error_type
+wabi_symbol_builtins(wabi_vm vm, wabi_env env)
+{
+  wabi_error_type res;
+  printf("0\n");
+  res = WABI_DEFN(vm, env, "sym?", "sym?", wabi_symbol_sym_p);
+  printf("0 %i\n", res);
+  if(res) return res;
+  printf("0\n");
+  res = WABI_DEFN(vm, env, "symbol-table", "symbol-table", wabi_symbol_symbol_table);
+  printf("0\n");
+  return res;
 }
