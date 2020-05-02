@@ -179,7 +179,7 @@ wabi_vm_reverse(wabi_vm vm,
 }
 
 
-inline static wabi_error_type
+static wabi_error_type
 wabi_vm_bind(wabi_vm vm,
              wabi_env env,
              wabi_val args,
@@ -598,6 +598,7 @@ wabi_vm_run(wabi_vm vm, wabi_size fuel) {
     }
     if(! vm->ert)
       continue;
+
     if(vm->ert == wabi_error_nomem && wabi_vm_collect(vm)) {
       vm->ert = wabi_error_none;
       continue;

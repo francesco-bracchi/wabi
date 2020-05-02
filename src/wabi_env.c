@@ -121,12 +121,10 @@ wabi_env_lookup(wabi_env env, wabi_val k)
 
 
 static inline wabi_word
-wabi_env_uid()
+wabi_env_uid(wabi_env env)
 {
-  wabi_word a,b;
-  a = (wabi_word) rand();
-  b = (wabi_word) rand();
-  return a << 32 | b;
+  static wabi_word wabi_env_cnt = 0;
+  return ((wabi_word) env) ^ (++wabi_env_cnt);
 }
 
 wabi_env
@@ -136,7 +134,7 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
   res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
   if(res) {
     res->prev = (wabi_word) prev;
-    res->uid = wabi_env_uid();
+    res->uid = wabi_env_uid(res);
     res->numE = 0;
     res->maxE = WABI_ENV_INITIAL_SIZE;
     res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
