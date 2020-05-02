@@ -15,7 +15,7 @@
   name(wabi_vm vm)                                              \
   {                                                             \
     wabi_val ctrl, x;                                           \
-    ctrl = vm->control;                                         \
+    ctrl = vm->ctrl;                                         \
     if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \
@@ -32,7 +32,7 @@
   name(wabi_vm vm)                                              \
   {                                                             \
     wabi_val ctrl, x, y;                                        \
-    ctrl = vm->control;                                         \
+    ctrl = vm->ctrl;                                         \
     if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \
@@ -53,7 +53,7 @@
   name(wabi_vm vm)                                              \
   {                                                             \
     wabi_val ctrl, x, y, z;                                     \
-    ctrl = vm->control;                                         \
+    ctrl = vm->ctrl;                                         \
     if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
       x = wabi_car((wabi_pair) ctrl);                           \
       ctrl = wabi_cdr((wabi_pair) ctrl);                        \

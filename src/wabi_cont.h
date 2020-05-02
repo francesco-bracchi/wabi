@@ -220,7 +220,6 @@ wabi_cont_push_def(wabi_vm vm, wabi_env env, wabi_val pattern, wabi_cont next)
     cont->env = (wabi_word) env;
     cont->pattern = (wabi_word) pattern;
     WABI_SET_TAG(cont, wabi_tag_cont_def);
-    vm->continuation = (wabi_val) cont;
   }
   return (wabi_cont) cont;
 }

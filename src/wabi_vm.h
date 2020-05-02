@@ -6,20 +6,43 @@
 #include "wabi_store.h"
 #include "wabi_error.h"
 
+#include <stdio.h>
+
 typedef wabi_val wabi_control;
 
 typedef struct wabi_vm_struct {
-  wabi_val control;
-  wabi_val env;
-  wabi_val continuation;
-  wabi_val prompt;
-  wabi_val symbol_table;
-  wabi_val nil;
-  wabi_val quote;
-  wabi_val hmap;
-  wabi_store_t store;
-  wabi_size fuel;
-  wabi_error_type error;
+  /** control register, where the the object of the action lies **/
+  wabi_val        ctrl;
+
+  /** environment register, the vocabulary (i.e. the Code) that should be used to execute the command **/
+  wabi_val        env;
+
+  /** Continuation register it's similar to the stack. Can comprise different action types **/
+  wabi_val        cont;
+
+  /** Another register that references the latest prompt, used to accelerate the `control` operator **/
+  wabi_val        prmt;
+
+  /** Symbol table: used to avoid repetitions in symbols **/
+  wabi_val        stbl;
+
+  /** Since is used everywere it's worth to have here **/
+  wabi_val        nil;
+
+  /** Values (i.e. symbols) we want in any case **/
+  wabi_val        oth;
+
+  /** Store is the heap where VM values lie **/
+  wabi_store_t    stor;
+
+  /** Number of reductions the VM has to do before interrupting **/
+  wabi_size       fuel;
+
+  /** Error value, holds extra information in case of error **/
+  wabi_val        erv;
+
+  /** Error type see `wabi_errors.h` **/
+  wabi_error_type ert;
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;
@@ -27,8 +50,8 @@ typedef wabi_vm_t* wabi_vm;
 void
 wabi_vm_run(wabi_vm vm, wabi_word fuel);
 
-void
-wabi_vm_init(wabi_vm vm, wabi_size store_size);
+int
+wabi_vm_init(wabi_vm vm, wabi_size size);
 
 void
 wabi_vm_destroy(wabi_vm vm);
@@ -42,9 +65,7 @@ wabi_vm_collect(wabi_vm vm);
 static inline wabi_word*
 wabi_vm_alloc(wabi_vm vm, wabi_size size)
 {
-  wabi_store store;
-  store = &(vm->store);
-  return wabi_store_alloc(store, size);
+  return wabi_store_alloc(&vm->stor, size);
 }
 
 #endif

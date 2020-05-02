@@ -207,8 +207,8 @@ wabi_env_p_bt(wabi_vm vm, wabi_val e0)
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     *res = WABI_IS(wabi_tag_env, e0) ? wabi_val_true : wabi_val_false;
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-    vm->control = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->ctrl = res;
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -226,8 +226,8 @@ wabi_env_extend_bt(wabi_vm vm, wabi_val e0)
   if(! res)
     return wabi_error_nomem;
 
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-  vm->control = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->ctrl = res;
   return wabi_error_none;
 }
 

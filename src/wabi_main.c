@@ -18,19 +18,19 @@ int
 main(int argc,
      char* argv[])
 {
-
+  wabi_system_t sys;
   wabi_vm vm;
   wabi_env e0;
   char *buffer;
   long length;
-  wabi_system_config_t config;
 
-  config.store_size = 2500000;
-  config.fuel = 3000000;
-  config.num_threads = get_nprocs() + 1;
+  sys.config.store_size = 2500000;
+  sys.config.fuel = 3000000;
+  sys.config.num_threads = get_nprocs() + 1;
 
-  wabi_system_init(&config);
-  vm = wabi_system_new_vm();
+  wabi_system_init(&sys);
+
+  vm = wabi_system_new_vm(&sys);
 
   if(argc < 2) {
     fprintf(stderr, "usage: wabi <filename>\n");
@@ -48,8 +48,8 @@ main(int argc,
 
   e0 = wabi_builtin_stdenv(vm);
   wabi_builtin_load(vm, e0, buffer);
-  wabi_system_run(vm);
+  wabi_system_run(&sys, vm);
 
-  wabi_system_wait();
-  return (int) vm->error;
+  wabi_system_wait(&sys);
+  return (int) vm->ert;
 }

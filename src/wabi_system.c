@@ -18,40 +18,43 @@
 static inline void
 wabi_system_error_signal(wabi_vm vm)
 {
-  printf("ERROR IN A VM: %s\n", wabi_error_name(vm->error));
+  printf("ERROR IN A VM: %s\n", wabi_error_name(vm->ert));
 }
 
 
 static inline void
-wabi_system_inc_vmc() {
-  pthread_mutex_lock(&wabi_sys.vmlock);
-  wabi_sys.vmcnt++;
-  pthread_mutex_unlock(&wabi_sys.vmlock);
+wabi_system_inc_vmc(wabi_system sys) {
+  pthread_mutex_lock(&sys->rts.vmlock);
+  sys->rts.vmcnt++;
+  pthread_mutex_unlock(&sys->rts.vmlock);
 }
 
 
 static inline void
-wabi_system_dec_vmc() {
-  pthread_mutex_lock(&wabi_sys.vmlock);
-  wabi_sys.vmcnt--;
-  if(wabi_sys.vmcnt <= 0)
-    pthread_cond_signal(&wabi_sys.vmcond);
-  pthread_mutex_unlock(&wabi_sys.vmlock);
+wabi_system_dec_vmc(wabi_system sys) {
+  pthread_mutex_lock(&sys->rts.vmlock);
+  sys->rts.vmcnt--;
+  if(sys->rts.vmcnt <= 0)
+    pthread_cond_signal(&sys->rts.vmcond);
+  pthread_mutex_unlock(&sys->rts.vmlock);
 }
 
 
 void*
 wabi_system_consume_queue(void* args) {
+  wabi_system sys;
+  sys = (wabi_system) args;
+
   for(;;) {
-    wabi_vm vm = wabi_queue_deq(&wabi_sys.vm_queue);
-    wabi_vm_run(vm, wabi_sys.config.fuel);
-    switch(vm->error) {
+    wabi_vm vm = wabi_queue_deq(&sys->rts.vm_queue);
+    wabi_vm_run(vm, sys->config.fuel);
+    switch(vm->ert) {
     case wabi_error_timeout:
-      wabi_queue_enq(&wabi_sys.vm_queue, vm);
+      wabi_queue_enq(&sys->rts.vm_queue, vm);
       break;
     case wabi_error_none:
       wabi_vm_destroy(vm);
-      wabi_system_dec_vmc();
+      wabi_system_dec_vmc(sys);
       free(vm);
       break;
     default:
@@ -62,60 +65,62 @@ wabi_system_consume_queue(void* args) {
 
 
 void
-wabi_system_init(wabi_system_config config)
+wabi_system_init(wabi_system sys)
 {
   wabi_word t;
 
-  wabi_sys.config = *config;
-  wabi_queue_init(&(wabi_sys.vm_queue));
-  wabi_sys.threads = (pthread_t*) malloc(config->num_threads * sizeof(pthread_t));
-  for(t = 0; t < config->num_threads; t++) {
-    pthread_create(wabi_sys.threads + t, NULL, &wabi_system_consume_queue, NULL);
+  wabi_queue_init(&sys->rts.vm_queue);
+  sys->rts.threads = (pthread_t*) malloc(sys->config.num_threads * sizeof(pthread_t));
+  for(t = 0; t < sys->config.num_threads; t++) {
+    pthread_create(sys->rts.threads + t, NULL, &wabi_system_consume_queue, sys);
   }
-  pthread_mutex_init(&wabi_sys.vmlock, NULL);
-  pthread_cond_init(&wabi_sys.vmcond, NULL);
-  wabi_sys.vmcnt = 0;
+  pthread_mutex_init(&sys->rts.vmlock, NULL);
+  pthread_cond_init(&sys->rts.vmcond, NULL);
+  sys->rts.vmcnt = 0;
 }
 
 
 void
-wabi_system_destroy()
+wabi_system_destroy(wabi_system sys)
 {
-  // todo: wait until the queue is empty and all the threads are waiting for condvar
   wabi_word t;
+  wabi_system_wait(sys);
 
-  wabi_queue_destroy(&(wabi_sys.vm_queue));
+  wabi_queue_destroy(&sys->rts.vm_queue);
 
-  pthread_mutex_destroy(&wabi_sys.vmlock);
-  pthread_cond_destroy(&wabi_sys.vmcond);
+  pthread_mutex_destroy(&sys->rts.vmlock);
+  pthread_cond_destroy(&sys->rts.vmcond);
 
-  for(t = 0; t < wabi_sys.config.num_threads; t++)
-    pthread_cancel(*(wabi_sys.threads + t));
-  free(wabi_sys.threads);
+  for(t = 0; t < sys->config.num_threads; t++)
+    pthread_cancel(*(sys->rts.threads + t));
+  free(sys->rts.threads);
 }
 
 wabi_vm
-wabi_system_new_vm()
+wabi_system_new_vm(wabi_system sys)
 {
-  wabi_vm vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  wabi_vm_init(vm, wabi_sys.config.store_size);
+  int j;
+  wabi_vm vm;
+  vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
+  if(j = wabi_vm_init(vm, sys->config.store_size)) {
+    return NULL;
+  }
   return vm;
 }
 
 
 void
-wabi_system_run(wabi_vm vm) {
-  printf("wabi_system_run\n");
-  wabi_system_inc_vmc();
-  wabi_queue_enq(&wabi_sys.vm_queue, vm);
+wabi_system_run(wabi_system sys, wabi_vm vm) {
+  wabi_system_inc_vmc(sys);
+  wabi_queue_enq(&sys->rts.vm_queue, vm);
 }
 
 
 void
-wabi_system_wait()
+wabi_system_wait(wabi_system sys)
 {
-  pthread_mutex_lock(&wabi_sys.vmlock);
-  while(wabi_sys.vmcnt > 0)
-    pthread_cond_wait(&wabi_sys.vmcond, &wabi_sys.vmlock);
-  pthread_mutex_unlock(&wabi_sys.vmlock);
+  pthread_mutex_lock(&sys->rts.vmlock);
+  while(sys->rts.vmcnt > 0)
+    pthread_cond_wait(&sys->rts.vmcond, &sys->rts.vmlock);
+  pthread_mutex_unlock(&sys->rts.vmlock);
 }

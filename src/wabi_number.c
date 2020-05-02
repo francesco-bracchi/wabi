@@ -32,7 +32,7 @@ wabi_number_builtin_sum(wabi_vm vm)
   wabi_val a, ctrl;
 
   ac = 0L;
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
@@ -44,8 +44,8 @@ wabi_number_builtin_sum(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-      vm->control = a;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->ctrl = a;
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -61,7 +61,7 @@ wabi_number_builtin_mul(wabi_vm vm)
   wabi_val a, ctrl;
 
   ac = 1L;
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
@@ -73,8 +73,8 @@ wabi_number_builtin_mul(wabi_vm vm)
     if(a) {
       *a = ac& wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-      vm->control = a;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->ctrl = a;
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -89,7 +89,7 @@ wabi_number_builtin_diff(wabi_vm vm)
   long ac;
   wabi_val a, ctrl;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     return wabi_error_bindings;
@@ -103,8 +103,8 @@ wabi_number_builtin_diff(wabi_vm vm)
     if(! a) return wabi_error_nomem;
     *a = (- ac) & wabi_word_value_mask;
     WABI_SET_TAG(a, wabi_tag_fixnum);
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-    vm->control = a;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->ctrl = a;
     return wabi_error_none;
   }
 
@@ -118,8 +118,8 @@ wabi_number_builtin_diff(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-      vm->control = a;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->ctrl = a;
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -134,7 +134,7 @@ wabi_number_builtin_div(wabi_vm vm)
   long x, ac;
   wabi_val a, ctrl;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     return wabi_error_bindings;
@@ -157,8 +157,8 @@ wabi_number_builtin_div(wabi_vm vm)
     if(a) {
       *a = ac & wabi_word_value_mask;
       WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-      vm->control = a;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->ctrl = a;
       return wabi_error_none;
     }
     return wabi_error_nomem;

@@ -31,15 +31,15 @@ wabi_builtin_def_bt(wabi_vm vm, wabi_val ps, wabi_val e)
   wabi_env env;
   wabi_cont cont;
 
-  env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
-  cont = wabi_cont_next((wabi_cont) vm->continuation);
+  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
+  cont = wabi_cont_next((wabi_cont) vm->cont);
   cont = wabi_cont_push_def(vm, env, ps, cont);
   if(cont) {
     cont = wabi_cont_push_eval(vm, cont);
     if(cont) {
-      vm->control = e;
+      vm->ctrl = e;
       vm->env = (wabi_val) env;
-      vm->continuation = (wabi_val) cont;
+      vm->cont = (wabi_val) cont;
       return wabi_error_none;
     }
   }
@@ -57,12 +57,12 @@ wabi_builtin_if(wabi_vm vm)
   wabi_val ctrl, h, i, l, self;
   wabi_cont cont;
 
-  ctrl = vm->control;
-  self = (wabi_val) ((wabi_cont_call) vm->continuation)->combiner;
-  env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
+  ctrl = vm->ctrl;
+  self = (wabi_val) ((wabi_cont_call) vm->cont)->combiner;
+  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
 
   if(*ctrl == wabi_val_nil) {
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
     return wabi_error_none;
   }
   if(WABI_IS(wabi_tag_pair, ctrl)) {
@@ -70,11 +70,11 @@ wabi_builtin_if(wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
 
     if(*ctrl == wabi_val_nil) {
-      cont = wabi_cont_next((wabi_cont) vm->continuation);
+      cont = wabi_cont_next((wabi_cont) vm->cont);
       cont = wabi_cont_push_eval(vm, cont);
       if(cont) {
-        vm->control = h;
-        vm->continuation = (wabi_val) cont;
+        vm->ctrl = h;
+        vm->cont = (wabi_val) cont;
         vm->env = (wabi_val) env;
         return wabi_error_none;
       }
@@ -83,15 +83,15 @@ wabi_builtin_if(wabi_vm vm)
     if(WABI_IS(wabi_tag_pair, ctrl)) {
       i = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
-      cont = wabi_cont_next((wabi_cont) vm->continuation);
+      cont = wabi_cont_next((wabi_cont) vm->cont);
       l = (wabi_val) wabi_cons(vm, self, ctrl);
       cont = wabi_cont_push_sel(vm, env, i, l, cont);
       if(cont) {
         cont = wabi_cont_push_eval(vm, cont);
         if(cont) {
-          vm->control = h;
+          vm->ctrl = h;
           vm->env = (wabi_val) env;
-          vm->continuation = (wabi_val) cont;
+          vm->cont = (wabi_val) cont;
           return wabi_error_none;
         }
       }
@@ -108,7 +108,7 @@ wabi_builtin_if(wabi_vm vm)
 /*   wabi_val ctrl, t, l, r; */
 /*   wabi_cont cont; */
 
-/*   ctrl = vm->control; */
+/*   ctrl = vm->ctrl; */
 /*   if(WABI_IS(wabi_tag_pair, ctrl)) { */
 /*     t = wabi_car((wabi_pair) ctrl); */
 /*     ctrl = wabi_cdr((wabi_pair) ctrl); */
@@ -119,15 +119,15 @@ wabi_builtin_if(wabi_vm vm)
 /*         r = wabi_car((wabi_pair) ctrl); */
 /*         ctrl = wabi_cdr((wabi_pair) ctrl); */
 /*         if(*ctrl == wabi_val_nil) { */
-/*           env = (wabi_env) ((wabi_cont_call) vm->continuation)->env; */
-/*           cont = wabi_cont_next((wabi_cont) vm->continuation); */
+/*           env = (wabi_env) ((wabi_cont_call) vm->cont)->env; */
+/*           cont = wabi_cont_next((wabi_cont) vm->cont); */
 /*           cont = wabi_cont_push_sel(vm, env, l, r, cont); */
 /*           if(cont) { */
 /*             cont = wabi_cont_push_eval(vm, cont); */
 /*             if(cont) { */
-/*               vm->control = t; */
+/*               vm->ctrl = t; */
 /*               vm->env = (wabi_val) env; */
-/*               vm->continuation = (wabi_val) cont; */
+/*               vm->cont = (wabi_val) cont; */
 /*               return wabi_error_none; */
 /*             } */
 /*           } */
@@ -180,16 +180,16 @@ wabi_builtin_load(wabi_vm vm, wabi_env env, char* str)
   es = wabi_builtin_reverse(vm, es);
   cont = NULL;
   if(es) {
-    if(vm->continuation) {
-      cont = wabi_cont_next((wabi_cont) vm->continuation);
+    if(vm->cont) {
+      cont = wabi_cont_next((wabi_cont) vm->cont);
     }
     cont = wabi_cont_push_prog(vm, env, wabi_cdr((wabi_pair) es), cont);
     if(cont) {
       cont = wabi_cont_push_eval(vm, cont);
       if(cont) {
-        vm->control = wabi_car((wabi_pair) es);
+        vm->ctrl = wabi_car((wabi_pair) es);
         vm->env = (wabi_val) env;
-        vm->continuation = (wabi_val) cont;
+        vm->cont = (wabi_val) cont;
         return wabi_error_none;
       }
     }
@@ -203,7 +203,7 @@ wabi_builtin_eq(wabi_vm vm)
 {
   wabi_val ctrl, res, l, r;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     if(WABI_IS(wabi_tag_pair, ctrl)) {
@@ -214,15 +214,15 @@ wabi_builtin_eq(wabi_vm vm)
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(wabi_cmp(l, r)) {
           *res = wabi_val_false;
-          vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-          vm->control = res;
+          vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+          vm->ctrl = res;
           return wabi_error_none;
         }
       }
       if(*ctrl == wabi_val_nil) {
         *res = wabi_val_true;
-        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-        vm->control = res;
+        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+        vm->ctrl = res;
         return wabi_error_none;
       }
     }
@@ -237,7 +237,7 @@ wabi_builtin_gt(wabi_vm vm)
 {
   wabi_val ctrl, res, l, r;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     if(WABI_IS(wabi_tag_pair, ctrl)) {
@@ -248,15 +248,15 @@ wabi_builtin_gt(wabi_vm vm)
         ctrl = wabi_cdr((wabi_pair) ctrl);
         if(wabi_cmp(l, r) < 0) {
           *res = wabi_val_false;
-          vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-          vm->control = res;
+          vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+          vm->ctrl = res;
           return wabi_error_none;
         }
       }
       if(*ctrl == wabi_val_nil) {
         *res = wabi_val_true;
-        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-        vm->control = res;
+        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+        vm->ctrl = res;
         return wabi_error_none;
       }
     }
@@ -271,14 +271,14 @@ wabi_builtin_pr(wabi_vm vm)
 {
   wabi_val ctrl;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   while(WABI_IS(wabi_tag_pair, ctrl)) {
-    vm->control = wabi_car((wabi_pair) ctrl);
-    wabi_pr(vm->control);
+    vm->ctrl = wabi_car((wabi_pair) ctrl);
+    wabi_pr(vm->ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(WABI_IS(wabi_tag_pair, ctrl)) printf(" ");
   }
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   printf("\n");
   return wabi_error_none;
 }
@@ -290,12 +290,12 @@ wabi_builtin_eval_bt(wabi_vm vm, wabi_val e, wabi_val x)
 {
   wabi_cont cont;
   if(WABI_IS(wabi_tag_env, e)) {
-    cont = wabi_cont_next((wabi_cont) vm->continuation);
+    cont = wabi_cont_next((wabi_cont) vm->cont);
     cont = wabi_cont_push_eval(vm, cont);
     if(cont) {
-      vm->control = x;
+      vm->ctrl = x;
       vm->env = (wabi_val) e;
-      vm->continuation = (wabi_val) cont;
+      vm->cont = (wabi_val) cont;
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -311,31 +311,31 @@ wabi_builtin_do(wabi_vm vm)
   wabi_env env;
   wabi_cont cont;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   if(WABI_IS(wabi_tag_pair, ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(*ctrl == wabi_val_nil) {
-      env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
-      cont = wabi_cont_next((wabi_cont) vm->continuation);
+      env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
+      cont = wabi_cont_next((wabi_cont) vm->cont);
       cont = wabi_cont_push_eval(vm, cont);
       if(! cont) return wabi_error_nomem;
-      vm->control = a;
+      vm->ctrl = a;
       vm->env = (wabi_val) env;
-      vm->continuation = (wabi_val) cont;
+      vm->cont = (wabi_val) cont;
       return wabi_error_none;
     }
     if(WABI_IS(wabi_tag_pair, ctrl)) {
-      env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
-      cont = wabi_cont_next((wabi_cont) vm->continuation);
+      env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
+      cont = wabi_cont_next((wabi_cont) vm->cont);
       cont = wabi_cont_push_prog(vm, env, ctrl, cont);
       if(cont) {
         cont = wabi_cont_push_eval(vm, cont);
         if(cont) {
-          vm->control = a;
+          vm->ctrl = a;
           vm->env = (wabi_val) env;
-          vm->continuation = (wabi_val) cont;
+          vm->cont = (wabi_val) cont;
           return wabi_error_none;
         }
       }
@@ -356,14 +356,14 @@ wabi_builtin_clock(wabi_vm vm)
   wabi_val res;
   clock_t t;
 
-  if(*(vm->control) == wabi_val_nil) {
+  if(*(vm->ctrl) == wabi_val_nil) {
     t = clock();
     res = wabi_vm_alloc(vm, 1);
     if(res) {
       *res = (t * 1000000 / CLOCKS_PER_SEC) & wabi_word_value_mask;
       WABI_SET_TAG(res, wabi_tag_fixnum);
-      vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);;
       return wabi_error_none;
     }
     return wabi_error_nomem;
@@ -378,8 +378,8 @@ wabi_builtin_not_bt(wabi_vm vm, wabi_val e) {
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     *res = (*e == wabi_val_false || *e == wabi_val_nil) ? wabi_val_true : wabi_val_false;
-    vm->control = res;
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->ctrl = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -394,8 +394,8 @@ wabi_builtin_sym_qmark_bt(wabi_vm vm, wabi_val e) {
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(res) {
     *res = WABI_IS(wabi_tag_symbol, e) ? wabi_val_true : wabi_val_false;
-    vm->control = res;
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->ctrl = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -410,8 +410,8 @@ wabi_builtin_hash_bt(wabi_vm vm, wabi_val v) {
   if(res) {
     *res = wabi_hash(v);
     WABI_SET_TAG(res, wabi_tag_fixnum);
-    vm->control = res;
-    vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+    vm->ctrl = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
     return wabi_error_none;
   }
   return wabi_error_nomem;
@@ -424,7 +424,6 @@ wabi_builtin_stdenv(wabi_vm vm)
 {
   wabi_error_type res;
   wabi_env env;
-
   env = wabi_env_new(vm);
 
   res = WABI_DEFX(vm, env, "def", "def", wabi_builtin_def);
@@ -445,7 +444,6 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "hash", "hash", wabi_builtin_hash);
   if(res) return NULL;
-
   res = wabi_constant_builtins(vm, env);
   if(res) return NULL;
   res = wabi_combiner_builtins(vm, env);
@@ -464,6 +462,5 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_map_builtins(vm, env);
   if(res) return NULL;
-
   return env;
 }

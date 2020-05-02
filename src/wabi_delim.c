@@ -13,7 +13,7 @@ wabi_cont_prompt_bt(wabi_vm vm)
   wabi_val fst, ctrl, tag;
   wabi_cont cont, prmt;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
 
@@ -24,10 +24,10 @@ wabi_cont_prompt_bt(wabi_vm vm)
 
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
+  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
 
-  cont = wabi_cont_next((wabi_cont) vm->continuation);
-  prmt = cont = wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt) vm->prompt, cont);
+  cont = wabi_cont_next((wabi_cont) vm->cont);
+  prmt = cont = wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt) vm->prmt, cont);
 
   if(! cont) return wabi_error_nomem;
 
@@ -38,9 +38,9 @@ wabi_cont_prompt_bt(wabi_vm vm)
   cont = wabi_cont_push_eval(vm, cont);
   if(! cont) return wabi_error_nomem;
 
-  vm->control = fst;
-  vm->continuation = (wabi_val) cont;
-  vm->prompt = (wabi_val) prmt;
+  vm->ctrl = fst;
+  vm->cont = (wabi_val) cont;
+  vm->prmt = (wabi_val) prmt;
   return wabi_error_none;
 }
 
@@ -55,7 +55,7 @@ wabi_cont_control_bt(wabi_vm vm)
   wabi_combiner kval;
   wabi_error_type err;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   if(! WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
 
   tag = wabi_car((wabi_pair) ctrl);
@@ -75,12 +75,12 @@ wabi_cont_control_bt(wabi_vm vm)
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  env = (wabi_env) ((wabi_cont_call) vm->continuation)->env;
+  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
   env = wabi_env_extend(vm, env);
   if(!env) return wabi_error_nomem;
 
-  cont = wabi_cont_next((wabi_cont) vm->continuation);
-  prompt = (wabi_cont_prompt) vm->prompt;
+  cont = wabi_cont_next((wabi_cont) vm->cont);
+  prompt = (wabi_cont_prompt) vm->prmt;
 
   kval = wabi_combiner_continuation_new(vm, cont);
 
@@ -106,10 +106,10 @@ wabi_cont_control_bt(wabi_vm vm)
 
   cont = wabi_cont_push_eval(vm, cont);
   if(! cont) return wabi_error_nomem;
-  vm->control = fst;
+  vm->ctrl = fst;
   vm->env = (wabi_val) env;
-  vm->continuation = (wabi_val) cont;
-  vm->prompt = (wabi_val) wabi_cont_prompt_next_prompt(prompt);
+  vm->cont = (wabi_val) cont;
+  vm->prmt = (wabi_val) wabi_cont_prompt_next_prompt(prompt);
 
   prompt->tag = (wabi_word) vm->nil;
   prompt->next_prompt = (wabi_word) wabi_cont_done;

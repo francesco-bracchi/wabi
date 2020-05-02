@@ -57,7 +57,6 @@ wabi_binary_leaf_new_from_cstring(wabi_vm vm, char* cstring)
   leaf = wabi_binary_leaf_new(vm, size);
   if(leaf)
     memcpy((char *) leaf->data_ptr, cstring, size);
-
   return leaf;
 }
 
@@ -300,7 +299,7 @@ wabi_binary_concat_builtin(wabi_vm vm)
   wabi_val a, ctrl;
   wabi_binary res;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   res = (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, "");
   if(! res) return wabi_error_nomem;
@@ -318,8 +317,8 @@ wabi_binary_concat_builtin(wabi_vm vm)
   if(*ctrl != wabi_val_nil) {
     return wabi_error_bindings;
   }
-  vm->control = (wabi_val) res;
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  vm->ctrl = (wabi_val) res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_nomem;
 }
 
@@ -340,8 +339,8 @@ wabi_binary_sub_bt(wabi_vm vm, wabi_val bin, wabi_val from, wabi_val len)
     if(f >= 0L && f < l0 && l >= 0L && l < l0 - f) {
       res = (wabi_val) wabi_binary_sub(vm, (wabi_binary) bin, f, l);
       if(res) {
-        vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
-        vm->control = res;
+        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+        vm->ctrl = res;
         return wabi_error_none;
       }
       return wabi_error_nomem;
@@ -359,8 +358,8 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
     if(res) {
       *res = wabi_binary_length((wabi_binary) bin);
       WABI_SET_TAG(res, wabi_tag_fixnum);
-      vm->control = res;
-      vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return wabi_error_none;
     }
     return wabi_error_nomem;

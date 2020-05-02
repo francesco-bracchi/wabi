@@ -794,7 +794,7 @@ wabi_map_builtin_hmap(wabi_vm vm)
   //  (get (hmap "a") "a") -> `nil`
   wabi_val ctrl, k, v;
   wabi_map res;
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   res = wabi_map_empty(vm);
   if(! res) return wabi_error_nomem;
 
@@ -810,8 +810,8 @@ wabi_map_builtin_hmap(wabi_vm vm)
       return wabi_error_bindings;
     }
   }
-  vm->control = (wabi_val) res;
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  vm->ctrl = (wabi_val) res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_none;
 }
 
@@ -820,7 +820,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 {
   wabi_val ctrl, k, v;
   wabi_map res;
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     return wabi_error_bindings;
   }
@@ -847,8 +847,8 @@ wabi_map_builtin_assoc(wabi_vm vm)
       return wabi_error_bindings;
     }
   }
-  vm->control = (wabi_val) res;
-  vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation);
+  vm->ctrl = (wabi_val) res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_none;
 }
 
@@ -857,7 +857,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /* { */
 /*   wabi_val ctrl, k, v; */
 /*   wabi_map res; */
-/*   ctrl = vm->control; */
+/*   ctrl = vm->ctrl; */
 /*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
 /*     return wabi_error_bindings; */
 /*   } */
@@ -869,7 +869,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /*     res = wabi_map_dissoc(vm, res, k); */
 /*     if(!res) return wabi_error_nomem; */
 /*   } */
-/*   vm->control = (wabi_val) res; */
+/*   vm->ctrl = (wabi_val) res; */
 /*   return wabi_error_none; */
 /* } */
 
@@ -878,7 +878,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /* { */
 /*   wabi_val ctrl, k; */
 /*   wabi_map res; */
-/*   ctrl = vm->control; */
+/*   ctrl = vm->ctrl; */
 /*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
 /*     return wabi_error_bindings; */
 /*   } */
@@ -890,7 +890,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /*     res = wabi_map_dissoc(vm, res, k); */
 /*     if(!res) return wabi_error_nomem; */
 /*   } */
-/*   vm->control = (wabi_val) res; */
+/*   vm->ctrl = (wabi_val) res; */
 /*   return wabi_error_none; */
 /* } */
 
@@ -898,7 +898,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /* wabi_map_builtin_map_p(wabi_vm vm) */
 /* { */
 /*   wabi_val res, hmap, ctrl; */
-/*   ctrl = vm->control; */
+/*   ctrl = vm->ctrl; */
 /*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
 /*     return wabi_error_bindings; */
 /*   } */
@@ -919,8 +919,8 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /*     if(! res) return wabi_error_nomem; */
 /*     *res = wabi_val_false; */
 /*   } */
-/*   vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation); */
-/*   vm->control = res; */
+/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
+/*   vm->ctrl = res; */
 /*   return wabi_error_none; */
 /* } */
 
@@ -928,7 +928,7 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /* wabi_map_builtin_len(wabi_vm vm) */
 /* { */
 /*   wabi_val res, hmap, ctrl; */
-/*   ctrl = vm->control; */
+/*   ctrl = vm->ctrl; */
 /*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
 /*     return wabi_error_bindings; */
 /*   } */
@@ -943,8 +943,8 @@ wabi_map_builtin_assoc(wabi_vm vm)
 /*   case wabi_tag_map_entry: */
 /*     res = wabi_fixnum_new(vm,wabi_map_length(hmap)); */
 /*     if(! res) return wabi_error_nomem; */
-/*     vm->continuation = (wabi_val) wabi_cont_next((wabi_cont) vm->continuation); */
-/*     vm->control = res; */
+/*     vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
+/*     vm->ctrl = res; */
 /*     return wabi_error_none; */
 /*   default: */
 /*     return wabi_error_type_mismatch; */

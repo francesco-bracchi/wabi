@@ -136,14 +136,20 @@ wabi_reader_read_map(wabi_vm vm, char** c)
 static inline wabi_val
 wabi_reader_read_quote(wabi_vm vm, char** c)
 {
-  wabi_val a, x;
+  wabi_val a, x, bin, sym;
   wabi_reader_ws(c);
   a = wabi_reader_read_val(vm, c);
   if(! a) return NULL;
   wabi_reader_ws(c);
   x = (wabi_val) wabi_cons(vm, a, vm->nil);
   if(!x) return NULL;
-  return (wabi_val) wabi_cons(vm, vm->quote, x);
+
+  bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q");
+  if(! bin) return NULL;
+  sym = (wabi_val) wabi_symbol_new(vm, bin);
+  if(! sym) return NULL;
+
+  return (wabi_val) wabi_cons(vm, sym, x);
 }
 
 
@@ -244,6 +250,8 @@ wabi_reader_neg(wabi_val num)
 wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)
 {
+  wabi_val bin, sym;
+
   wabi_reader_ws(c);
   if(**c == '!') {
     (*c)++;
@@ -259,7 +267,11 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   }
   if(**c == '{') {
     (*c)++;
-    return (wabi_val) wabi_cons(vm, vm->hmap, wabi_reader_read_map(vm, c));
+    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap");
+    if(! bin) return NULL;
+    sym = (wabi_val) wabi_symbol_new(vm, bin);
+    if(! sym) return NULL;
+    return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_map(vm, c));
   }
   if(wabi_reader_is_num(**c)) {
     return wabi_reader_read_num(vm, c);

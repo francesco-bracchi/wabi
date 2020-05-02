@@ -23,19 +23,18 @@ wabi_store_init(wabi_store store,
 {
   wabi_word *new_space = malloc(size * WABI_WORD_SIZE);
   wabi_word *old_space = malloc(size * WABI_WORD_SIZE);
-  if(new_space
-     && old_space
-     && (new_space + size <= wabi_store_limit)
-     && (old_space + size <= wabi_store_limit)) {
-    memset(new_space, 0, size * WABI_WORD_SIZE);
-    memset(old_space, 0, size * WABI_WORD_SIZE);
-    store->new_space = new_space;
-    store->limit = new_space + size;
-    store->heap = new_space;
-    store->size = size;
-    store->old_space = old_space;
-    return 1;
-  }
+  if(! new_space) return 1;
+  if(! old_space) return 2;
+  if(new_space + size >= wabi_store_limit) return 3;
+  if(old_space + size >= wabi_store_limit) return 4;
+
+  memset(new_space, 0, size * WABI_WORD_SIZE);
+  memset(old_space, 0, size * WABI_WORD_SIZE);
+  store->new_space = new_space;
+  store->limit = new_space + size;
+  store->heap = new_space;
+  store->size = size;
+  store->old_space = old_space;
   return 0;
 }
 
@@ -55,7 +54,7 @@ wabi_store_copy_val(wabi_store store, wabi_word *src)
   wabi_size size;
 
   if(! src) return src;
-  // printf("copy %s\n", wabi_tag_to_string(store->heap));
+
   res = store->heap;
   switch(WABI_TAG(src)) {
 

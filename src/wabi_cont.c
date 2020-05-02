@@ -122,21 +122,21 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
 
   wabi_val ctrl, fst;
 
-  ctrl = vm->control;
+  ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    vm->error = wabi_error_type_mismatch;
+    vm->ert = wabi_error_type_mismatch;
     return;
   }
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   if(!wabi_is_nil(ctrl)) {
-    vm->error = wabi_error_type_mismatch;
+    vm->ert = wabi_error_type_mismatch;
     return;
   }
   new_cont = (wabi_cont) wabi_cont_copy(vm, cont);
   if(! new_cont) {
-    vm->error = wabi_error_nomem;
+    vm->ert = wabi_error_nomem;
     return;
   }
   res_cont = new_cont;
@@ -151,7 +151,7 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
     cont = wabi_cont_next(cont);
     new_cont = wabi_cont_copy(vm, cont);
     if(! new_cont) {
-      vm->error = wabi_error_nomem;
+      vm->ert = wabi_error_nomem;
       return;
     }
     if(new_prev_cont) new_prev_cont->next = ((wabi_word) new_cont) | WABI_TAG(prev_cont);
@@ -163,16 +163,16 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
       if(! res_prompt) res_prompt = new_prompt;
     }
   }
-  right_cont = wabi_cont_next((wabi_cont) vm->continuation);
-  right_prompt = (wabi_cont_prompt) vm->prompt;
+  right_cont = wabi_cont_next((wabi_cont) vm->cont);
+  right_prompt = (wabi_cont_prompt) vm->prmt;
 
   new_cont->next = (wabi_word) right_cont | WABI_TAG(new_cont);
 
-  vm->control = fst;
-  vm->continuation = (wabi_val) res_cont;
+  vm->ctrl = fst;
+  vm->cont = (wabi_val) res_cont;
   if(new_prompt) {
     new_prompt->next_prompt = (wabi_word) right_prompt;
-    vm->prompt = (wabi_val) res_prompt;
+    vm->prmt = (wabi_val) res_prompt;
   }
   return;
 }

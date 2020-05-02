@@ -6,6 +6,7 @@
 #include "wabi_value.h"
 #include "wabi_error.h"
 
+#define WABI_CONSTANT_SIZE 1
 
 wabi_error_type
 wabi_constant_builtins(wabi_vm vm, wabi_env env);

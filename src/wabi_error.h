@@ -16,6 +16,7 @@ typedef enum wabi_error_type_enum {
   wabi_error_done = 255
 } wabi_error_type;
 
+
 static inline char*
 wabi_error_name(wabi_error_type e) {
   switch(e) {
