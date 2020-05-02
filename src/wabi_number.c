@@ -87,24 +87,25 @@ wabi_error_type
 wabi_number_builtin_diff(wabi_vm vm)
 {
   long ac;
-  wabi_val a, ctrl;
+  wabi_val a, res, ctrl;
 
   ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     return wabi_error_bindings;
   }
+  res = wabi_vm_alloc(vm, 1);
+  if(! res) return wabi_error_nomem;
+
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
   if(*ctrl == wabi_val_nil) {
-    a = wabi_vm_alloc(vm, 1);
-    if(! a) return wabi_error_nomem;
-    *a = (- ac) & wabi_word_value_mask;
-    WABI_SET_TAG(a, wabi_tag_fixnum);
+    *res = (- ac) & wabi_word_value_mask;
+    WABI_SET_TAG(res, wabi_tag_fixnum);
     vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = a;
+    vm->ctrl = res;
     return wabi_error_none;
   }
 
@@ -114,15 +115,11 @@ wabi_number_builtin_diff(wabi_vm vm)
     ac -= WABI_CAST_INT64(a);
   }
   if(*ctrl == wabi_val_nil) {
-    a = wabi_vm_alloc(vm, 1);
-    if(a) {
-      *a = ac & wabi_word_value_mask;
-      WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = a;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    *res = ac & wabi_word_value_mask;
+    WABI_SET_TAG(res, wabi_tag_fixnum);
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->ctrl = res;
+    return wabi_error_none;
   }
   return wabi_error_bindings;
 }
@@ -132,13 +129,16 @@ wabi_error_type
 wabi_number_builtin_div(wabi_vm vm)
 {
   long x, ac;
-  wabi_val a, ctrl;
+  wabi_val a, ctrl, res;
 
   ctrl = vm->ctrl;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     return wabi_error_bindings;
   }
+  res = wabi_vm_alloc(vm, 1);
+  if(! res) return wabi_error_nomem;
+
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
@@ -153,15 +153,12 @@ wabi_number_builtin_div(wabi_vm vm)
     ac /= x;
   }
   if(*ctrl == wabi_val_nil) {
-    a = wabi_vm_alloc(vm, 1);
-    if(a) {
-      *a = ac & wabi_word_value_mask;
-      WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = a;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    res = wabi_vm_alloc(vm, 1);
+    *res = ac & wabi_word_value_mask;
+    WABI_SET_TAG(a, wabi_tag_fixnum);
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->ctrl = res;
+    return wabi_error_none;
   }
   return wabi_error_bindings;
 }

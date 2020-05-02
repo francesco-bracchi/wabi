@@ -131,6 +131,9 @@ wabi_cmp_eq_builtin(wabi_vm vm)
   if(!WABI_IS(wabi_tag_pair, ctrl))
     return wabi_error_bindings;
 
+  res = wabi_vm_alloc(vm, 1);
+  if(!res) return wabi_error_nomem;
+
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
@@ -138,8 +141,6 @@ wabi_cmp_eq_builtin(wabi_vm vm)
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b)) {
-      res = wabi_vm_alloc(vm, 1);
-      if(!res) return wabi_error_nomem;
 
       *res = wabi_val_false;
       vm->ctrl = res;
@@ -148,8 +149,6 @@ wabi_cmp_eq_builtin(wabi_vm vm)
     }
   }
   if(*ctrl == wabi_val_nil) {
-    res = wabi_vm_alloc(vm, 1);
-    if(! res) return wabi_error_nomem;
     *res = wabi_val_true;
     vm->ctrl = res;
     vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
