@@ -14,8 +14,6 @@
 #include "wabi_cont.h"
 #include "wabi_pr.h"
 
-#define WABI_VM_FILL_TANK 100000
-
 int
 main(int argc,
      char* argv[])

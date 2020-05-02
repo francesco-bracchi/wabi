@@ -1,3 +1,10 @@
+/**
+ * Builds a wabi system.
+ * a process can have just one wabi system (aka `wabi_sys`
+ *
+ * TODO:
+ * VMs Pooling: min_vm_pool_size, max_vm_pool_size
+ */
 #define wabi_system_c
 
 #include "wabi_system.h"

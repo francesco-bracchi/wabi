@@ -2,6 +2,11 @@
 
 #define wabi_io_h
 
-int wabi_loop(wabi_system sys);
+int
+wabi_io_init();
+
+
+
+
 
 #endif
