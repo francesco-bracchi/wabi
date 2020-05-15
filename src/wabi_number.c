@@ -152,15 +152,17 @@ wabi_number_builtin_div(wabi_vm vm)
     }
     ac /= x;
   }
-  if(*ctrl == wabi_val_nil) {
-    res = wabi_vm_alloc(vm, 1);
-    *res = ac & wabi_word_value_mask;
-    WABI_SET_TAG(a, wabi_tag_fixnum);
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_bindings;
+  if(*ctrl != wabi_val_nil)
+    return wabi_error_bindings;
+
+  res = wabi_vm_alloc(vm, 1);
+  if(! res) return wabi_error_nomem;
+
+  *res = ac & wabi_word_value_mask;
+  WABI_SET_TAG(a, wabi_tag_fixnum);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->ctrl = res;
+  return wabi_error_none;
 }
 
 

@@ -84,12 +84,8 @@ wabi_error_type
 wabi_symbol_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-  printf("0\n");
   res = WABI_DEFN(vm, env, "sym?", "sym?", wabi_symbol_sym_p);
-  printf("0 %i\n", res);
   if(res) return res;
-  printf("0\n");
   res = WABI_DEFN(vm, env, "symbol-table", "symbol-table", wabi_symbol_symbol_table);
-  printf("0\n");
   return res;
 }

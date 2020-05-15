@@ -22,6 +22,8 @@ libwabi_la_SOURCES = \
 	wabi_map.c \
 	wabi_env.h \
 	wabi_env.c \
+	wabi_place.h \
+	wabi_place.c \
 	wabi_delim.h \
 	wabi_delim.c \
 	wabi_combiner.h \

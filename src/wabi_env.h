@@ -65,7 +65,6 @@ wabi_env_copy_val(wabi_vm vm, wabi_env env)
 }
 
 
-
 void
 wabi_env_collect_val(wabi_vm vm, wabi_env env);
 

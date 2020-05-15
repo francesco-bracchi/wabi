@@ -9,6 +9,7 @@
 #include "wabi_env.h"
 #include "wabi_combiner.h"
 #include "wabi_cont.h"
+#include "wabi_place.h"
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
@@ -93,6 +94,9 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
     wabi_cont_hash(state, (wabi_cont) val);
+    return;
+  case wabi_tag_place:
+    wabi_place_hash(state, (wabi_place) val);
     return;
   }
   state->err = 1;

@@ -392,6 +392,9 @@ wabi_pr(wabi_val val) {
   case wabi_tag_ct_oper:
     wabi_pr_cont_combiner((wabi_combiner_continuation) val);
     break;
+  case wabi_tag_place:
+    printf("place");
+    break;
   default:
     printf("unknown %lx", *val);
   }

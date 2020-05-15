@@ -29,7 +29,6 @@ main(int argc,
   sys.config.num_threads = get_nprocs() + 1;
 
   wabi_system_init(&sys);
-
   vm = wabi_system_new_vm(&sys);
   if(! vm) {
     fprintf(stderr, "Not enough memory!\n");

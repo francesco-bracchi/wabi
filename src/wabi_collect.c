@@ -9,6 +9,7 @@
 #include "wabi_env.h"
 #include "wabi_cont.h"
 #include "wabi_combiner.h"
+#include "wabi_place.h"
 
 wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
@@ -108,6 +109,10 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   case wabi_tag_ct_oper:
     wabi_combiner_continuation_copy_val(vm, (wabi_combiner_continuation) src);
     break;
+
+  case wabi_tag_place:
+    wabi_place_copy_val(vm, (wabi_place) src);
+    break;
   }
 
   *src = (wabi_word) res;
@@ -202,6 +207,10 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
 
   case wabi_tag_cont_sel:
     wabi_cont_sel_collect_val(vm, (wabi_cont_sel) val);
+    break;
+
+  case wabi_tag_place:
+    wabi_place_collect_val(vm, (wabi_place) val);
     break;
 
   case wabi_tag_forward:

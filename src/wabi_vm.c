@@ -81,6 +81,7 @@ wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
   return res;
 }
 
+
 static inline wabi_val
 wabi_vm_others(wabi_vm vm, wabi_val res)
 {
@@ -127,7 +128,6 @@ int
 wabi_vm_collect(wabi_vm vm)
 {
   int res;
-
   wabi_store_prepare(&vm->stor);
 
   vm->stbl = (wabi_val) wabi_map_empty(vm);
@@ -578,8 +578,6 @@ wabi_vm_reduce(wabi_vm vm)
   return;
 }
 
-
-#define WABI_REDUCTIONS_LIMIT 1000000
 
 void
 wabi_vm_run(wabi_vm vm, wabi_size fuel) {

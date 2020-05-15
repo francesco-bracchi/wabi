@@ -6,7 +6,7 @@
  * 2. concatenate
  * 3. subsequence
  *
- * Binaries are represneted as "strings", altough they do no carry information
+ * Binaries are represented as "strings", altough they do no carry information
  * about the encoding.
  */
 
@@ -23,6 +23,7 @@
 #include "wabi_builtin.h"
 #include "wabi_error.h"
 #include "wabi_env.h"
+#include "wabi_constant.h"
 
 wabi_binary_leaf
 wabi_binary_leaf_new(wabi_vm vm, wabi_size size)
@@ -32,18 +33,17 @@ wabi_binary_leaf_new(wabi_vm vm, wabi_size size)
 
   word_size = wabi_binary_word_size(size);
   blob = (wabi_word*) wabi_vm_alloc(vm, word_size + 1);
-  if(blob) {
-    *blob = word_size + 1;
-    WABI_SET_TAG(blob, wabi_tag_bin_blob);
+  if(! blob) return NULL;
 
-    leaf = (wabi_binary_leaf) wabi_vm_alloc(vm, WABI_BINARY_LEAF_SIZE);
-    leaf->length = size;
-    leaf->data_ptr = (wabi_word) blob;
-    WABI_SET_TAG(leaf, wabi_tag_bin_leaf);
+  *blob = word_size + 1;
+  WABI_SET_TAG(blob, wabi_tag_bin_blob);
 
-    return leaf;
-  }
-  return NULL;
+  leaf = (wabi_binary_leaf) wabi_vm_alloc(vm, WABI_BINARY_LEAF_SIZE);
+  leaf->length = size;
+  leaf->data_ptr = (wabi_word) blob;
+  WABI_SET_TAG(leaf, wabi_tag_bin_leaf);
+
+  return leaf;
 }
 
 
@@ -361,6 +361,34 @@ wabi_binary_length_bt(wabi_vm vm, wabi_val bin)
 }
 
 
+static wabi_error_type
+wabi_binary_bin_q_bultin(wabi_vm vm)
+{
+  wabi_val res, ctrl, val;
+
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(!res) return wabi_error_nomem;
+
+  ctrl = vm->ctrl;
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    val = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(!wabi_binary_p(val)) {
+      *res = wabi_val_false;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return wabi_error_none;
+    }
+  }
+  if(wabi_is_nil(ctrl)) {
+    *res = wabi_val_true;
+    vm->ctrl = res;
+    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    return wabi_error_none;
+  }
+  return wabi_error_bindings;
+}
+
 WABI_BUILTIN_WRAP1(wabi_binary_length_builtin, wabi_binary_length_bt);
 WABI_BUILTIN_WRAP3(wabi_binary_sub_builtin, wabi_binary_sub_bt);
 
@@ -369,7 +397,8 @@ wabi_error_type
 wabi_binary_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
-
+  res = WABI_DEFN(vm, env, "bin?", "bin?", wabi_binary_bin_q_bultin);
+  if(res) return res;
   res = WABI_DEFN(vm, env, "blen", "blen", wabi_binary_length_builtin);
   if(res) return res;
   res = WABI_DEFN(vm, env, "bcat", "bcat", wabi_binary_concat_builtin);

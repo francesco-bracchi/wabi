@@ -70,13 +70,14 @@ wabi_system_init(wabi_system sys)
   wabi_word t;
 
   wabi_queue_init(&sys->rts.vm_queue);
+  pthread_mutex_init(&sys->rts.vmlock, NULL);
+  pthread_cond_init(&sys->rts.vmcond, NULL);
+  sys->rts.vmcnt = 0;
+
   sys->rts.threads = (pthread_t*) malloc(sys->config.num_threads * sizeof(pthread_t));
   for(t = 0; t < sys->config.num_threads; t++) {
     pthread_create(sys->rts.threads + t, NULL, &wabi_system_consume_queue, sys);
   }
-  pthread_mutex_init(&sys->rts.vmlock, NULL);
-  pthread_cond_init(&sys->rts.vmcond, NULL);
-  sys->rts.vmcnt = 0;
 }
 
 
@@ -99,12 +100,10 @@ wabi_system_destroy(wabi_system sys)
 wabi_vm
 wabi_system_new_vm(wabi_system sys)
 {
-  int j;
   wabi_vm vm;
   vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  if(j = wabi_vm_init(vm, sys->config.store_size)) {
+  if(wabi_vm_init(vm, sys->config.store_size))
     return NULL;
-  }
   return vm;
 }
 

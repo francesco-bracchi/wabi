@@ -24,7 +24,7 @@
 #include "wabi_map.h"
 #include "wabi_hash.h"
 #include "wabi_symbol.h"
-
+#include "wabi_place.h"
 
 wabi_error_type
 wabi_builtin_def_bt(wabi_vm vm, wabi_val ps, wabi_val e)
@@ -404,6 +404,22 @@ wabi_builtin_hash_bt(wabi_vm vm, wabi_val v) {
 
 WABI_BUILTIN_WRAP1(wabi_builtin_hash, wabi_builtin_hash_bt);
 
+
+
+wabi_error_type
+wabi_builtin_language0(wabi_vm vm)
+{
+  wabi_val res;
+  if(*vm->ctrl != wabi_val_nil)  return wabi_error_bindings;
+
+  res = (wabi_val) wabi_builtin_stdenv(vm);
+  if(! res) return wabi_error_nomem;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
 wabi_env
 wabi_builtin_stdenv(wabi_vm vm)
 {
@@ -448,5 +464,8 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_symbol_builtins(vm, env);
   if(res) return NULL;
+  res = wabi_place_builtins(vm, env);
+  if(res) return NULL;
+  res = WABI_DEFN(vm, env, "l0", "l0", wabi_builtin_language0);
   return env;
 }

@@ -32,6 +32,14 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
+     ("(\\(defg\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
+      (1 font-lock-keyword-face)
+      (2 font-lock-function-name-face))
+
+     ("(\\(defm\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
+      (1 font-lock-keyword-face)
+      (2 font-lock-function-name-face))
+
      ("(\\(prompt\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
@@ -101,9 +109,14 @@
      ("(\\(take\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
      ("(\\(nil\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
      ("(\\(pair\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     ("(\\(bin\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     ("(\\(num\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     ("(\\(map\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
      ("(\\(sym\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
      ("(\\(env\\^)[ \r\n\t()]]" 1 font-lock-builtin-face)
      ("(\\(num\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     ("(\\(gen\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     ("(\\(export\\)[ \r\n\t()]" 1 font-lock-builtin-face)
      )))
 
 (defun wabi-indent ()
@@ -113,6 +126,8 @@
   (put 'def 'lisp-indent-function 1)
   (put 'defn 'lisp-indent-function 'defun)
   (put 'defx 'lisp-indent-function 3)
+  (put 'defg 'lisp-indent-function 1)
+  (put 'defm 'lisp-indent-function 3)
   (put 'shift 'lisp-indent-function 1)
   (put 'when 'lisp-indent-function 1)
   (put 'when-not 'lisp-indent-function 1)

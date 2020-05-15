@@ -72,7 +72,6 @@ wabi_pair_p_bt(wabi_vm vm, wabi_val pair)
   return wabi_error_nomem;
 }
 
-
 WABI_BUILTIN_WRAP1(wabi_pair_builtin_car, wabi_pair_car_bt);
 WABI_BUILTIN_WRAP1(wabi_pair_builtin_cdr, wabi_pair_cdr_bt);
 WABI_BUILTIN_WRAP2(wabi_pair_builtin_cons, wabi_pair_cons_bt);

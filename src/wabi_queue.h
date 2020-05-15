@@ -61,18 +61,20 @@ wabi_queue_destroy(wabi_queue queue)
 static inline void
 wabi_queue_enq(wabi_queue queue, wabi_vm vm)
 {
-  wabi_queue_elem elem;
+  wabi_queue_elem elem, tail;
   pthread_mutex_lock(&queue->lock);
   if(queue->size) {
     queue->size++;
     elem = queue->tail;
-    queue->tail = (wabi_queue_elem) malloc(sizeof(wabi_queue_elem));
-    elem->next = queue->tail;
-    queue->tail->vm = vm;
+    tail = (wabi_queue_elem) malloc(sizeof(wabi_queue_elem_t));
+    tail->vm = vm;
+    tail->next = NULL;
+    queue->tail = tail;
   } else  {
-    queue->head = queue->tail = (wabi_queue_elem) malloc(sizeof(wabi_queue_elem));
-    queue->head->vm = vm;
-    queue->head->next = NULL;
+    tail = (wabi_queue_elem) malloc(sizeof(wabi_queue_elem_t));
+    tail->vm = vm;
+    tail->next = NULL;
+    queue->head = queue->tail = tail;
     queue->size = 1;
   }
   pthread_cond_signal(&queue->cond);

@@ -12,6 +12,7 @@
 #include "wabi_cont.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
+#include "wabi_place.h"
 #include "wabi_cmp.h"
 
 
@@ -93,6 +94,8 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
     return wabi_cont_cmp((wabi_cont) a, (wabi_cont) b);
+  case wabi_tag_place:
+    return wabi_place_cmp((wabi_place) a, (wabi_place) b);
   default:
     return *a - *b;
   }

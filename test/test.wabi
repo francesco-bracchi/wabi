@@ -215,15 +215,19 @@
   (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
   (eval e1 (list* do xs)))
 
+;; (defn comp
+;;     fs
+;;   (if
+;;    (nil? fs) id
+;;    (nil? (cdr fs)) (car fs)
+;;    (nil? (cdr (cdr fs))) (do (def f (car fs))
+;;                              (def g (car (cdr fs)))
+;;                              (fn (a) (f (g a))))
+;;    (fold comp (car fs) (cdr fs))))
+
 (defn comp
     fs
-  (if
-   (nil? fs) id
-   (nil? (cdr fs)) (car fs)
-   (nil? (cdr (cdr fs))) (do (def f (car fs))
-                             (def g (car (cdr fs)))
-                             (fn (a) (f (g a))))
-   (fold comp (car fs) (cdr fs))))
+  (fold (fn (f g) (fn (x) (f (g x)))) id fs))
 
 (def inc
   (part + 1))
@@ -388,6 +392,17 @@
     (list* defn !me
            !them
            (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
+
+
+(defn plc-swap
+    (p f . as)
+  "run the function f against the place content p until it succeeds.
+   extra arguments are placed in as"
+  (rec plc-swap (old (plc-deref p))
+    (let (new (apply f (list* old as)))
+      (if
+       (plc-cas p old new) new
+       (plc-swap (plc-deref plc))))))
 
 
 (defn insp
@@ -691,4 +706,16 @@
 
 ;; (time (each #(fib 24) (ran 100)))
 
-(time (fib 35))
+;; (time (fib 35))
+
+(pr l0)
+
+(pr (l0))
+
+(def x (plc 10))
+
+(pr (plc-deref x))
+
+(plc-swap x + 100)
+
+(pr (plc-deref x))
