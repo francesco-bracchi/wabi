@@ -2,8 +2,6 @@
 
 #define wabi_place_h
 
-#include <pthread.h>
-
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
@@ -16,7 +14,6 @@ typedef struct wabi_place_struct
 {
   wabi_word uid;
   wabi_word val;
-  pthread_mutex_t lock;
 } wabi_place_t;
 
 typedef wabi_place_t* wabi_place;

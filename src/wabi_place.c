@@ -1,6 +1,5 @@
 #define wabi_place_c
 
-#include <pthread.h>
 #include <stdio.h>
 
 #include "wabi_place.h"
@@ -27,7 +26,6 @@ wabi_place_new(wabi_vm vm, wabi_val init)
   if(place) {
     place->uid = wabi_place_uid(place);
     place->val = (wabi_word) init;
-    pthread_mutex_init(&place->lock, NULL);
     WABI_SET_TAG(place, wabi_tag_place);
   }
   return place;
@@ -86,7 +84,7 @@ wabi_place_plc_p(wabi_vm vm)
 }
 
 static wabi_error_type
-wabi_place_plc_deref(wabi_vm vm)
+wabi_place_plc_val(wabi_vm vm)
 {
   wabi_val ctrl;
   wabi_place plc;
@@ -144,17 +142,7 @@ wabi_place_plc_cas(wabi_vm vm)
   res = (wabi_val) wabi_vm_alloc(vm, 1);
   if(! res) return wabi_error_nomem;
 
-  pthread_mutex_lock(&plc->lock);
-
-  val = wabi_place_val(plc);
-  if(wabi_eq(val, old)) {
-    wabi_place_val_set(plc, new);
-    *res = wabi_val_true;
-  } else {
-    *res = wabi_val_false;
-  }
-
-  pthread_mutex_unlock(&plc->lock);
+  *res = __sync_bool_compare_and_swap (&plc->val, old, new) ? wabi_val_true : wabi_val_false;
 
   vm->ctrl = res;
   vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
@@ -170,7 +158,7 @@ wabi_place_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "plc?", "plc", wabi_place_plc_p);
   if(res) return res;
-  res = WABI_DEFN(vm, env, "plc-deref", "plc-deref", wabi_place_plc_deref);
+  res = WABI_DEFN(vm, env, "plc-val", "plc-val", wabi_place_plc_val);
   if(res) return res;
   res = WABI_DEFN(vm, env, "plc-cas", "plc-cas", wabi_place_plc_cas);
   return res;

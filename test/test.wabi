@@ -394,15 +394,27 @@
            (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
 
 
+(defx defp
+    e (n i)
+  "binds a variable to a place `(defp x 10)"
+  (eval e
+    (list def n (list plc i))))
+
+
 (defn plc-swap
     (p f . as)
   "run the function f against the place content p until it succeeds.
    extra arguments are placed in as"
-  (rec plc-swap (old (plc-deref p))
+  (rec plc-swap (old (plc-val p))
     (let (new (apply f (list* old as)))
       (if
        (plc-cas p old new) new
-       (plc-swap (plc-deref plc))))))
+       (plc-swap (plc-val plc))))))
+
+
+(defn plc-reset
+    (p v)
+  (plc-swap p (always v)))
 
 
 (defn insp
@@ -412,6 +424,7 @@
    (nil? as) nil
    (nil? (cdr as)) (car as)
    as))
+
 
 ;; TESTS
 
@@ -708,14 +721,5 @@
 
 ;; (time (fib 35))
 
-(pr l0)
 
-(pr (l0))
-
-(def x (plc 10))
-
-(pr (plc-deref x))
-
-(plc-swap x + 100)
-
-(pr (plc-deref x))
+(test (let () (defp x 10) (plc-swap x + 100) (plc-val x)) 110)

@@ -48,17 +48,13 @@ wabi_system_consume_queue(void* args) {
   for(;;) {
     wabi_vm vm = wabi_queue_deq(&sys->rts.vm_queue);
     wabi_vm_run(vm, sys->config.fuel);
-    switch(vm->ert) {
-    case wabi_error_timeout:
-      wabi_queue_enq(&sys->rts.vm_queue, vm);
-      break;
-    case wabi_error_none:
+    if(vm->ert == wabi_error_timeout) {
+       wabi_queue_enq(&sys->rts.vm_queue, vm);
+    } else {
+      if(vm->ert) wabi_system_error_signal(vm);
       wabi_vm_destroy(vm);
       wabi_system_dec_vmc(sys);
       free(vm);
-      break;
-    default:
-      wabi_system_error_signal(vm);
     }
   }
 }

@@ -40,8 +40,7 @@
  */
 #define wabi_vm_c
 
-#include <stdint.h>
-#include <stddef.h>
+#include <stdio.h>
 #include "wabi_vm.h"
 #include "wabi_store.h"
 #include "wabi_system.h"
@@ -221,6 +220,7 @@ wabi_vm_reduce(wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   ctrl = (wabi_val) vm->ctrl;
   env  = (wabi_env) vm->env;
+  vm->fuel--;
 
   if(!cont) {
     /* control x0 */
@@ -586,20 +586,20 @@ wabi_vm_run(wabi_vm vm, wabi_size fuel) {
 
   for(;;) {
     wabi_vm_reduce(vm);
-
     if((wabi_cont) vm->cont == wabi_cont_done) {
       return;
     }
-    if(vm->fuel < 0) {
+    if(vm->fuel <= 0) {
       vm->ert = wabi_error_timeout;
       return;
     }
-    if(! vm->ert)
+    if(!vm->ert)
       continue;
 
-    if(vm->ert == wabi_error_nomem && wabi_vm_collect(vm)) {
+    if(vm->ert == wabi_error_nomem && !wabi_vm_collect(vm)) {
       vm->ert = wabi_error_none;
       continue;
     }
+    return;
   }
 }

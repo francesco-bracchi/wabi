@@ -11,6 +11,7 @@
 #include "wabi_symbol.h"
 #include "wabi_pair.h"
 #include "wabi_combiner.h"
+#include "wabi_place.h"
 /* #include "wabi_env.h" */
 
 void
@@ -393,7 +394,8 @@ wabi_pr(wabi_val val) {
     wabi_pr_cont_combiner((wabi_combiner_continuation) val);
     break;
   case wabi_tag_place:
-    printf("place");
+    printf("P#");
+    wabi_pr((wabi_val) wabi_place_val((wabi_place) val));
     break;
   default:
     printf("unknown %lx", *val);
