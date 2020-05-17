@@ -305,15 +305,20 @@ wabi_pr_maybe_node(wabi_val val)
 {
   switch(WABI_TAG(val)) {
   case wabi_tag_deque_node2:
-    wabi_pr_maybe_node(wabi_deque_node2_r((wabi_deque_node2) val));
     wabi_pr_maybe_node(wabi_deque_node2_l((wabi_deque_node2) val));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_node2_r((wabi_deque_node2) val));
+    break;
   case wabi_tag_deque_node3:
-    wabi_pr_maybe_node(wabi_deque_node3_r((wabi_deque_node3) val));
-    wabi_pr_maybe_node(wabi_deque_node3_m((wabi_deque_node3) val));
     wabi_pr_maybe_node(wabi_deque_node3_l((wabi_deque_node3) val));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_node3_m((wabi_deque_node3) val));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_node3_r((wabi_deque_node3) val));
+    break;
   default:
     wabi_pr(val);
-    printf(" ");
+    break;
   }
 }
 
@@ -322,22 +327,28 @@ wabi_pr_digit(wabi_deque_digit digit)
 {
   switch(WABI_TAG(digit)) {
   case wabi_tag_deque_digit1:
-    wabi_pr_maybe_node(wabi_deque_digit1_a((wabi_deque_digit1) digit));
+    wabi_pr_maybe_node(wabi_deque_digit1_a((wabi_deque_digit1)digit));
     break;
   case wabi_tag_deque_digit2:
-    wabi_pr_maybe_node(wabi_deque_digit2_a((wabi_deque_digit2) digit));
+    wabi_pr_maybe_node(wabi_deque_digit2_a((wabi_deque_digit2)digit));
+    printf(" ");
     wabi_pr_maybe_node(wabi_deque_digit2_b((wabi_deque_digit2) digit));
     break;
   case wabi_tag_deque_digit3:
-    wabi_pr_maybe_node(wabi_deque_digit3_a((wabi_deque_digit3) digit));
-    wabi_pr_maybe_node(wabi_deque_digit3_b((wabi_deque_digit3) digit));
-    wabi_pr_maybe_node(wabi_deque_digit3_c((wabi_deque_digit3) digit));
+    wabi_pr_maybe_node(wabi_deque_digit3_a((wabi_deque_digit3)digit));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_digit3_b((wabi_deque_digit3)digit));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_digit3_c((wabi_deque_digit3)digit));
     break;
   case wabi_tag_deque_digit4:
-    wabi_pr_maybe_node(wabi_deque_digit4_a((wabi_deque_digit4) digit));
-    wabi_pr_maybe_node(wabi_deque_digit4_b((wabi_deque_digit4) digit));
-    wabi_pr_maybe_node(wabi_deque_digit4_c((wabi_deque_digit4) digit));
-    wabi_pr_maybe_node(wabi_deque_digit4_d((wabi_deque_digit4) digit));
+    wabi_pr_maybe_node(wabi_deque_digit4_a((wabi_deque_digit4)digit));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_digit4_b((wabi_deque_digit4)digit));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_digit4_c((wabi_deque_digit4)digit));
+    printf(" ");
+    wabi_pr_maybe_node(wabi_deque_digit4_d((wabi_deque_digit4)digit));
     break;
   }
 }
@@ -349,11 +360,15 @@ wabi_pr_deque(wabi_deque deque)
   case wabi_tag_deque_empty:
     break;
   case wabi_tag_deque_single:
-    wabi_pr(wabi_deque_single_val((wabi_deque_single) deque));
+    wabi_pr_maybe_node(wabi_deque_single_val((wabi_deque_single) deque));
     break;
   case wabi_tag_deque_deep:
     wabi_pr_digit((wabi_deque_digit) wabi_deque_deep_left((wabi_deque_deep) deque));
-    wabi_pr_deque((wabi_deque) wabi_deque_deep_middle((wabi_deque_deep) deque));
+    printf(" ");
+    if(!WABI_IS(wabi_tag_deque_empty, wabi_deque_deep_middle((wabi_deque_deep) deque))) {
+      wabi_pr_deque((wabi_deque) wabi_deque_deep_middle((wabi_deque_deep) deque));
+      printf(" ");
+    }
     wabi_pr_digit((wabi_deque_digit) wabi_deque_deep_right((wabi_deque_deep) deque));
     break;
   }
@@ -466,7 +481,7 @@ wabi_pr(wabi_val val) {
     printf("]");
     break;
   default:
-    printf("unknown %lx", *val);
+    printf("unknown %lx", WABI_TAG(val));
   }
 }
 
