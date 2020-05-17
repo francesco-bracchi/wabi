@@ -355,39 +355,27 @@
   (eval e
     (list* when (list not t?) bs)))
 
-;; (defx awhen
-;;     e (t? . bs)
-;;   (eval e
-;;     (list* let (list !it t?)
-;;            (list* when !it bs))))
-
-;; (defx aunless
-;;     e (t? . bs)
-;;   (eval e
-;;     (list* let (list !it t?)
-;;            (list* unless !it bs))))
-
-;;this is an anamorhic fexpr, some pronouns are introduced!
-;; their-env -> the calling environmnet
-;; me -> the function itself
-;; them -> the arguments
-;; it (or @1) -> the first argument
-;; @2 @3 @4 @5 -> the arguments other than it
 (defx afx
     e bs
+  "this is an anamorhic fexpr, some pronouns are introduced!
+  their-env -> the calling environmnet
+  me -> the function itself
+  them -> the arguments
+  it (or @1) -> the first argument
+  @2 @3 @4 @5 -> the arguments other than it"
   (eval (ext! e)
     (list* defx !me
            !their-env !them
            (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
 
 
-;;this is an anamorhic function, some pronouns are introduced!
-;; me -> the function itself
-;; them -> the arguments
-;; it (or @1) -> the first argument
-;; @2 @3 @4 @5 -> the arguments other than it
 (defx afn
     e bs
+  "this is an anamorhic function, some pronouns are introduced!
+  me -> the function itself
+  them -> the arguments
+  it (or @1) -> the first argument
+  @2 @3 @4 @5 -> the arguments other than it"
   (eval (ext! e)
     (list* defn !me
            !them
@@ -415,6 +403,53 @@
 (defn plc-reset
     (p v)
   (plc-swap p (always v)))
+
+
+;; generics
+
+(def gen-table (plc {}))
+
+(defn gen
+    (dfn)
+  (def dmap (plc {}))
+  (defn res as (apply ((plc-val dmap) (apply dfn as)) as))
+  (plc-swap gen-table assoc res dmap)
+  res)
+
+
+(defx defg
+    e (n dfn)
+  (eval e
+    (list def n (gen (eval e dfn)))))
+
+
+(defn addm
+    (g d f)
+  (plc-swap ((plc-val gen-table) g) assoc d f))
+
+
+(defx defm
+    e (n d as . b)
+  (addm (eval e n) (eval e d) (eval e (list* fn as b))))
+
+;; generics end
+
+(defn type
+    (e)
+  (if
+   (plc? e) !plc
+   (pair? e) !pair))
+
+(pr (type 10))
+;; (def deref (gen type))
+
+;; (defm deref !plc
+;;     (a)
+;;   (plc-val a))
+
+;; (defm deref nil
+;;     (a)
+;;   nil)
 
 
 (defn insp
@@ -722,4 +757,14 @@
 ;; (time (fib 35))
 
 
-(test (let () (defp x 10) (plc-swap x + 100) (plc-val x)) 110)
+(test
+ 110
+ (let ()
+   (defp x 10)
+   (plc-swap x + 100)
+   (plc-val x)))
+
+
+(test (plc-reset (plc 10) 20) 20)
+
+(pr [1 2 3])

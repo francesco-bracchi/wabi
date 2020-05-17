@@ -11,6 +11,7 @@
 #include "wabi_vm.h"
 #include "wabi_value.h"
 #include "wabi_queue.h"
+#include "wabi_pr.h"
 
 #include <stdio.h>
 
@@ -19,6 +20,7 @@ static inline void
 wabi_system_error_signal(wabi_vm vm)
 {
   printf("ERROR IN A VM: %s\n", wabi_error_name(vm->ert));
+  wabi_prn(vm->ctrl);
 }
 
 
