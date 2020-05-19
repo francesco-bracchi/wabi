@@ -767,6 +767,30 @@
 
 (test (plc-reset (plc 10) 20) 20)
 
-(pr [1 2 3 4 5 6 7 8 9 10 11 12 13 14])
+(test [] [])
+(test [0] [0])
+(pr [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16])
+(pr (push-left 0 [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]))
+(pr (push-right [] 1 2 3 3 4 5 6 7 8 9 10 11 12 13 14 15 16))
 
-(pr (apply deq (ran 1000)))
+(test (left [1 2 3]) 1)
+(test (right [1 2 3]) 3)
+
+
+(test (pop-left [1 2 3]) [2 3])
+(test (pop-right [1 2 3]) [1 2])
+
+(test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
+      (map (always 0) (ran 27)))
+
+(test  (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
+       (ran 27))
+
+(map (fn (xs) (pr (pop-left (apply deq (ran (inc xs)))))) (ran 27))
+(map (fn (xs) (pr (pop-right (apply deq (ran (inc xs)))))) (ran 27))
+
+(map (fn (xs) (pr (pop-right (pop-left (apply deq (ran (+ 2 xs)))))) (ran 27))
+     (map (fn (xs) (pr (pop-left (pop-right (apply deq (ran (+ 2 xs)))))) (ran 27))
+
+(map (fn (xs) (pr (pop-left (pop-left (apply deq (ran (+ 2 xs)))))) (ran 27))
+(map (fn (xs) (pr (pop-right (pop-right (apply deq (ran (+ 2 xs)))))) (ran 27))

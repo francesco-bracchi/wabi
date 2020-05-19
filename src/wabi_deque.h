@@ -242,22 +242,22 @@ wabi_deque_single_val(wabi_deque_single s)
   return (wabi_val) WABI_WORD_VAL(s->val);
 }
 
-static inline wabi_val
+static inline wabi_deque_digit
 wabi_deque_deep_left(wabi_deque_deep d)
 {
-  return (wabi_val) d->left;
+  return (wabi_deque_digit) d->left;
 }
 
-static inline wabi_val
+static inline wabi_deque
 wabi_deque_deep_middle(wabi_deque_deep d)
 {
-  return (wabi_val) WABI_WORD_VAL(d->middle);
+  return (wabi_deque) WABI_WORD_VAL(d->middle);
 }
 
-static inline wabi_val
+static inline wabi_deque_digit
 wabi_deque_deep_right(wabi_deque_deep d)
 {
-  return (wabi_val) d->right;
+  return (wabi_deque_digit) d->right;
 }
 
 static inline wabi_val

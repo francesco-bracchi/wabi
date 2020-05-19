@@ -147,6 +147,24 @@ wabi_tag_to_string(wabi_word* w)
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
     return "continuation";
+  case wabi_tag_deque_empty:
+    return "empty_deque";
+  case wabi_tag_deque_single:
+    return "single deque";
+  case wabi_tag_deque_deep:
+    return "single deque";
+  case wabi_tag_deque_digit1:
+    return "digit1";
+  case wabi_tag_deque_digit2:
+    return "digit2";
+  case wabi_tag_deque_digit3:
+    return "digit3";
+  case wabi_tag_deque_digit4:
+    return "digit3";
+  case wabi_tag_deque_node2:
+    return "node2";
+  case wabi_tag_deque_node3:
+    return "node3";
   default:
     return "unwknown";
   }
