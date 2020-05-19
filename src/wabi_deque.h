@@ -350,6 +350,19 @@ wabi_deque_node3_r(wabi_deque_node3 n)
   return (wabi_val) n->r;
 }
 
+static inline int
+wabi_is_deque(wabi_val val)
+{
+  switch(WABI_TAG(val)) {
+  case wabi_tag_deque_empty:
+  case wabi_tag_deque_single:
+  case wabi_tag_deque_deep:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 wabi_deque
 wabi_deque_push_left(wabi_vm vm, wabi_val v, wabi_deque d);
 
@@ -370,4 +383,5 @@ wabi_deque_pop_right(wabi_vm vm, wabi_deque d);
 
 wabi_error_type
 wabi_deque_builtins(wabi_vm vm, wabi_env env);
+
 #endif

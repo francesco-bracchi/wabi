@@ -554,7 +554,7 @@ wabi_deque_deq_pop_left(wabi_vm vm)
   if(! wabi_deque_is_deque((wabi_val) dd))
     return wabi_error_type_mismatch;
 
-  res = wabi_deque_pop_left(vm, dd);
+  res = (wabi_val) wabi_deque_pop_left(vm, dd);
   if(! res)
     return wabi_error_nomem;
   vm->ctrl = res;
@@ -582,13 +582,40 @@ wabi_deque_deq_pop_right(wabi_vm vm)
   if(! wabi_deque_is_deque((wabi_val) dd))
     return wabi_error_type_mismatch;
 
-  res = wabi_deque_pop_right(vm, dd);
+  res = (wabi_val) wabi_deque_pop_right(vm, dd);
   if(! res)
     return wabi_error_nomem;
+
   vm->ctrl = res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_none;
 }
+
+
+static wabi_error_type
+wabi_deque_deq_p(wabi_vm vm)
+{
+  wabi_val ctrl, a, res;
+
+  ctrl = vm->ctrl;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(! res)
+    return wabi_error_none;
+  *res = wabi_val_true;
+
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(!wabi_is_deque(a)) {
+      *res = wabi_val_false;
+      break;
+    }
+  }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
 
 wabi_error_type
 wabi_deque_builtins(wabi_vm vm, wabi_env env)
@@ -607,5 +634,7 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "right", "right", wabi_deque_deq_right);
   if(res) return res;
   res = WABI_DEFN(vm, env, "left", "left", wabi_deque_deq_left);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "deq?", "deq?", wabi_deque_deq_p);
   if(res) return res;
 }

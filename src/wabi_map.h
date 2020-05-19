@@ -101,6 +101,20 @@ wabi_val
 wabi_map_get(wabi_map map,
              wabi_val key);
 
+
+static inline int
+wabi_is_map(wabi_val val)
+{
+  switch(WABI_TAG(val)) {
+  case wabi_tag_map_array:
+  case wabi_tag_map_hash:
+  case wabi_tag_map_entry:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 void
 wabi_map_iterator_init(wabi_map_iter iter,
                        wabi_map map);

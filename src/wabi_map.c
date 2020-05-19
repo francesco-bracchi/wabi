@@ -16,9 +16,11 @@
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 #include "wabi_pair.h"
+#include "wabi_constant.h"
 #include "wabi_map.h"
 #include "wabi_store.h"
 #include "wabi_builtin.h"
+#include "wabi_number.h"
 
 #define WABI_MAP_HALLOC 80
 
@@ -852,104 +854,89 @@ wabi_map_builtin_assoc(wabi_vm vm)
   return wabi_error_none;
 }
 
-/* wabi_error_type */
-/* wabi_map_builtin_dissoc(wabi_vm vm) */
-/* { */
-/*   wabi_val ctrl, k, v; */
-/*   wabi_map res; */
-/*   ctrl = vm->ctrl; */
-/*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   res = wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*   while(*ctrl != wabi_val_nil) { */
-/*     k = wabi_car((wabi_pair) ctrl); */
-/*     ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*     res = wabi_map_dissoc(vm, res, k); */
-/*     if(!res) return wabi_error_nomem; */
-/*   } */
-/*   vm->ctrl = (wabi_val) res; */
-/*   return wabi_error_none; */
-/* } */
+wabi_error_type
+wabi_map_builtin_dissoc(wabi_vm vm)
+{
+  wabi_val ctrl, k, res;
+  ctrl = vm->ctrl;
+  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+    return wabi_error_bindings;
+  }
+  res = wabi_car((wabi_pair) ctrl);
+  ctrl  = wabi_cdr((wabi_pair) ctrl);
 
-/* wabi_error_type */
-/* wabi_map_builtin_dissoc(wabi_vm vm) */
-/* { */
-/*   wabi_val ctrl, k; */
-/*   wabi_map res; */
-/*   ctrl = vm->ctrl; */
-/*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   res = wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*   while(*ctrl != wabi_val_nil) { */
-/*     k = wabi_car((wabi_pair) ctrl); */
-/*     ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*     res = wabi_map_dissoc(vm, res, k); */
-/*     if(!res) return wabi_error_nomem; */
-/*   } */
-/*   vm->ctrl = (wabi_val) res; */
-/*   return wabi_error_none; */
-/* } */
+  if(! wabi_is_map(res))
+    return wabi_error_bindings;
 
-/* wabi_error_type */
-/* wabi_map_builtin_map_p(wabi_vm vm) */
-/* { */
-/*   wabi_val res, hmap, ctrl; */
-/*   ctrl = vm->ctrl; */
-/*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   hmap = wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*   if(*ctrl != wabi_val_nil) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   switch(WABI_TAG(hmap)) { */
-/*   case wabi_tag_map_array: */
-/*   case wabi_tag_map_hash: */
-/*   case wabi_tag_map_entry: */
-/*     res = (wabi_val) wabi_vm_alloc(vm, 1); */
-/*     if(! res) return wabi_error_nomem; */
-/*     *res = wabi_val_true; */
-/*   default: */
-/*     res = (wabi_val) wabi_vm_alloc(vm, 1); */
-/*     if(! res) return wabi_error_nomem; */
-/*     *res = wabi_val_false; */
-/*   } */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*   vm->ctrl = res; */
-/*   return wabi_error_none; */
-/* } */
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    k = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    res = (wabi_val) wabi_map_dissoc(vm, (wabi_map) res, k);
+    if(! res)
+      return wabi_error_nomem;
+  }
+  if(!wabi_is_nil(ctrl))
+    return wabi_error_bindings;
 
-/* wabi_error_type */
-/* wabi_map_builtin_len(wabi_vm vm) */
-/* { */
-/*   wabi_val res, hmap, ctrl; */
-/*   ctrl = vm->ctrl; */
-/*   if(!WABI_IS(wabi_tag_pair, ctrl)) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   hmap = wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-/*   if(*ctrl != wabi_val_nil) { */
-/*     return wabi_error_bindings; */
-/*   } */
-/*   switch(WABI_TAG(hmap)) { */
-/*   case wabi_tag_map_array: */
-/*   case wabi_tag_map_hash: */
-/*   case wabi_tag_map_entry: */
-/*     res = wabi_fixnum_new(vm,wabi_map_length(hmap)); */
-/*     if(! res) return wabi_error_nomem; */
-/*     vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*     vm->ctrl = res; */
-/*     return wabi_error_none; */
-/*   default: */
-/*     return wabi_error_type_mismatch; */
-/*   } */
-/* } */
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
+static wabi_error_type
+wabi_map_builtin_map_p(wabi_vm vm)
+{
+  wabi_val ctrl, a, res;
+
+  ctrl = vm->ctrl;
+  res = (wabi_val) wabi_vm_alloc(vm, 1);
+  if(! res)
+    return wabi_error_none;
+  *res = wabi_val_true;
+
+  while(WABI_IS(wabi_tag_pair, ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(!wabi_is_map(a)) {
+      *res = wabi_val_false;
+      break;
+    }
+  }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
+static wabi_error_type
+wabi_map_builtin_len(wabi_vm vm)
+{
+  wabi_val ctrl, k;
+  wabi_map m;
+  wabi_fixnum len;
+
+  ctrl = vm->ctrl;
+  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+    return wabi_error_bindings;
+  }
+  m = (wabi_map) wabi_car((wabi_pair) ctrl);
+  ctrl  = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_map((wabi_val) m))
+    return wabi_error_bindings;
+
+  if(!wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  len = wabi_fixnum_new(vm, wabi_map_length(m));
+  if(! len) return wabi_error_nomem;
+
+  vm->ctrl = len;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+
+}
 
 
 static inline void
@@ -958,6 +945,7 @@ wabi_map_hash_entry(wabi_hash_state state, wabi_map_entry entry)
   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
 }
+
 
 static inline void
 wabi_map_hash_map(wabi_hash_state state, wabi_map map)
@@ -970,6 +958,7 @@ wabi_map_hash_map(wabi_hash_state state, wabi_map map)
     wabi_map_iterator_next(&iter);
   }
 }
+
 
 void
 wabi_map_hash_(wabi_hash_state state, wabi_map map)
@@ -1020,10 +1009,6 @@ wabi_map_cmp(wabi_map left, wabi_map right)
 }
 
 
-
-
-
-
 wabi_error_type
 wabi_map_builtins(wabi_vm vm, wabi_env env)
 {
@@ -1032,11 +1017,10 @@ wabi_map_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "assoc", "assoc", wabi_map_builtin_assoc);
   if(res) return res;
-  /* res = WABI_DEFN(vm, env, "dis", "dis", wabi_map_builtin_dissoc); */
-  /* if(res) return NULL; */
-  /* res = WABI_DEFN(vm, env, "hlen", "hlen", wabi_map_builtin_len); */
-  /* if(res) return NULL; */
-  /* res = WABI_DEFN(vm, env, "map?", "map?", wabi_map_builtin_map_p); */
-  /* if(res) return res; */
+  res = WABI_DEFN(vm, env, "dissoc", "dissoc", wabi_map_builtin_dissoc);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "map-len", "map-len", wabi_map_builtin_len);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "map?", "map?", wabi_map_builtin_map_p);
   return res;
 }
