@@ -60,15 +60,16 @@
    (nil? as) i
    (fold f (f i (car as)) (cdr as))))
 
-(defn conc2
-    (as bs)
+(defn concx
+    (rs a as)
   (if
-   (pair? as) (cons (car as) (conc2 (cdr as) bs))
-   (nil? as) bs))
+   (pair? a) (concx (cons (car a) rs) (cdr a) as)
+   (pair? as) (concx rs (car as) (cdr as))
+   (rev rs)))
 
 (defn conc
     as
-  (fold conc2 nil as))
+  (concx nil nil as))
 
 (defn part
     (f . as)
@@ -214,6 +215,7 @@
   (def e1 (ext! e))
   (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
   (eval e1 (list* do xs)))
+
 
 ;; (defn comp
 ;;     fs
