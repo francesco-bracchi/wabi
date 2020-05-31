@@ -799,6 +799,13 @@
 (test (pop-left (apply deq (ran 100)))
       (apply deq (map inc (ran 99))))
 
+(test (deq-emp?) true)
+(test (deq-emp? []) true)
+(test (deq-emp? [1]) false)
+(test (deq-emp? 10) false)
+(test (deq-emp? [] []) true)
+(test (deq-emp? [] [1]) false)
+
 ;; (test [] [])
 ;; (test [0] [0])
 
