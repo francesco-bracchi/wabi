@@ -282,8 +282,6 @@ wabi_deque_pop_left(wabi_vm vm, wabi_deque d)
   }
 }
 
-/// --------------------
-
 static inline wabi_deque
 wabi_deque_single_pop_right(wabi_vm vm,
                             wabi_deque_single d)
@@ -351,7 +349,6 @@ wabi_deque_pop_right(wabi_vm vm, wabi_deque d)
   }
 }
 
-/// .......................
 
 static wabi_error_type
 wabi_deque_deq(wabi_vm vm)
@@ -613,7 +610,6 @@ wabi_deque_deq_emp_p(wabi_vm vm)
 }
 
 
-
 wabi_error_type
 wabi_deque_builtins(wabi_vm vm, wabi_env env)
 {
@@ -639,5 +635,11 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "left", "left", wabi_deque_deq_left);
   if(res) return res;
   /* res = WABI_DEFN(vm, env, "deq-concat", "deq-concat", wabi_deque_deq_concat); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "deq-ref", "deq-ref", wabi_deque_deq_ref); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "deq-assoc", "deq-assoc", wabi_deque_deq_assoc); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "deq-sub", "deq-sub", wabi_deque_deq_sub); */
   /* if(res) return res; */
 }

@@ -1022,5 +1022,14 @@ wabi_map_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "map-len", "map-len", wabi_map_builtin_len);
   if(res) return res;
   res = WABI_DEFN(vm, env, "map?", "map?", wabi_map_builtin_map_p);
+  if(res) return res;
+  /* res = WABI_DEFN(vm, env, "map-merge", "mamerge?", wabi_map_builtin_map_merge); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "map-keys", "ma-keys", wabi_map_builtin_map_keys); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "map-values", "ma-values", wabi_map_builtin_map_values); */
+  /* if(res) return res; */
+  /* res = WABI_DEFN(vm, env, "map-take", "ma-take", wabi_map_builtin_map_take); */
+  /* if(res) return res; */
   return res;
 }
