@@ -306,6 +306,8 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
 {
   wabi_size j, n;
   wabi_word *t;
+  wabi_deque_single l, r;
+  wabi_deque m;
 
   if (depth == 0)  {
     switch(WABI_TAG(d)) {
@@ -323,8 +325,10 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
     case wabi_tag_deque_deep:
       wabi_pr_deque((wabi_deque)wabi_deque_deep_left((wabi_deque_deep) d), 0);
       putchar(' ');
-      wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep) d), 1);
-      putchar(' ');
+      if(!wabi_deque_is_empty((wabi_val) d)) {
+        wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep) d), 1);
+        putchar(' ');
+      }
       wabi_pr_deque((wabi_deque) wabi_deque_deep_right((wabi_deque_deep) d), 0);
       return;
     }
@@ -335,13 +339,23 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
   case wabi_tag_deque_single:
     n = wabi_deque_single_node_size((wabi_deque_single) d);
     t = wabi_deque_single_table((wabi_deque_single) d);
-    for (j = 0; j < n; j++)
+    for (j = 0; j < n; j++) {
       wabi_pr_deque((wabi_deque) *(t + j), depth - 1);
+      if(j < n - 1) putchar(' ');
+    }
     return;
   case wabi_tag_deque_deep:
-    wabi_pr_deque((wabi_deque)wabi_deque_deep_left((wabi_deque_deep) d), depth);
-    wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep)d), depth + 1);
-    wabi_pr_deque((wabi_deque) wabi_deque_deep_right((wabi_deque_deep) d), depth );
+    l = wabi_deque_deep_left((wabi_deque_deep) d);
+    m = wabi_deque_deep_middle((wabi_deque_deep) d);
+    r = wabi_deque_deep_right((wabi_deque_deep) d);
+
+    wabi_pr_deque((wabi_deque) l, depth);
+    putchar(' ');
+    if(! wabi_deque_is_empty(m)) {
+      wabi_pr_deque(m, depth + 1);
+      putchar(' ');
+    }
+    wabi_pr_deque((wabi_deque) r, depth);
   }
 }
 

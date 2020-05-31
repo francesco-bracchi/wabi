@@ -821,6 +821,9 @@
 (test (deq-emp? [] []) true)
 (test (deq-emp? [] [1]) false)
 
+(pr (deq-concat (apply deq (ran 100))
+                (apply deq (map (part + 100) (ran 100)))))
+
 ;; (test [] [])
 ;; (test [0] [0])
 
