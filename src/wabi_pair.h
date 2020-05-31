@@ -78,4 +78,12 @@ wabi_pair_cmp(wabi_pair left, wabi_pair right)
 wabi_error_type
 wabi_pair_builtins(wabi_vm vm, wabi_env env);
 
+static inline int
+wabi_is_pair(wabi_val v)
+{
+  return WABI_IS(wabi_tag_pair, v);
+}
+
+wabi_val
+wabi_pair_concat(wabi_vm vm, wabi_val l, wabi_val r);
 #endif

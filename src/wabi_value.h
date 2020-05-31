@@ -47,12 +47,6 @@ typedef enum wabi_tag_enum {
   wabi_tag_deque_empty    = 0x1D00000000000000,
   wabi_tag_deque_single   = 0x1E00000000000000,
   wabi_tag_deque_deep     = 0x1F00000000000000,
-  wabi_tag_deque_digit1   = 0x2000000000000000,
-  wabi_tag_deque_digit2   = 0x2100000000000000,
-  wabi_tag_deque_digit3   = 0x2200000000000000,
-  wabi_tag_deque_digit4   = 0x2300000000000000,
-  wabi_tag_deque_node2    = 0x2400000000000000,
-  wabi_tag_deque_node3    = 0x2500000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;
@@ -153,18 +147,6 @@ wabi_tag_to_string(wabi_word* w)
     return "single deque";
   case wabi_tag_deque_deep:
     return "single deque";
-  case wabi_tag_deque_digit1:
-    return "digit1";
-  case wabi_tag_deque_digit2:
-    return "digit2";
-  case wabi_tag_deque_digit3:
-    return "digit3";
-  case wabi_tag_deque_digit4:
-    return "digit3";
-  case wabi_tag_deque_node2:
-    return "node2";
-  case wabi_tag_deque_node3:
-    return "node3";
   default:
     return "unwknown";
   }

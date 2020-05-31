@@ -300,80 +300,50 @@ wabi_pr_cont(wabi_cont val) {
   } while(val != NULL);
 }
 
-static void
-wabi_pr_maybe_node(wabi_val val)
-{
-  switch(WABI_TAG(val)) {
-  case wabi_tag_deque_node2:
-    wabi_pr_maybe_node(wabi_deque_node2_l((wabi_deque_node2) val));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_node2_r((wabi_deque_node2) val));
-    break;
-  case wabi_tag_deque_node3:
-    wabi_pr_maybe_node(wabi_deque_node3_l((wabi_deque_node3) val));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_node3_m((wabi_deque_node3) val));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_node3_r((wabi_deque_node3) val));
-    break;
-  default:
-    wabi_pr(val);
-    break;
-  }
-}
 
 static void
-wabi_pr_digit(wabi_deque_digit digit)
+wabi_pr_deque(wabi_deque d, wabi_size depth)
 {
-  switch(WABI_TAG(digit)) {
-  case wabi_tag_deque_digit1:
-    wabi_pr_maybe_node(wabi_deque_digit1_a((wabi_deque_digit1)digit));
-    break;
-  case wabi_tag_deque_digit2:
-    wabi_pr_maybe_node(wabi_deque_digit2_a((wabi_deque_digit2)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit2_b((wabi_deque_digit2) digit));
-    break;
-  case wabi_tag_deque_digit3:
-    wabi_pr_maybe_node(wabi_deque_digit3_a((wabi_deque_digit3)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit3_b((wabi_deque_digit3)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit3_c((wabi_deque_digit3)digit));
-    break;
-  case wabi_tag_deque_digit4:
-    wabi_pr_maybe_node(wabi_deque_digit4_a((wabi_deque_digit4)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit4_b((wabi_deque_digit4)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit4_c((wabi_deque_digit4)digit));
-    printf(" ");
-    wabi_pr_maybe_node(wabi_deque_digit4_d((wabi_deque_digit4)digit));
-    break;
-  }
-}
+  wabi_size j, n;
+  wabi_word *t;
 
-static void
-wabi_pr_deque(wabi_deque deque)
-{
-  switch(WABI_TAG(deque)) {
-  case wabi_tag_deque_empty:
-    break;
-  case wabi_tag_deque_single:
-    wabi_pr_maybe_node(wabi_deque_single_val((wabi_deque_single) deque));
-    break;
-  case wabi_tag_deque_deep:
-    wabi_pr_digit((wabi_deque_digit) wabi_deque_deep_left((wabi_deque_deep) deque));
-    printf(" ");
-    if(!WABI_IS(wabi_tag_deque_empty, wabi_deque_deep_middle((wabi_deque_deep) deque))) {
-      wabi_pr_deque((wabi_deque) wabi_deque_deep_middle((wabi_deque_deep) deque));
-      printf(" ");
+  if (depth == 0)  {
+    switch(WABI_TAG(d)) {
+    case wabi_tag_deque_empty:
+      return;
+    case wabi_tag_deque_single:
+      n = wabi_deque_single_node_size((wabi_deque_single) d);
+      t = wabi_deque_single_table((wabi_deque_single) d);
+      for (j = 0; j < n; j++) {
+        /* printf("%lu -> %lu\n", j, n); */
+        wabi_pr((wabi_val) *(t + j));
+        if(j < n - 1) putchar(' ');
+      }
+      return;
+    case wabi_tag_deque_deep:
+      wabi_pr_deque((wabi_deque)wabi_deque_deep_left((wabi_deque_deep) d), 0);
+      putchar(' ');
+      wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep) d), 1);
+      putchar(' ');
+      wabi_pr_deque((wabi_deque) wabi_deque_deep_right((wabi_deque_deep) d), 0);
+      return;
     }
-    wabi_pr_digit((wabi_deque_digit) wabi_deque_deep_right((wabi_deque_deep) deque));
-    break;
+  }
+  switch(WABI_TAG(d)) {
+  case wabi_tag_deque_empty:
+    return;
+  case wabi_tag_deque_single:
+    n = wabi_deque_single_node_size((wabi_deque_single) d);
+    t = wabi_deque_single_table((wabi_deque_single) d);
+    for (j = 0; j < n; j++)
+      wabi_pr_deque((wabi_deque) *(t + j), depth - 1);
+    return;
+  case wabi_tag_deque_deep:
+    wabi_pr_deque((wabi_deque)wabi_deque_deep_left((wabi_deque_deep) d), depth);
+    wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep)d), depth + 1);
+    wabi_pr_deque((wabi_deque) wabi_deque_deep_right((wabi_deque_deep) d), depth );
   }
 }
-
 
 void
 wabi_pr(wabi_val val) {
@@ -477,7 +447,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_deque_single:
   case wabi_tag_deque_deep:
     printf("[");
-    wabi_pr_deque((wabi_deque) val);
+    wabi_pr_deque((wabi_deque) val, 0);
     printf("]");
     break;
   default:

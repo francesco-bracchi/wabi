@@ -721,24 +721,6 @@
 (test (map-len (apply hmap (ran 100))) 50)
 (test (map-len (apply hmap (ran 8))) 4)
 
-(test [] [])
-(test [0] [0])
-
-(test (left [1 2 3]) 1)
-(test (right [1 2 3]) 3)
-
-(test (pop-left [1 2 3]) [2 3])
-(test (pop-right [1 2 3]) [1 2])
-
-(test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
-      (map (always 0) (ran 27)))
-
-(test (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
-      (ran 27))
-
-(test (deq? [] [1] [1 3]) true)
-(test (deq? [] [1] !x [1 3]) false)
-
 ;;; tentave compiling, inlining constant values
 (def good-special-forms (list if do prompt control))
 
@@ -791,3 +773,51 @@
    (plc-val x)))
 
 (test (plc-reset (plc 10) 20) 20)
+
+
+
+
+
+(test (pair? (list)) false)
+(test (pair? (list 1)) true)
+(test (pair? (list 1) (list 2)) true)
+(test (pair? (list 1) (list)) false)
+(test (deq? []) true)
+(test (deq? [] []) true)
+(test (deq? [] nil) false)
+(test (left []) nil)
+(test (left [0 1 2]) 0)
+(test (left [10 11 12]) 10)
+
+(test (push-right [] 1) [1])
+(test (push-right [] 1 2) [1 2])
+(test (push-right [0] 1 2) [0 1 2])
+
+(test (pop-left []) nil)
+(test (pop-left [1]) [])
+(test (pop-left [0 1]) [0])
+(test (pop-left (apply deq (ran 100)))
+      (apply deq (map inc (ran 99))))
+
+;; (test [] [])
+;; (test [0] [0])
+
+;; (pr [])
+;; (pr [1])
+
+(pr [0 10 20 30 40 50 60])
+
+;; (test (left [1 2 3]) 1)
+;; (test (right [1 2 3]) 3)
+
+;; (test (pop-left [1 2 3]) [2 3])
+;; (test (pop-right [1 2 3]) [1 2])
+
+;; (test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
+;;       (map (always 0) (ran 27)))
+
+;; (test (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
+;;       (ran 27))
+
+;; (test (deq? [] [1] [1 3]) true)
+;; (test (deq? [] [1] !x [1 3]) false)
