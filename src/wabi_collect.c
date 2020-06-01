@@ -10,6 +10,7 @@
 #include "wabi_cont.h"
 #include "wabi_combiner.h"
 #include "wabi_place.h"
+#include "wabi_deque.h"
 
 wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
@@ -113,6 +114,18 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   case wabi_tag_place:
     wabi_place_copy_val(vm, (wabi_place) src);
     break;
+
+  case wabi_tag_deque_empty:
+    wabi_deque_empty_copy_val(vm, (wabi_deque_empty) src);
+    break;
+
+  case wabi_tag_deque_single:
+    wabi_deque_single_copy_val(vm, (wabi_deque_single) src);
+    break;
+
+  case wabi_tag_deque_deep:
+    wabi_deque_deep_copy_val(vm, (wabi_deque_deep) src);
+    break;
   }
 
   *src = (wabi_word) res;
@@ -211,6 +224,18 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
 
   case wabi_tag_place:
     wabi_place_collect_val(vm, (wabi_place) val);
+    break;
+
+  case wabi_tag_deque_empty:
+    wabi_deque_empty_collect_val(vm, (wabi_deque_empty) val);
+    break;
+
+  case wabi_tag_deque_single:
+    wabi_deque_single_collect_val(vm, (wabi_deque_single) val);
+    break;
+
+  case wabi_tag_deque_deep:
+    wabi_deque_deep_collect_val(vm, (wabi_deque_deep) val);
     break;
 
   case wabi_tag_forward:

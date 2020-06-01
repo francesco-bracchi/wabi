@@ -351,7 +351,7 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
 
     wabi_pr_deque((wabi_deque) l, depth);
     putchar(' ');
-    if(! wabi_deque_is_empty(m)) {
+    if(! wabi_deque_is_empty((wabi_val) m)) {
       wabi_pr_deque(m, depth + 1);
       putchar(' ');
     }

@@ -349,11 +349,13 @@ wabi_deque_pop_right(wabi_vm vm, wabi_deque d)
   }
 }
 
+
 static inline int
 wabi_deque_is_single(wabi_deque d)
 {
   return WABI_IS(wabi_tag_deque_single, d);
 }
+
 
 wabi_deque
 wabi_deque_concat(wabi_vm vm, wabi_deque l, wabi_deque r)
@@ -418,6 +420,7 @@ wabi_deque_concat(wabi_vm vm, wabi_deque l, wabi_deque r)
   return (wabi_deque) wabi_deque_deep_new(vm, l1, m, r2);
 }
 
+
 static wabi_error_type
 wabi_deque_deq(wabi_vm vm)
 {
@@ -474,7 +477,6 @@ wabi_deque_deq_push_right(wabi_vm vm)
   vm->ctrl = (wabi_val) res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_none;
-
 }
 
 
