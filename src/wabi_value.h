@@ -44,9 +44,8 @@ typedef enum wabi_tag_enum {
   wabi_tag_ct_app         = 0x1B00000000000000,
   wabi_tag_ct_oper        = 0x1C00000000000000,
 
-  wabi_tag_deque_empty    = 0x1D00000000000000,
-  wabi_tag_deque_single   = 0x1E00000000000000,
-  wabi_tag_deque_deep     = 0x1F00000000000000,
+  wabi_tag_deque_digit    = 0x1D00000000000000,
+  wabi_tag_deque_deep     = 0x1E00000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;
@@ -141,12 +140,10 @@ wabi_tag_to_string(wabi_word* w)
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
     return "continuation";
-  case wabi_tag_deque_empty:
-    return "empty_deque";
-  case wabi_tag_deque_single:
-    return "single deque";
+  case wabi_tag_deque_digit:
+    return "deque_digit";
   case wabi_tag_deque_deep:
-    return "single deque";
+    return "deque_deep";
   default:
     return "unwknown";
   }

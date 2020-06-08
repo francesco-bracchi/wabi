@@ -306,16 +306,14 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
 {
   wabi_size j, n;
   wabi_word *t;
-  wabi_deque_single l, r;
+  wabi_deque_digit l, r;
   wabi_deque m;
 
   if (depth == 0)  {
     switch(WABI_TAG(d)) {
-    case wabi_tag_deque_empty:
-      return;
-    case wabi_tag_deque_single:
-      n = wabi_deque_single_node_size((wabi_deque_single) d);
-      t = wabi_deque_single_table((wabi_deque_single) d);
+    case wabi_tag_deque_digit:
+      n = wabi_deque_digit_node_size((wabi_deque_digit) d);
+      t = wabi_deque_digit_table((wabi_deque_digit) d);
       for (j = 0; j < n; j++) {
         /* printf("%lu -> %lu\n", j, n); */
         wabi_pr((wabi_val) *(t + j));
@@ -334,11 +332,9 @@ wabi_pr_deque(wabi_deque d, wabi_size depth)
     }
   }
   switch(WABI_TAG(d)) {
-  case wabi_tag_deque_empty:
-    return;
-  case wabi_tag_deque_single:
-    n = wabi_deque_single_node_size((wabi_deque_single) d);
-    t = wabi_deque_single_table((wabi_deque_single) d);
+  case wabi_tag_deque_digit:
+    n = wabi_deque_digit_node_size((wabi_deque_digit) d);
+    t = wabi_deque_digit_table((wabi_deque_digit) d);
     for (j = 0; j < n; j++) {
       wabi_pr_deque((wabi_deque) *(t + j), depth - 1);
       if(j < n - 1) putchar(' ');
@@ -457,8 +453,7 @@ wabi_pr(wabi_val val) {
     printf("P#");
     wabi_pr((wabi_val) wabi_place_val((wabi_place) val));
     break;
-  case wabi_tag_deque_empty:
-  case wabi_tag_deque_single:
+  case wabi_tag_deque_digit:
   case wabi_tag_deque_deep:
     printf("[");
     wabi_pr_deque((wabi_deque) val, 0);
