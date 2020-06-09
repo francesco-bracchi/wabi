@@ -8,6 +8,8 @@
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
 #include "wabi_constant.h"
+#include "wabi_number.h"
+
 
 static const wabi_size wabi_deque_digit_max_size = 32;
 static const wabi_size wabi_deque_digit_mid_size = 16;
@@ -32,7 +34,7 @@ wabi_deque_single_new(wabi_vm vm,
   wabi_deque_digit d;
   wabi_val t;
 
-  d = wabi_deque_digit_new(vm, 1, s);
+  d = wabi_deque_digit_new(vm, 1L, s);
   if(! d) return NULL;
   t = wabi_deque_digit_table(d);
   *t = (wabi_word) v;
@@ -66,8 +68,7 @@ wabi_deque_digit_push_right(wabi_vm vm,
   r = wabi_deque_single_new(vm, v, s);
   if (!m)
     return NULL;
-
-  return (wabi_deque) wabi_deque_deep_new(vm, d, (wabi_deque) m, r);
+  return (wabi_deque) wabi_deque_deep_new(vm, d0, (wabi_deque) m, r);
 }
 
 static inline wabi_deque_deep
@@ -79,25 +80,24 @@ wabi_deque_deep_push_right(wabi_vm vm,
 
   wabi_deque_digit l0, r0, r;
   wabi_deque m0, m;
-  wabi_size s0, n0;
-  wabi_val t0, t;
+  wabi_size sr, nr;
+  wabi_val tr, t;
 
   l0 = wabi_deque_deep_left(d0);
   m0 = wabi_deque_deep_middle(d0);
   r0 = wabi_deque_deep_right(d0);
-  n0 = wabi_deque_digit_node_size(r0);
-  s0 = wabi_deque_size((wabi_deque) r0);
-
-  if (n0 < wabi_deque_digit_max_size) {
-    t0 = wabi_deque_digit_table(r0);
-    r = wabi_deque_digit_new(vm, n0 + 1L, s + s0);
+  nr = wabi_deque_digit_node_size(r0);
+  sr = wabi_deque_size((wabi_deque) r0);
+  if (nr < wabi_deque_digit_max_size) {
+    tr = wabi_deque_digit_table(r0);
+    r = wabi_deque_digit_new(vm, nr + 1L, s + sr);
     if(! r) return NULL;
     t = wabi_deque_digit_table(r);
-    wordcopy(t0, t, n0);
-    *(t + n0) = (wabi_word) v;
+    wordcopy(t, tr, nr);
+    *(t + nr) = (wabi_word) v;
     return wabi_deque_deep_new(vm, l0, m0, r);
   }
-  m = wabi_deque_push_right_generic(vm, m0, v, s0);
+  m = wabi_deque_push_right_generic(vm, m0, (wabi_val) r0, sr);
   if(! m) return NULL;
   r = wabi_deque_single_new(vm, v, s);
   if(! r) return NULL;
@@ -488,32 +488,6 @@ wabi_deque_push_right(wabi_vm vm,
 /* } */
 
 
-static wabi_error_type
-wabi_deque_deq(wabi_vm vm)
-{
-  wabi_deque res;
-  wabi_val ctrl, a;
-
-  res = (wabi_deque) wabi_deque_empty_new(vm);
-  if(! res) return wabi_error_nomem;
-
-  ctrl = vm->ctrl;
-  while(wabi_is_pair(ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    res = wabi_deque_push_right(vm, res, a);
-    if(! res)
-      return wabi_error_nomem;
-  }
-  if(! wabi_is_nil(ctrl))
-    return wabi_error_bindings;
-
-  vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
-}
-
-
 /* static wabi_error_type */
 /* wabi_deque_deq_push_right(wabi_vm vm) */
 /* { */
@@ -774,6 +748,56 @@ wabi_deque_deq(wabi_vm vm)
 /*   return wabi_error_none; */
 /* } */
 
+static wabi_error_type
+wabi_deque_deq(wabi_vm vm)
+{
+  wabi_deque res;
+  wabi_val ctrl, a;
+
+  res = (wabi_deque) wabi_deque_empty_new(vm);
+  if(! res) return wabi_error_nomem;
+
+  ctrl = vm->ctrl;
+  while(wabi_is_pair(ctrl)) {
+    a = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    res = wabi_deque_push_right(vm, res, a);
+    if(! res)
+      return wabi_error_nomem;
+  }
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  vm->ctrl = (wabi_val) res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
+static wabi_error_type
+wabi_deque_deq_len(wabi_vm vm)
+{
+  wabi_deque d;
+  wabi_val r, ctrl;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+  d = (wabi_deque) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  if(! wabi_is_deque((wabi_val) d))
+    return wabi_error_type_mismatch;
+
+  r = (wabi_val) wabi_fixnum_new(vm, wabi_deque_size(d));
+  if(! r) return wabi_error_nomem;
+
+  vm->ctrl = r;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
 
 
 wabi_error_type
@@ -781,6 +805,8 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env)
 {
   wabi_error_type res;
   res = WABI_DEFN(vm, env, "deq", "deq", wabi_deque_deq);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "deq-len", "deq-len", wabi_deque_deq_len);
   if(res) return res;
   /* res = WABI_DEFN(vm, env, "deq?", "deq?", wabi_deque_deq_p); */
   /* if(res) return res; */

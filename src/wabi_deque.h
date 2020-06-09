@@ -99,7 +99,7 @@ wabi_deque_deep_new(wabi_vm vm, wabi_deque_digit l, wabi_deque m, wabi_deque_dig
 
 static inline int
 wabi_deque_is_empty(wabi_val v) {
-  return WABI_IS(wabi_tag_deque_digit,v) && !wabi_deque_size((wabi_deque) v);
+  return WABI_IS(wabi_tag_deque_digit,v) && wabi_deque_size((wabi_deque) v) == 0L;
 }
 
 

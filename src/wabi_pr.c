@@ -301,57 +301,66 @@ wabi_pr_cont(wabi_cont val) {
 }
 
 
-static void
-wabi_pr_deque(wabi_deque d, wabi_size depth)
-{
-  wabi_size j, n;
-  wabi_word *t;
-  wabi_deque_digit l, r;
-  wabi_deque m;
 
-  if (depth == 0)  {
-    switch(WABI_TAG(d)) {
-    case wabi_tag_deque_digit:
-      n = wabi_deque_digit_node_size((wabi_deque_digit) d);
-      t = wabi_deque_digit_table((wabi_deque_digit) d);
-      for (j = 0; j < n; j++) {
-        /* printf("%lu -> %lu\n", j, n); */
-        wabi_pr((wabi_val) *(t + j));
-        if(j < n - 1) putchar(' ');
-      }
-      return;
-    case wabi_tag_deque_deep:
-      wabi_pr_deque((wabi_deque)wabi_deque_deep_left((wabi_deque_deep) d), 0);
-      putchar(' ');
-      if(!wabi_deque_is_empty((wabi_val) d)) {
-        wabi_pr_deque(wabi_deque_deep_middle((wabi_deque_deep) d), 1);
-        putchar(' ');
-      }
-      wabi_pr_deque((wabi_deque) wabi_deque_deep_right((wabi_deque_deep) d), 0);
-      return;
-    }
-  }
-  switch(WABI_TAG(d)) {
-  case wabi_tag_deque_digit:
-    n = wabi_deque_digit_node_size((wabi_deque_digit) d);
-    t = wabi_deque_digit_table((wabi_deque_digit) d);
+static void
+wabi_pr_deque(wabi_deque d, wabi_size lvl);
+
+
+static inline void
+wabi_pr_deque_digit(wabi_deque_digit d, wabi_size lvl)
+{
+  wabi_size n, s, j;
+  wabi_val t;
+
+  n = wabi_deque_digit_node_size(d);
+  s = wabi_deque_size((wabi_deque) d);
+  t = wabi_deque_digit_table(d);
+
+  if(lvl == 0) {
     for (j = 0; j < n; j++) {
-      wabi_pr_deque((wabi_deque) *(t + j), depth - 1);
+      wabi_pr((wabi_val) *(t + j));
       if(j < n - 1) putchar(' ');
     }
     return;
-  case wabi_tag_deque_deep:
-    l = wabi_deque_deep_left((wabi_deque_deep) d);
-    m = wabi_deque_deep_middle((wabi_deque_deep) d);
-    r = wabi_deque_deep_right((wabi_deque_deep) d);
+  }
+  for (j = 0; j < n; j++) {
+    wabi_pr_deque((wabi_deque) *(t + j), lvl - 1);
+    if(j < n - 1) putchar(' ');
+  }
+}
 
-    wabi_pr_deque((wabi_deque) l, depth);
+
+static inline void
+wabi_pr_deque_deep(wabi_deque_deep d, wabi_size lvl)
+{
+  wabi_size s, j;
+  wabi_deque_digit l, r;
+  wabi_deque m;
+
+  l = wabi_deque_deep_left(d);
+  m = wabi_deque_deep_middle(d);
+  r = wabi_deque_deep_right(d);
+
+  wabi_pr_deque_digit(l, lvl);
+  if(! wabi_deque_is_empty((wabi_val) m)) {
     putchar(' ');
-    if(! wabi_deque_is_empty((wabi_val) m)) {
-      wabi_pr_deque(m, depth + 1);
-      putchar(' ');
-    }
-    wabi_pr_deque((wabi_deque) r, depth);
+    wabi_pr_deque(m, lvl + 1);
+  }
+  putchar(' ');
+  wabi_pr_deque_digit(r, lvl);
+}
+
+
+static void
+wabi_pr_deque(wabi_deque d, wabi_size lvl)
+{
+  switch(WABI_TAG(d)) {
+  case wabi_tag_deque_digit:
+    wabi_pr_deque_digit((wabi_deque_digit) d, lvl);
+    return;
+  case wabi_tag_deque_deep:
+    wabi_pr_deque_deep((wabi_deque_deep) d, lvl);
+    return;
   }
 }
 
@@ -456,7 +465,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_deque_digit:
   case wabi_tag_deque_deep:
     printf("[");
-    wabi_pr_deque((wabi_deque) val, 0);
+    wabi_pr_deque((wabi_deque) val, 0L);
     printf("]");
     break;
   default:
