@@ -153,7 +153,7 @@ wabi_val
 wabi_deque_right(wabi_vm vm, wabi_deque d);
 
 
-wabi_deque
+wabi_val
 wabi_deque_pop_left(wabi_vm vm, wabi_deque d);
 
 

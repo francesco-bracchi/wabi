@@ -776,14 +776,6 @@
 (test (pair? (list 1) (list 2)) true)
 (test (pair? (list 1) (list)) false)
 
-;; (test (left []) nil)
-;; (test (left [0 1 2]) 0)
-;; (test (left (apply deq (ran 100))) 0)
-
-;; (test (right []) nil)
-;; (test (right [0 1 2]) 2)
-;; (test (right (apply deq (ran 100))) 99)
-
 ;; (test (pop-left []) nil)
 ;; (test (pop-left [1]) [])
 ;; (test (pop-left [0 1]) [0])
@@ -859,3 +851,16 @@
 (test (push-left 1 []) [1])
 (test (push-left 0 (apply deq (map inc (ran 32))))
       (apply deq (ran 33)))
+
+
+(test (left []) nil)
+(test (left [0 1 2]) 0)
+(test (left (apply deq (ran 100))) 0)
+
+(test (right []) nil)
+(test (right [0 1 2]) 2)
+(test (right (apply deq (ran 100))) 99)
+
+(test (pop-left []) nil)
+(test (pop-left [1]) [])
+(test (pop-left [1 2 3]) [2 3])

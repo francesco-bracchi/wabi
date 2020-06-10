@@ -230,234 +230,132 @@ wabi_deque_push_left(wabi_vm vm,
 }
 
 
+wabi_val
+wabi_deque_left(wabi_vm vm, wabi_deque d)
+{
+  wabi_deque_digit l;
+  wabi_word* t;
+
+  switch(WABI_TAG(d)) {
+  case wabi_tag_deque_deep:
+    l = wabi_deque_deep_left((wabi_deque_deep) d);
+    t = wabi_deque_digit_table(l);
+    return (wabi_val) *t;
+
+  case wabi_tag_deque_digit:
+    if(wabi_deque_size((wabi_deque) d) == 0)
+      return vm->nil;
+
+    t = wabi_deque_digit_table((wabi_deque_digit) d);
+    return (wabi_val) *t;
+  default:
+    return vm->nil;
+  }
+}
+
+wabi_val
+wabi_deque_right(wabi_vm vm, wabi_deque d)
+{
+  wabi_deque_digit r;
+  wabi_size n;
+  wabi_word* t;
+
+  switch(WABI_TAG(d)) {
+  case wabi_tag_deque_deep:
+    r = wabi_deque_deep_right((wabi_deque_deep) d);
+    n = wabi_deque_digit_node_size(r);
+    t = wabi_deque_digit_table(r);
+
+    return (wabi_val) *(t + n - 1);
+
+  case wabi_tag_deque_digit:
+    if(wabi_deque_size((wabi_deque) d) == 0)
+      return vm->nil;
+
+    t = wabi_deque_digit_table((wabi_deque_digit) d);
+    n = wabi_deque_digit_node_size((wabi_deque_digit) d);
+    return (wabi_val) *(t + n - 1);
+  default:
+    return vm->nil;
+  }
+}
 
 
-/* // -------------------------------------------------------------------------- */
+static wabi_deque
+wabi_deque_pop_left_generic(wabi_vm vm, wabi_deque d, wabi_size s);
 
 
-/* static inline wabi_deque */
-/* wabi_deque_digit_push_left(wabi_vm vm, */
-/*                             wabi_val v, */
-/*                             wabi_deque_digit d) */
-/* { */
-/*   wabi_deque_digit d1, l; */
-/*   wabi_deque_empty m; */
-/*   wabi_size n; */
-/*   wabi_word *t; */
+static inline wabi_deque
+wabi_deque_digit_pop_left(wabi_vm vm, wabi_deque_digit d0, wabi_size s)
+{
+  wabi_size s0, n0;
+  wabi_val t0, t;
+  wabi_deque_digit d;
 
-/*   n = wabi_deque_digit_node_size(d); */
-/*   if(n < wabi_deque_digit_max_size) { */
-/*     d1 = wabi_deque_digit_new(vm, n + 1); */
-/*     if(d1) { */
-/*       t = wabi_deque_digit_table(d1); */
-/*       *t = (wabi_word) v; */
-/*       wordcopy(t + 1, wabi_deque_digit_table(d), n); */
-/*     } */
-/*     return (wabi_deque) d1; */
-/*   } */
-/*   m = wabi_deque_empty_new(vm); */
-/*   if(! m) return NULL; */
+  n0 = wabi_deque_digit_node_size(d0);
+  s0 = wabi_deque_size((wabi_deque) d0);
+  d = wabi_deque_digit_new(vm, n0 - 1, s0 - s);
+  if(! d) return NULL;
 
-/*   l = wabi_deque_push_empty(vm, v); */
-/*   if(! l) return NULL; */
-
-/*   return (wabi_deque) wabi_deque_deep_new(vm, l, (wabi_deque) m, d); */
-/* } */
+  t0 = wabi_deque_digit_table(d0);
+  t = wabi_deque_digit_table(d);
+  wordcopy(t, t0 + 1, n0 - 1);
+  return (wabi_deque) d;
+}
 
 
-/* static inline wabi_deque_deep */
-/* wabi_deque_deep_push_right(wabi_vm vm, wabi_deque_deep d, wabi_val v) */
-/* { */
-/*   wabi_deque_digit l, r, r1; */
-/*   wabi_deque m, m1; */
-/*   wabi_size n; */
-/*   wabi_word* t; */
+static inline wabi_deque
+wabi_deque_deep_pop_left(wabi_vm vm, wabi_deque_deep d0, wabi_size s)
+{
+  wabi_deque_digit l0, r0, l;
+  wabi_deque m0, m;
+  wabi_size nl0;
 
-/*   l = wabi_deque_deep_left(d); */
-/*   m = wabi_deque_deep_middle(d); */
-/*   r = wabi_deque_deep_right(d); */
-/*   n = wabi_deque_digit_node_size(r); */
-/*   if (n < wabi_deque_digit_max_size) { */
-/*     r1 = wabi_deque_digit_new(vm, n + 1); */
-/*     if (!r1) */
-/*       return NULL; */
-/*     t = wabi_deque_digit_table(r1); */
-/*     wordcopy(t, wabi_deque_digit_table(r), n); */
-/*     *(t + n) = (wabi_word)v; */
-/*     return wabi_deque_deep_new(vm, l, m, r1); */
-/*   } */
-/*   m1 = wabi_deque_push_right(vm, (wabi_deque) m, (wabi_val) r); */
-/*   if(! m1) return NULL; */
-/*   r1 = wabi_deque_push_empty(vm, v); */
-/*   if(! r1) return NULL; */
-/*   return wabi_deque_deep_new(vm, l, m1, r1); */
-/* } */
+  l0 = wabi_deque_deep_left(d0);
+  m0 = wabi_deque_deep_middle(d0);
+  r0 = wabi_deque_deep_right(d0);
 
-/* static inline wabi_deque_deep */
-/* wabi_deque_deep_push_left(wabi_vm vm, wabi_val v, wabi_deque_deep d) */
-/* { */
-/*   wabi_deque_digit l, r, l1; */
-/*   wabi_deque m, m1; */
-/*   wabi_size n; */
-/*   wabi_word* t; */
+  nl0 = wabi_deque_digit_node_size(l0);
+  if(nl0 > 1) {
+    l = (wabi_deque_digit) wabi_deque_digit_pop_left(vm, l0, s);
+    if(! l) return NULL;
+    return (wabi_deque) wabi_deque_deep_new(vm, l, m0, r0);
+  }
+  if(wabi_deque_is_empty((wabi_val) m)) {
+    return (wabi_deque) r0;
+  }
+  l = (wabi_deque_digit) wabi_deque_left(vm, m0);
+  if(! l) return NULL;
 
-/*   l = wabi_deque_deep_left(d); */
-/*   m = wabi_deque_deep_middle(d); */
-/*   r = wabi_deque_deep_right(d); */
-/*   n = wabi_deque_digit_node_size(r); */
-/*   if (n < wabi_deque_digit_max_size) { */
-/*     l1 = wabi_deque_digit_new(vm, n + 1); */
-/*     if (!l1) return NULL; */
-/*     t = wabi_deque_digit_table(l1); */
-/*     *t = (wabi_word) v; */
-/*     wordcopy(t + 1, wabi_deque_digit_table(l), n); */
-/*     return wabi_deque_deep_new(vm, l1, m, r); */
-/*   } */
-/*   m1 = wabi_deque_push_left(vm, (wabi_val) l, (wabi_deque) m); */
-/*   if(! m1) return NULL; */
-/*   l1 = wabi_deque_push_empty(vm, v); */
-/*   if(! l1) return NULL; */
-/*   return wabi_deque_deep_new(vm, l1, m1, r); */
-/* } */
+  m = wabi_deque_pop_left_generic(vm, m, wabi_deque_size((wabi_deque) l));
+  if(! m) return NULL;
+
+  return (wabi_deque) wabi_deque_deep_new(vm, l, m, r0);
+}
 
 
-/* wabi_deque */
-/* wabi_deque_push_right(wabi_vm vm, wabi_deque d, wabi_val v) */
-/* { */
-/*   switch(WABI_TAG(d)) { */
-/*   case wabi_tag_deque_deep: */
-/*     return (wabi_deque) wabi_deque_deep_push_right(vm, (wabi_deque_deep) d, v); */
-/*   case wabi_tag_deque_digit: */
-/*     return (wabi_deque) wabi_deque_digit_push_right(vm, (wabi_deque_digit) d, v); */
-/*   default: */
-/*     return (wabi_deque) wabi_deque_push_empty(vm, v); */
-/*   } */
-/* } */
+static wabi_deque
+wabi_deque_pop_left_generic(wabi_vm vm, wabi_deque d0, wabi_size s)
+{
+  switch(WABI_TAG(d0)) {
+  case wabi_tag_deque_deep:
+    return wabi_deque_deep_pop_left(vm, (wabi_deque_deep) d0, s);
+
+  case wabi_tag_deque_digit:
+    return wabi_deque_digit_pop_left(vm, (wabi_deque_digit) d0, s);
+  }
+}
 
 
-/* wabi_deque */
-/* wabi_deque_push_left(wabi_vm vm, wabi_val v, wabi_deque d) */
-/* { */
-/*   switch(WABI_TAG(d)) { */
-/*   case wabi_tag_deque_deep: */
-/*     return (wabi_deque) wabi_deque_deep_push_left(vm, v, (wabi_deque_deep) d); */
-/*   case wabi_tag_deque_digit: */
-/*     return (wabi_deque) wabi_deque_digit_push_left(vm, v, (wabi_deque_digit) d); */
-/*   default: */
-/*     return (wabi_deque) wabi_deque_push_empty(vm, v); */
-/*   } */
-/* } */
+wabi_val
+wabi_deque_pop_left(wabi_vm vm, wabi_deque d)
+{
+  if(wabi_deque_size(d) == 0)
+    return vm->nil;
 
+  return (wabi_val) wabi_deque_pop_left_generic(vm, d, 1L);
+}
 
-/* wabi_val */
-/* wabi_deque_left(wabi_vm vm, wabi_deque d) */
-/* { */
-/*   wabi_deque_digit l; */
-/*   wabi_word* t; */
-
-/*   switch(WABI_TAG(d)) { */
-/*   case wabi_tag_deque_deep: */
-/*     l = wabi_deque_deep_left((wabi_deque_deep) d); */
-/*     t = wabi_deque_digit_table(l); */
-/*     return (wabi_val) *t; */
-
-/*   case wabi_tag_deque_digit: */
-/*     t = wabi_deque_digit_table((wabi_deque_digit) d); */
-/*     return (wabi_val) *t; */
-/*   default: */
-/*     return vm->nil; */
-/*   } */
-/* } */
-
-/* wabi_val */
-/* wabi_deque_right(wabi_vm vm, wabi_deque d) */
-/* { */
-/*   wabi_deque_digit r; */
-/*   wabi_size n; */
-/*   wabi_word* t; */
-
-/*   switch(WABI_TAG(d)) { */
-/*   case wabi_tag_deque_deep: */
-/*     r = wabi_deque_deep_right((wabi_deque_deep) d); */
-/*     n = wabi_deque_digit_node_size(r); */
-/*     t = wabi_deque_digit_table(r); */
-
-/*     return (wabi_val) *(t + n - 1); */
-
-/*   case wabi_tag_deque_digit: */
-/*     t = wabi_deque_digit_table((wabi_deque_digit) d); */
-/*     n = wabi_deque_digit_node_size((wabi_deque_digit) d); */
-/*     return (wabi_val) *(t + n - 1); */
-/*   default: */
-/*     return vm->nil; */
-/*   } */
-/* } */
-
-/* static inline wabi_deque */
-/* wabi_deque_digit_pop_left(wabi_vm vm, wabi_deque_digit d) */
-/* { */
-/*   wabi_size n; */
-/*   wabi_word* t; */
-/*   wabi_deque_digit d1; */
-
-/*   n = wabi_deque_digit_node_size(d); */
-/*   if(n > 1) { */
-/*     n--; */
-/*     d1 = wabi_deque_digit_new(vm, n); */
-/*     if(! d1) return NULL; */
-
-/*     t = wabi_deque_digit_table(d1); */
-/*     wordcopy(t, wabi_deque_digit_table(d) + 1, n); */
-/*     return (wabi_deque) d1; */
-/*   } */
-/*   return (wabi_deque) wabi_deque_empty_new(vm); */
-/* } */
-
-
-/* static inline wabi_deque */
-/* wabi_deque_deep_pop_left(wabi_vm vm, wabi_deque_deep d) */
-/* { */
-/*   wabi_deque_digit l1, l, r; */
-/*   wabi_deque m, m1; */
-/*   wabi_size n; */
-
-/*   l = wabi_deque_deep_left(d); */
-/*   m = wabi_deque_deep_middle(d); */
-/*   r = wabi_deque_deep_right(d); */
-
-/*   n = wabi_deque_digit_node_size(l); */
-/*   if(n > 1) { */
-/*     l1 = (wabi_deque_digit) wabi_deque_digit_pop_left(vm, l); */
-/*     if(! l1) return NULL; */
-
-/*     return (wabi_deque) wabi_deque_deep_new(vm, l1, m, r); */
-/*   } */
-/*   if(wabi_deque_is_empty((wabi_val) m)) { */
-/*     return (wabi_deque) r; */
-/*   } */
-/*   l1 = (wabi_deque_digit) wabi_deque_left(vm, m); */
-/*   if(! l1) return NULL; */
-
-/*   m1 = wabi_deque_pop_left(vm, m); */
-/*   if(! m1) return NULL; */
-
-/*   return (wabi_deque) wabi_deque_deep_new(vm, l1, m1, r); */
-/* } */
-
-
-/* wabi_deque */
-/* wabi_deque_pop_left(wabi_vm vm, wabi_deque d) */
-/* { */
-/*   switch(WABI_TAG(d)) { */
-/*   case wabi_tag_deque_deep: */
-/*     return wabi_deque_deep_pop_left(vm, (wabi_deque_deep) d); */
-
-/*   case wabi_tag_deque_digit: */
-/*     return wabi_deque_digit_pop_left(vm, (wabi_deque_digit) d); */
-/*   default: */
-/*     return NULL; */
-/*   } */
-/* } */
 
 /* static inline wabi_deque */
 /* wabi_deque_digit_pop_right(wabi_vm vm, */
@@ -595,89 +493,6 @@ wabi_deque_push_left(wabi_vm vm,
 /*   if(! m) return NULL; */
 
 /*   return (wabi_deque) wabi_deque_deep_new(vm, l1, m, r2); */
-/* } */
-
-
-/* static wabi_error_type */
-/* wabi_deque_deq_left(wabi_vm vm) */
-/* { */
-/*   wabi_val v, ctrl; */
-/*   wabi_deque d; */
-/*   ctrl = vm->ctrl; */
-
-/*   if(! wabi_is_pair(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   d = (wabi_deque) wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-
-/*   if(! wabi_is_nil(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   if(! wabi_is_deque((wabi_val) d)) */
-/*     return wabi_error_type_mismatch; */
-
-/*   v = wabi_deque_left(vm, d); */
-
-/*   vm->ctrl = v; */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*   return wabi_error_none; */
-/* } */
-
-
-/* static wabi_error_type */
-/* wabi_deque_deq_right(wabi_vm vm) */
-/* { */
-/*   wabi_val v, ctrl; */
-/*   wabi_deque d; */
-/*   ctrl = vm->ctrl; */
-
-/*   if(! wabi_is_pair(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   d = (wabi_deque) wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-
-/*   if(! wabi_is_nil(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   if(! wabi_is_deque((wabi_val) d)) */
-/*     return wabi_error_type_mismatch; */
-
-/*   v = wabi_deque_right(vm, d); */
-
-/*   vm->ctrl = v; */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*   return wabi_error_none; */
-/* } */
-
-
-/* static wabi_error_type */
-/* wabi_deque_deq_pop_left(wabi_vm vm) */
-/* { */
-/*   wabi_val v, ctrl; */
-/*   wabi_deque d; */
-/*   ctrl = vm->ctrl; */
-
-/*   if(! wabi_is_pair(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   d = (wabi_deque) wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-
-/*   if(! wabi_is_nil(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   if(! wabi_is_deque((wabi_val) d)) */
-/*     return wabi_error_type_mismatch; */
-
-/*   v = (wabi_val) wabi_deque_pop_left(vm, d); */
-/*   if(! v) */
-/*     v = (wabi_val) vm->nil; */
-
-/*   vm->ctrl = v; */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*   return wabi_error_none; */
 /* } */
 
 
@@ -935,6 +750,89 @@ wabi_deque_deq_push_left(wabi_vm vm)
 }
 
 
+static wabi_error_type
+wabi_deque_deq_left(wabi_vm vm)
+{
+  wabi_val v, ctrl;
+  wabi_deque d;
+  ctrl = vm->ctrl;
+
+  if(! wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+
+  d = (wabi_deque) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  if(! wabi_is_deque((wabi_val) d))
+    return wabi_error_type_mismatch;
+
+  v = wabi_deque_left(vm, d);
+
+  vm->ctrl = v;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
+static wabi_error_type
+wabi_deque_deq_right(wabi_vm vm)
+{
+  wabi_val v, ctrl;
+  wabi_deque d;
+  ctrl = vm->ctrl;
+
+  if(! wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+
+  d = (wabi_deque) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  if(! wabi_is_deque((wabi_val) d))
+    return wabi_error_type_mismatch;
+
+  v = wabi_deque_right(vm, d);
+
+  vm->ctrl = v;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
+static wabi_error_type
+wabi_deque_deq_pop_left(wabi_vm vm)
+{
+  wabi_val v, ctrl;
+  wabi_deque d;
+  ctrl = vm->ctrl;
+
+  if(! wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+
+  d = (wabi_deque) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  if(! wabi_is_deque((wabi_val) d))
+    return wabi_error_type_mismatch;
+
+  v = (wabi_val) wabi_deque_pop_left(vm, d);
+  if(! v)
+    v = (wabi_val) vm->nil;
+
+  vm->ctrl = v;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
 wabi_error_type
 wabi_deque_builtins(wabi_vm vm, wabi_env env)
 {
@@ -951,13 +849,13 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "push-left", "push-left", wabi_deque_deq_push_left);
   if(res) return res;
-  /* res = WABI_DEFN(vm, env, "pop-left", "pop-right", wabi_deque_deq_pop_left); */
-  /* if(res) return res; */
+  res = WABI_DEFN(vm, env, "right", "right", wabi_deque_deq_right);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "left", "left", wabi_deque_deq_left);
+  if(res) return res;
+  res = WABI_DEFN(vm, env, "pop-left", "pop-right", wabi_deque_deq_pop_left);
+  if(res) return res;
   /* res = WABI_DEFN(vm, env, "pop-right", "pop-right", wabi_deque_deq_pop_right); */
-  /* if(res) return res; */
-  /* res = WABI_DEFN(vm, env, "right", "right", wabi_deque_deq_right); */
-  /* if(res) return res; */
-  /* res = WABI_DEFN(vm, env, "left", "left", wabi_deque_deq_left); */
   /* if(res) return res; */
   /* res = WABI_DEFN(vm, env, "deq-concat", "deq-concat", wabi_deque_deq_concat); */
   /* if(res) return res; */
