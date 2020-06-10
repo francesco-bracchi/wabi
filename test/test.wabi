@@ -784,9 +784,6 @@
 ;; (test (right [0 1 2]) 2)
 ;; (test (right (apply deq (ran 100))) 99)
 
-;; (test (push-left 1 []) [1])
-;; (test (push-left 0 [1]) [0 1])
-
 ;; (test (pop-left []) nil)
 ;; (test (pop-left [1]) [])
 ;; (test (pop-left [0 1]) [0])
@@ -856,3 +853,9 @@
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
 (test (push-right [0] 1 2) [0 1 2])
+
+(test (push-left 1 []) [1])
+(test (push-left 0 [1]) [0 1])
+(test (push-left 1 []) [1])
+(test (push-left 0 (apply deq (map inc (ran 32))))
+      (apply deq (ran 33)))

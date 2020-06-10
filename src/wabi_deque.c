@@ -16,10 +16,6 @@ static const wabi_size wabi_deque_digit_mid_size = 16;
 static const wabi_size wabi_deque_digit_mid_size_plus_one = 16;
 
 
-static wabi_deque
-wabi_deque_push_right_generic(wabi_vm vm, wabi_deque d, wabi_val v, wabi_size s);
-
-
 static inline wabi_deque_digit
 wabi_deque_empty_new(wabi_vm vm) {
   return wabi_deque_digit_new(vm, 0, 0);
@@ -40,6 +36,11 @@ wabi_deque_single_new(wabi_vm vm,
   *t = (wabi_word) v;
   return d;
 }
+
+
+static wabi_deque
+wabi_deque_push_right_generic(wabi_vm vm, wabi_deque d, wabi_val v, wabi_size s);
+
 
 
 static inline wabi_deque
@@ -65,9 +66,13 @@ wabi_deque_digit_push_right(wabi_vm vm,
     return (wabi_deque)d;
   }
   m = (wabi_deque)wabi_deque_empty_new(vm);
-  r = wabi_deque_single_new(vm, v, s);
-  if (!m)
+  if(! m)
     return NULL;
+
+  r = wabi_deque_single_new(vm, v, s);
+  if (!r)
+    return NULL;
+
   return (wabi_deque) wabi_deque_deep_new(vm, d0, (wabi_deque) m, r);
 }
 
@@ -124,6 +129,107 @@ wabi_deque_push_right(wabi_vm vm,
 {
   return (wabi_deque) wabi_deque_push_right_generic(vm, d, v, 1L);
 }
+
+
+static wabi_deque
+wabi_deque_push_left_generic(wabi_vm vm,
+                             wabi_val v,
+                             wabi_deque d,
+                             wabi_size s);
+
+
+
+static inline wabi_deque
+wabi_deque_digit_push_left(wabi_vm vm,
+                           wabi_val v,
+                           wabi_deque_digit d0,
+                           wabi_size s)
+{
+  wabi_size s0, n0;
+  wabi_val t, t0;
+  wabi_deque_digit d, l;
+  wabi_deque m;
+  n0 = wabi_deque_digit_node_size(d0);
+  s0 = wabi_deque_size((wabi_deque) d0);
+  t0 = wabi_deque_digit_table(d0);
+  if (n0 < wabi_deque_digit_max_size) {
+    d = wabi_deque_digit_new(vm, n0 + 1L, s0 + s);
+    if (!d)
+      return NULL;
+    t = wabi_deque_digit_table(d);
+    *t = (wabi_word)v;
+    wordcopy(t + 1, t0, n0);
+    return (wabi_deque)d;
+  }
+  m = (wabi_deque)wabi_deque_empty_new(vm);
+  if (!m)
+    return NULL;
+
+  l = wabi_deque_single_new(vm, v, s);
+  if(!l)
+    return NULL;
+
+  return (wabi_deque) wabi_deque_deep_new(vm, l, (wabi_deque) m, d0);
+}
+
+
+static inline wabi_deque_deep
+wabi_deque_deep_push_left(wabi_vm vm,
+                           wabi_val v,
+                           wabi_deque_deep d0,
+                           wabi_size s)
+{
+
+  wabi_deque_digit l0, r0, l;
+  wabi_deque m0, m;
+  wabi_size sl, nl;
+  wabi_val tl, t;
+
+  l0 = wabi_deque_deep_left(d0);
+  m0 = wabi_deque_deep_middle(d0);
+  r0 = wabi_deque_deep_right(d0);
+  nl = wabi_deque_digit_node_size(l0);
+  sl = wabi_deque_size((wabi_deque) l0);
+  if (nl < wabi_deque_digit_max_size) {
+    tl = wabi_deque_digit_table(l0);
+    l = wabi_deque_digit_new(vm, nl + 1L, s + sl);
+    if(! l) return NULL;
+    t = wabi_deque_digit_table(l);
+    *t = (wabi_word)v;
+    wordcopy(t + 1, tl, nl);
+    return wabi_deque_deep_new(vm, l, m0, r0);
+  }
+  m = wabi_deque_push_left_generic(vm, (wabi_val) l0, m0, sl);
+  if(! m) return NULL;
+  l = wabi_deque_single_new(vm, v, s);
+  if(! l) return NULL;
+  return wabi_deque_deep_new(vm, l, m, r0);
+
+}
+
+
+static wabi_deque
+wabi_deque_push_left_generic(wabi_vm vm,
+                             wabi_val v,
+                             wabi_deque d,
+                             wabi_size s)
+{
+  if(WABI_IS(wabi_tag_deque_digit, d)) {
+    return (wabi_deque) wabi_deque_digit_push_left(vm, v, (wabi_deque_digit) d, s);
+  }
+  return (wabi_deque) wabi_deque_deep_push_left(vm, v, (wabi_deque_deep) d, s);
+}
+
+
+wabi_deque
+wabi_deque_push_left(wabi_vm vm,
+                     wabi_val v,
+                      wabi_deque d)
+{
+  return (wabi_deque) wabi_deque_push_left_generic(vm, v, d, 1L);
+}
+
+
 
 
 /* // -------------------------------------------------------------------------- */
@@ -492,44 +598,6 @@ wabi_deque_push_right(wabi_vm vm,
 /* } */
 
 
-
-/* static wabi_error_type */
-/* wabi_deque_deq_push_left(wabi_vm vm) */
-/* { */
-/*   wabi_deque d; */
-/*   wabi_val ctrl, v; */
-
-/*   ctrl = vm->ctrl; */
-/*   if(! wabi_is_pair(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   v = wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-
-/*   if(! wabi_is_pair(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   d = (wabi_deque) wabi_car((wabi_pair) ctrl); */
-/*   ctrl = wabi_cdr((wabi_pair) ctrl); */
-
-/*   if(! wabi_is_deque((wabi_val) d)) */
-/*     return wabi_error_type_mismatch; */
-
-/*   if(! wabi_is_nil(ctrl)) */
-/*     return wabi_error_bindings; */
-
-/*   d = wabi_deque_push_left(vm, v, d); */
-/*   if(! d) */
-/*     return wabi_error_nomem; */
-
-/*   vm->ctrl = (wabi_val) d; */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
-/*   return wabi_error_none; */
-
-/* } */
-
-
-
 /* static wabi_error_type */
 /* wabi_deque_deq_left(wabi_vm vm) */
 /* { */
@@ -832,6 +900,41 @@ wabi_deque_deq_push_right(wabi_vm vm)
 }
 
 
+static wabi_error_type
+wabi_deque_deq_push_left(wabi_vm vm)
+{
+  wabi_deque d;
+  wabi_val ctrl, v;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+
+  v = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_pair(ctrl))
+    return wabi_error_bindings;
+
+  d = (wabi_deque) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_deque((wabi_val) d))
+    return wabi_error_type_mismatch;
+
+  if(! wabi_is_nil(ctrl))
+    return wabi_error_bindings;
+
+  d = wabi_deque_push_left(vm, v, d);
+  if(! d)
+    return wabi_error_nomem;
+
+  vm->ctrl = (wabi_val) d;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  return wabi_error_none;
+}
+
+
 wabi_error_type
 wabi_deque_builtins(wabi_vm vm, wabi_env env)
 {
@@ -846,8 +949,8 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "push-right", "push-right", wabi_deque_deq_push_right);
   if(res) return res;
-  /* res = WABI_DEFN(vm, env, "push-left", "push-right", wabi_deque_deq_push_left); */
-  /* if(res) return res; */
+  res = WABI_DEFN(vm, env, "push-left", "push-left", wabi_deque_deq_push_left);
+  if(res) return res;
   /* res = WABI_DEFN(vm, env, "pop-left", "pop-right", wabi_deque_deq_pop_left); */
   /* if(res) return res; */
   /* res = WABI_DEFN(vm, env, "pop-right", "pop-right", wabi_deque_deq_pop_right); */
