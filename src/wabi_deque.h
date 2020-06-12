@@ -157,7 +157,7 @@ wabi_val
 wabi_deque_pop_left(wabi_vm vm, wabi_deque d);
 
 
-wabi_deque
+wabi_val
 wabi_deque_pop_right(wabi_vm vm, wabi_deque d);
 
 
@@ -168,9 +168,7 @@ wabi_deque_builtins(wabi_vm vm, wabi_env env);
 static inline void
 wabi_deque_digit_copy_val(wabi_vm vm, wabi_deque_digit d)
 {
-  wabi_size n;
-  n = wabi_deque_digit_node_size(d);
-  wabi_copy_val_size(vm, (wabi_val) d, WABI_DEQUE_DIGIT_SIZE + n);
+  wabi_copy_val_size(vm, (wabi_val) d, WABI_DEQUE_DIGIT_SIZE + wabi_deque_digit_node_size(d));
 }
 
 
@@ -181,28 +179,35 @@ wabi_deque_deep_copy_val(wabi_vm vm, wabi_deque_deep d)
 }
 
 
-
 static inline void
 wabi_deque_digit_collect_val(wabi_vm vm, wabi_deque_digit d)
 {
-  // TBD
-  wabi_val t, u;
-  wabi_size n;
-  t = wabi_deque_digit_table(d);
+  wabi_size j, n;
+  wabi_val t;
   n = wabi_deque_digit_node_size(d);
-  u = t + n;
-  while(t < u) {
-    *t = (wabi_word) wabi_copy_val(vm, (wabi_val) *t);
-    t++;
-  }
-  vm->stor.scan+= WABI_DEQUE_DIGIT_SIZE + n;
+  t = wabi_deque_digit_table(d);
+  for(j = 0; j < n; j++)
+    *(t + j) = (wabi_word) wabi_copy_val(vm, (wabi_word*) *(t + j));
+
+  vm->stor.scan+= n + WABI_DEQUE_DIGIT_SIZE;
 }
 
 
 static inline void
 wabi_deque_deep_collect_val(wabi_vm vm, wabi_deque_deep d)
 {
-  wabi_collect_val_size(vm, (wabi_val) d, WABI_DEQUE_DEEP_SIZE);
+  wabi_deque m;
+  wabi_deque_digit l, r;
+
+  l = wabi_deque_deep_left(d);
+  m = wabi_deque_deep_middle(d);
+  r = wabi_deque_deep_right(d);
+
+  d->left = (wabi_word) wabi_copy_val(vm, (wabi_word*) l);
+  d->middle = (wabi_word) wabi_copy_val(vm, (wabi_word*) m);
+  d->right = (wabi_word) wabi_copy_val(vm, (wabi_word*) r);
+
+  vm->stor.scan += WABI_DEQUE_DEEP_SIZE;
 }
 
 #endif

@@ -325,10 +325,10 @@
 (defn nth (n l)
   (if
    (= 0 n) (fst l)
-    (= 1 n) (snd l)
-    (= 2 n) (trd l)
-    (= 3 n) (fth l)
-    (nth (- n 3) (cdr (cdr (cdr l))))))
+   (= 1 n) (snd l)
+   (= 2 n) (trd l)
+   (= 3 n) (fth l)
+   (nth (- n 3) (cdr (cdr (cdr l))))))
 
 (def tl
   cdr)
@@ -811,18 +811,6 @@
 ;; (pr (deq-to-list [0 1 2 3 4 5 6 7 8 9 10]))
 
 
-;; ;; (test (left [1 2 3]) 1)
-;; ;; (test (right [1 2 3]) 3)
-
-;; ;; (test (pop-left [1 2 3]) [2 3])
-;; ;; (test (pop-right [1 2 3]) [1 2])
-
-;; ;; (test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
-;; ;;       (map (always 0) (ran 27)))
-
-;; ;; (test (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
-;; ;;       (ran 27))
-
 ;; ;; (time (fib 37))
 
 
@@ -864,3 +852,28 @@
 (test (pop-left []) nil)
 (test (pop-left [1]) [])
 (test (pop-left [1 2 3]) [2 3])
+
+(test (pop-right []) nil)
+(test (pop-right [1]) [])
+(test (pop-right [1 2 3]) [1 2])
+
+;; (test (deq-concat [] []) [])
+
+;; (def xxxx (apply deq (ran 1000)))
+
+;; (pr (fib 20))
+;; (pr !fib)
+;; (pr (ran 100))
+;; (pr xxxx)
+
+;; (pr (list (apply deq (ran 100)) (apply deq (ran 96))))
+
+;; (pr x)
+;; (pr (deq-concat (apply deq (ran 100)) (apply deq (ran 96))))
+
+
+;; (test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
+;;       (map (always 0) (ran 27)))
+
+;; (test (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
+;;       (ran 27))
