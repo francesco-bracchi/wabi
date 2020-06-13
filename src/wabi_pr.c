@@ -333,7 +333,6 @@ wabi_pr_deque_digit(wabi_deque_digit d, wabi_size lvl)
 static inline void
 wabi_pr_deque_deep(wabi_deque_deep d, wabi_size lvl)
 {
-  wabi_size s, j;
   wabi_deque_digit l, r;
   wabi_deque m;
 

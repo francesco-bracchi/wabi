@@ -6,6 +6,8 @@
 #include "wabi_vm.h"
 #include "wabi_env.h"
 
+#define WABI_DEQUE_ITER_STACK_SIZE 10
+
 typedef struct wabi_deque_digit_struct
 {
   wabi_word size;
@@ -32,9 +34,23 @@ typedef union wabi_deque_struct {
 
 typedef wabi_deque_t* wabi_deque;
 
+/* typedef struct wabi_deque_iter_frame_struct { */
+/*   wabi_deque deque; */
+/*   wabi_size pos; */
+/* } wabi_deque_iter_frame_t; */
+
+/* typedef wabi_deque_iter_frame_t* wabi_deque_iter_frame; */
+
+/* typedef struct wabi_deque_iter_struct */
+/* { */
+/*   wabi_deque_iter_frame_t[WABI_DEQUE_ITER_STACK_SIZE] stack; */
+/*   int top; */
+/* } wabi_deque_iter_t; */
+
+/* typedef wabi_deque_iter_t* wabi_deque_iter; */
+
 #define WABI_DEQUE_DIGIT_SIZE wabi_sizeof(wabi_deque_digit_t)
 #define WABI_DEQUE_DEEP_SIZE wabi_sizeof(wabi_deque_deep_t)
-
 
 static inline wabi_deque_digit
 wabi_deque_digit_new(wabi_vm vm, wabi_size nsize, wabi_size size)
@@ -209,5 +225,8 @@ wabi_deque_deep_collect_val(wabi_vm vm, wabi_deque_deep d)
 
   vm->stor.scan += WABI_DEQUE_DEEP_SIZE;
 }
+
+int
+wabi_deque_cmp(wabi_deque left, wabi_deque right);
 
 #endif

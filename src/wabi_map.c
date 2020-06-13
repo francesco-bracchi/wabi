@@ -975,7 +975,6 @@ wabi_map_hash_(wabi_hash_state state, wabi_map map)
 int
 wabi_map_cmp(wabi_map left, wabi_map right)
 {
-
   wabi_map_iter_t left_iter, right_iter;
   wabi_map_entry left_entry, right_entry;
   int cmp;

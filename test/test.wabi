@@ -857,6 +857,13 @@
 (test (pop-right [1]) [])
 (test (pop-right [1 2 3]) [1 2])
 
+(test (deq-ref [] 0) nil)
+(test (deq-ref [1 2 3] -1) nil)
+(test (deq-ref [1 2 3] 0) 1)
+(test (deq-ref [1 2 3] 2) 3)
+(test (deq-ref [1 2 3] 3) nil)
+(test (deq-ref (apply deq (ran 1000)) 500) 500)
+
 ;; (test (deq-concat [] []) [])
 
 ;; (def xxxx (apply deq (ran 1000)))
