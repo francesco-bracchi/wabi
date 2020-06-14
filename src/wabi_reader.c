@@ -133,7 +133,7 @@ wabi_reader_read_map(wabi_vm vm, char** c)
 
 
 static inline wabi_val
-wabi_reader_read_deque(wabi_vm vm, char** c)
+wabi_reader_read_vector(wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
@@ -150,7 +150,7 @@ wabi_reader_read_deque(wabi_vm vm, char** c)
     a = wabi_reader_read_val(vm, c);
     if(! a) return NULL;
     wabi_reader_ws(c);
-    d = wabi_reader_read_deque(vm, c);
+    d = wabi_reader_read_vector(vm, c);
     if(! d) return NULL;
     return (wabi_val) wabi_cons(vm, a, d);
   }
@@ -299,11 +299,11 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   }
   if(**c == '[') {
     (*c)++;
-    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "deq");
+    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "vec");
     if(! bin) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(! sym) return NULL;
-    return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_deque(vm, c));
+    return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
   }
   if(wabi_reader_is_num(**c)) {
     return wabi_reader_read_num(vm, c);

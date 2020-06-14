@@ -10,7 +10,7 @@
 #include "wabi_cont.h"
 #include "wabi_combiner.h"
 #include "wabi_place.h"
-#include "wabi_deque.h"
+#include "wabi_vector.h"
 
 wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
@@ -115,12 +115,12 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
     wabi_place_copy_val(vm, (wabi_place) src);
     break;
 
-  case wabi_tag_deque_digit:
-    wabi_deque_digit_copy_val(vm, (wabi_deque_digit) src);
+  case wabi_tag_vector_digit:
+    wabi_vector_digit_copy_val(vm, (wabi_vector_digit) src);
     break;
 
-  case wabi_tag_deque_deep:
-    wabi_deque_deep_copy_val(vm, (wabi_deque_deep) src);
+  case wabi_tag_vector_deep:
+    wabi_vector_deep_copy_val(vm, (wabi_vector_deep) src);
     break;
   }
 
@@ -222,12 +222,12 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
     wabi_place_collect_val(vm, (wabi_place) val);
     break;
 
-  case wabi_tag_deque_digit:
-    wabi_deque_digit_collect_val(vm, (wabi_deque_digit) val);
+  case wabi_tag_vector_digit:
+    wabi_vector_digit_collect_val(vm, (wabi_vector_digit) val);
     break;
 
-  case wabi_tag_deque_deep:
-    wabi_deque_deep_collect_val(vm, (wabi_deque_deep) val);
+  case wabi_tag_vector_deep:
+    wabi_vector_deep_collect_val(vm, (wabi_vector_deep) val);
     break;
 
   case wabi_tag_forward:

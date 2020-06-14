@@ -404,9 +404,9 @@
   (plc-swap p (always v)))
 
 
-(defn deq-update
+(defn vec-update
     (d j f . as)
-  (deq-set d j (apply f (cons (deq-ref d j) as))))
+  (vec-set d j (apply f (cons (vec-ref d j) as))))
 
 
 ;; generics
@@ -784,17 +784,17 @@
 ;; (test (pop-left []) nil)
 ;; (test (pop-left [1]) [])
 ;; (test (pop-left [0 1]) [0])
-;; (test (pop-left (apply deq (ran 100)))
-;;       (apply deq (map inc (ran 99))))
+;; (test (pop-left (apply vec (ran 100)))
+;;       (apply vec (map inc (ran 99))))
 
 ;; (test (pop-right []) nil)
 ;; (test (pop-right [1]) [])
 ;; (test (pop-right [0 1]) [1])
-;; (test (pop-left (apply deq (ran 100)))
-;;       (apply deq (ran 99)))
+;; (test (pop-left (apply vec (ran 100)))
+;;       (apply vec (ran 99)))
 
-;; (pr (deq-concat (apply deq (ran 100))
-;;                 (apply deq (map (part + 100) (ran 100)))))
+;; (pr (vec-concat (apply vec (ran 100))
+;;                 (apply vec (map (part + 100) (ran 100)))))
 
 ;; ;; (test [] [])
 ;; ;; (test [0] [0])
@@ -805,35 +805,35 @@
 ;; (pr [0 10 20 30 40 50 60])
 
 
-;; (defn deq-to-list
+;; (defn vec-to-list
 ;;     (d)
-;;   (rec deq-to-list (d d r nil)
+;;   (rec vec-to-list (d d r nil)
 ;;     (if
-;;      (deq-emp? d) r
-;;      (deq-to-list (pop-right d) (cons (right d) r)))))
+;;      (vec-emp? d) r
+;;      (vec-to-list (pop-right d) (cons (right d) r)))))
 
 
-;; (pr (deq-to-list [0 1 2 3 4 5 6 7 8 9 10]))
+;; (pr (vec-to-list [0 1 2 3 4 5 6 7 8 9 10]))
 
 
 ;; ;; (time (fib 37))
 
 
-(test (deq-len []) 0)
-(test (deq-len [1]) 1)
-(test (deq-len [1 2]) 2)
-(test (deq-len (apply deq (ran 33))) 33)
+(test (vec-len []) 0)
+(test (vec-len [1]) 1)
+(test (vec-len [1 2]) 2)
+(test (vec-len (apply vec (ran 33))) 33)
 
-(test (deq? []) true)
-(test (deq? [] []) true)
-(test (deq? [] nil) false)
+(test (vec? []) true)
+(test (vec? [] []) true)
+(test (vec? [] nil) false)
 
-(test (deq-emp?) true)
-(test (deq-emp? []) true)
-(test (deq-emp? [1]) false)
-(test (deq-emp? 10) false)
-(test (deq-emp? [] []) true)
-(test (deq-emp? [] [1]) false)
+(test (vec-emp?) true)
+(test (vec-emp? []) true)
+(test (vec-emp? [1]) false)
+(test (vec-emp? 10) false)
+(test (vec-emp? [] []) true)
+(test (vec-emp? [] [1]) false)
 
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
@@ -842,17 +842,17 @@
 (test (push-left 1 []) [1])
 (test (push-left 0 [1]) [0 1])
 (test (push-left 1 []) [1])
-(test (push-left 0 (apply deq (map inc (ran 32))))
-      (apply deq (ran 33)))
+(test (push-left 0 (apply vec (map inc (ran 32))))
+      (apply vec (ran 33)))
 
 
 (test (left []) nil)
 (test (left [0 1 2]) 0)
-(test (left (apply deq (ran 100))) 0)
+(test (left (apply vec (ran 100))) 0)
 
 (test (right []) nil)
 (test (right [0 1 2]) 2)
-(test (right (apply deq (ran 100))) 99)
+(test (right (apply vec (ran 100))) 99)
 
 (test (pop-left []) nil)
 (test (pop-left [1]) [])
@@ -862,47 +862,47 @@
 (test (pop-right [1]) [])
 (test (pop-right [1 2 3]) [1 2])
 
-(test (deq-ref [] 0) nil)
-(test (deq-ref [1 2 3] -1) nil)
-(test (deq-ref [1 2 3] 0) 1)
-(test (deq-ref [1 2 3] 2) 3)
-(test (deq-ref [1 2 3] 3) nil)
-(test (deq-ref (apply deq (ran 1000)) 500) 500)
+(test (vec-ref [] 0) nil)
+(test (vec-ref [1 2 3] -1) nil)
+(test (vec-ref [1 2 3] 0) 1)
+(test (vec-ref [1 2 3] 2) 3)
+(test (vec-ref [1 2 3] 3) nil)
+(test (vec-ref (apply vec (ran 1000)) 500) 500)
 
 
-(letr (r (ran 1000) q (apply deq r))
-  (test (map #(deq-ref q it) r) r))
+(letr (r (ran 1000) q (apply vec r))
+  (test (map #(vec-ref q it) r) r))
 
 
-(test (deq-set [] 0 10) nil)
-(test (deq-ref (deq-set [1] 0 100) 0) 100)
-(test (deq-ref (deq-set [0 1] 0 !zero 1 !one) 0) !zero)
+(test (vec-set [] 0 10) nil)
+(test (vec-ref (vec-set [1] 0 100) 0) 100)
+(test (vec-ref (vec-set [0 1] 0 !zero 1 !one) 0) !zero)
 
 
-(letr (rx (ran 1000) qx (apply deq rx))
+(letr (rx (ran 1000) qx (apply vec rx))
     "do something more properties like"
-    (test (map #(deq-ref (deq-set qx it !other) it) rx)
+    (test (map #(vec-ref (vec-set qx it !other) it) rx)
      (map (always !other) rx)))
 
-(test (deq-ref (deq-update (apply deq (ran 1000)) 37 + 100) 37) 137)
+(test (vec-ref (vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
 
-;; (test (deq-concat [] []) [])
+;; (test (vec-concat [] []) [])
 
-;; (def xxxx (apply deq (ran 1000)))
+;; (def xxxx (apply vec (ran 1000)))
 
 ;; (pr (fib 20))
 ;; (pr !fib)
 ;; (pr (ran 100))
 ;; (pr xxxx)
 
-;; (pr (list (apply deq (ran 100)) (apply deq (ran 96))))
+;; (pr (list (apply vec (ran 100)) (apply vec (ran 96))))
 
 ;; (pr x)
-;; (pr (deq-concat (apply deq (ran 100)) (apply deq (ran 96))))
+;; (pr (vec-concat (apply vec (ran 100)) (apply vec (ran 96))))
 
 
-;; (test (map (fn (xs) (left (apply deq (ran (inc xs))))) (ran 27))
+;; (test (map (fn (xs) (left (apply vec (ran (inc xs))))) (ran 27))
 ;;       (map (always 0) (ran 27)))
 
-;; (test (map (fn (xs) (right (apply deq (ran (inc xs))))) (ran 27))
+;; (test (map (fn (xs) (right (apply vec (ran (inc xs))))) (ran 27))
 ;;       (ran 27))

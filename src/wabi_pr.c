@@ -12,7 +12,7 @@
 #include "wabi_pair.h"
 #include "wabi_combiner.h"
 #include "wabi_place.h"
-#include "wabi_deque.h"
+#include "wabi_vector.h"
 /* #include "wabi_env.h" */
 
 void
@@ -303,18 +303,18 @@ wabi_pr_cont(wabi_cont val) {
 
 
 static void
-wabi_pr_deque(wabi_deque d, wabi_size lvl);
+wabi_pr_vector(wabi_vector d, wabi_size lvl);
 
 
 static inline void
-wabi_pr_deque_digit(wabi_deque_digit d, wabi_size lvl)
+wabi_pr_vector_digit(wabi_vector_digit d, wabi_size lvl)
 {
   wabi_size n, s, j;
   wabi_val t;
 
-  n = wabi_deque_digit_node_size(d);
-  s = wabi_deque_size((wabi_deque) d);
-  t = wabi_deque_digit_table(d);
+  n = wabi_vector_digit_node_size(d);
+  s = wabi_vector_size((wabi_vector) d);
+  t = wabi_vector_digit_table(d);
 
   if(lvl == 0) {
     for (j = 0; j < n; j++) {
@@ -324,41 +324,41 @@ wabi_pr_deque_digit(wabi_deque_digit d, wabi_size lvl)
     return;
   }
   for (j = 0; j < n; j++) {
-    wabi_pr_deque((wabi_deque) *(t + j), lvl - 1);
+    wabi_pr_vector((wabi_vector) *(t + j), lvl - 1);
     if(j < n - 1) putchar(' ');
   }
 }
 
 
 static inline void
-wabi_pr_deque_deep(wabi_deque_deep d, wabi_size lvl)
+wabi_pr_vector_deep(wabi_vector_deep d, wabi_size lvl)
 {
-  wabi_deque_digit l, r;
-  wabi_deque m;
+  wabi_vector_digit l, r;
+  wabi_vector m;
 
-  l = wabi_deque_deep_left(d);
-  m = wabi_deque_deep_middle(d);
-  r = wabi_deque_deep_right(d);
+  l = wabi_vector_deep_left(d);
+  m = wabi_vector_deep_middle(d);
+  r = wabi_vector_deep_right(d);
 
-  wabi_pr_deque_digit(l, lvl);
-  if(! wabi_deque_is_empty((wabi_val) m)) {
+  wabi_pr_vector_digit(l, lvl);
+  if(! wabi_vector_is_empty((wabi_val) m)) {
     putchar(' ');
-    wabi_pr_deque(m, lvl + 1);
+    wabi_pr_vector(m, lvl + 1);
   }
   putchar(' ');
-  wabi_pr_deque_digit(r, lvl);
+  wabi_pr_vector_digit(r, lvl);
 }
 
 
 static void
-wabi_pr_deque(wabi_deque d, wabi_size lvl)
+wabi_pr_vector(wabi_vector d, wabi_size lvl)
 {
   switch(WABI_TAG(d)) {
-  case wabi_tag_deque_digit:
-    wabi_pr_deque_digit((wabi_deque_digit) d, lvl);
+  case wabi_tag_vector_digit:
+    wabi_pr_vector_digit((wabi_vector_digit) d, lvl);
     return;
-  case wabi_tag_deque_deep:
-    wabi_pr_deque_deep((wabi_deque_deep) d, lvl);
+  case wabi_tag_vector_deep:
+    wabi_pr_vector_deep((wabi_vector_deep) d, lvl);
     return;
   }
 }
@@ -461,10 +461,10 @@ wabi_pr(wabi_val val) {
     printf("P#");
     wabi_pr((wabi_val) wabi_place_val((wabi_place) val));
     break;
-  case wabi_tag_deque_digit:
-  case wabi_tag_deque_deep:
+  case wabi_tag_vector_digit:
+  case wabi_tag_vector_deep:
     printf("[");
-    wabi_pr_deque((wabi_deque) val, 0L);
+    wabi_pr_vector((wabi_vector) val, 0L);
     printf("]");
     break;
   default:

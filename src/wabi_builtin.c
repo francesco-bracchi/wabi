@@ -25,7 +25,7 @@
 #include "wabi_hash.h"
 #include "wabi_symbol.h"
 #include "wabi_place.h"
-#include "wabi_deque.h"
+#include "wabi_vector.h"
 
 wabi_error_type
 wabi_builtin_def_bt(wabi_vm vm, wabi_val ps, wabi_val e)
@@ -467,7 +467,7 @@ wabi_builtin_stdenv(wabi_vm vm)
   if(res) return NULL;
   res = wabi_place_builtins(vm, env);
   if(res) return NULL;
-  res = wabi_deque_builtins(vm, env);
+  res = wabi_vector_builtins(vm, env);
   if(res) return NULL;
   res = WABI_DEFN(vm, env, "l0", "l0", wabi_builtin_language0);
   return env;
