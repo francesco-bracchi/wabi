@@ -404,6 +404,11 @@
   (plc-swap p (always v)))
 
 
+(defn deq-update
+    (d j f . as)
+  (deq-set d j (apply f (cons (deq-ref d j) as))))
+
+
 ;; generics
 
 (def gen-table (plc {}))
@@ -863,6 +868,23 @@
 (test (deq-ref [1 2 3] 2) 3)
 (test (deq-ref [1 2 3] 3) nil)
 (test (deq-ref (apply deq (ran 1000)) 500) 500)
+
+
+(letr (r (ran 1000) q (apply deq r))
+  (test (map #(deq-ref q it) r) r))
+
+
+(test (deq-set [] 0 10) nil)
+(test (deq-ref (deq-set [1] 0 100) 0) 100)
+(test (deq-ref (deq-set [0 1] 0 !zero 1 !one) 0) !zero)
+
+
+(letr (rx (ran 1000) qx (apply deq rx))
+    "do something more properties like"
+    (test (map #(deq-ref (deq-set qx it !other) it) rx)
+     (map (always !other) rx)))
+
+(test (deq-ref (deq-update (apply deq (ran 1000)) 37 + 100) 37) 137)
 
 ;; (test (deq-concat [] []) [])
 
