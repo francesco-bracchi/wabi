@@ -911,5 +911,12 @@
 
 ;; (pr {!x 10 [20] 30 [] 33})
 
-(let (h (apply vec (ran 10000)))
-  (time (hash h)))
+;; (let (h (apply vec (ran 100000)))
+;;   (time (hash h)))
+
+
+(test (push-right (apply vec (ran 32)) 32)
+      (push-left 0 (apply vec (map inc (ran 32)))))
+
+(test (hash (push-right (apply vec (ran 32)) 32))
+      (hash (push-left 0 (apply vec (map inc (ran 32))))))
