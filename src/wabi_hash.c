@@ -10,6 +10,7 @@
 #include "wabi_combiner.h"
 #include "wabi_cont.h"
 #include "wabi_place.h"
+#include "wabi_vector.h"
 
 void
 wabi_hash_state_init(wabi_hash_state_t* state)
@@ -74,6 +75,11 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
   case wabi_tag_map_entry:
     wabi_map_hash_(state, (wabi_map) val);
     return;
+  case wabi_tag_vector_digit:
+  case wabi_tag_vector_deep:
+    wabi_vector_hash(state, (wabi_vector) val);
+    return;
+
   case wabi_tag_env:
     wabi_env_hash(state, (wabi_env) val);
     return;

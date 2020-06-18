@@ -34,20 +34,21 @@ typedef union wabi_vector_struct {
 
 typedef wabi_vector_t* wabi_vector;
 
-/* typedef struct wabi_vector_iter_frame_struct { */
-/*   wabi_vector vector; */
-/*   wabi_size pos; */
-/* } wabi_vector_iter_frame_t; */
+typedef struct wabi_vector_iter_frame_struct {
+  wabi_vector vector;
+  wabi_size level;
+  wabi_size pos;
+} wabi_vector_iter_frame_t;
 
-/* typedef wabi_vector_iter_frame_t* wabi_vector_iter_frame; */
+typedef wabi_vector_iter_frame_t* wabi_vector_iter_frame;
 
-/* typedef struct wabi_vector_iter_struct */
-/* { */
-/*   wabi_vector_iter_frame_t[WABI_VECTOR_ITER_STACK_SIZE] stack; */
-/*   int top; */
-/* } wabi_vector_iter_t; */
+typedef struct wabi_vector_iter_struct
+{
+  wabi_vector_iter_frame_t stack[10];
+  wabi_vector_iter_frame top;
+} wabi_vector_iter_t;
 
-/* typedef wabi_vector_iter_t* wabi_vector_iter; */
+typedef wabi_vector_iter_t* wabi_vector_iter;
 
 #define WABI_VECTOR_DIGIT_SIZE wabi_sizeof(wabi_vector_digit_t)
 #define WABI_VECTOR_DEEP_SIZE wabi_sizeof(wabi_vector_deep_t)
@@ -228,5 +229,9 @@ wabi_vector_deep_collect_val(wabi_vm vm, wabi_vector_deep d)
 
 int
 wabi_vector_cmp(wabi_vector left, wabi_vector right);
+
+
+void
+wabi_vector_hash(wabi_hash_state state, wabi_vector v);
 
 #endif

@@ -9,7 +9,8 @@
 #include "wabi_builtin.h"
 #include "wabi_constant.h"
 #include "wabi_number.h"
-
+#include "wabi_cmp.h"
+#include "wabi_hash.h"
 
 static const wabi_size wabi_vector_digit_max_size = 32;
 static const wabi_size wabi_vector_digit_mid_size = 16;
@@ -681,107 +682,29 @@ wabi_vector_set(wabi_vm vm, wabi_vector d, wabi_size p, wabi_val v)
   return wabi_vector_set_generic(vm,d, p, v, 0l);
 }
 
-
-
-
-
-
-/* void */
-/* wabi_vector_iterator_init(wabi_vector_iter iter, */
-/*                          wabi_vector d) */
+/* wabi_vector */
+/* wabi_vector_sub_digit(wabi_vm vm, wabi_vector_digit d0, wabi_size os, wabi_size l, wabi_size lvl) */
 /* { */
-
-/*   wabi_vector_iter_frame frame; */
-
-/*   frame = iter->stack; */
-/*   iter->top = 0; */
-/*   frame->vector = d; */
-/*   frame->pos = 0; */
-
-/*   if(wabi_vector_size(d) == 0) { */
-/*     iter->top--; */
-/*     return; */
-/*   } */
-/*   if(WABI_IS(wabi_tag_vector_deep, d)) { */
-/*     frame->pos++; */
-/*     iter->top++; */
-/*     frame = iter->stack + 1; */
-/*     frame->vector = (wabi_vector) wabi_vector_deep_left((wabi_vector_deep) d); */
-/*     frame->pos = 0; */
-/*   } */
-/* } */
-
-
-/* wabi_val */
-/* wabi_vector_iterator_current(wabi_vector_iter iter) */
-/* { */
-/*   wabi_vector_iter_frame frame; */
 /*   wabi_vector_digit d; */
-/*   wabi_val t; */
+/*   wabi_val t, t0; */
 
-/*   if(iter->top < 0) return NULL; */
+/*   if(lvl == 0) { */
+/*     d = (wabi_vector_digit) wabi_vm_alloc(vm, WABI_VECTOR_DIGIT_SIZE + l); */
+/*     if(! d) */
+/*       return NULL; */
 
-/*   frame = iter->stack + iter->top; */
-/*   d = (wabi_vector_digit) frame->vector; */
-/*   t = wabi_vector_digit_table(d); */
-/*   return (wabi_val) *(t + frame->pos); */
-/* } */
-
-/* void */
-/* wabi_vector_iterator_next(wabi_vector_iter iter) */
-/* { */
-
-/*   wabi_vector_iter_frame frame; */
-/*   wabi_vector_digit d; */
-/*   wabi_val t; */
-
-/*   if(iter->top < 0) return ; */
-
-/*   frame = iter->stack + iter->top; */
-/*   d = (wabi_vector_digit) frame->vector; */
-/*   frame->pos++; */
-/*   if(frame->pos < wabi_vector_digit_node_size(d)) */
-/*     return; */
-
-/*   iter->top--; */
-/*   if(iter->top < 0) return; */
-
-/*   frame = iter->stack + iter->top; */
-/*   if(WABI_IS(wabi_tag_vector_deep, frame->vector)) { */
-/*     frame->vector = (wabi_vector) wabi_vector_deep_right((wabi_vector_deep) frame->vector); */
-/*     frame->pos = 0; */
+/*     wordcopy((wabi_word*) d, (wabi_word*) d0, WABI_VECTOR_DIGIT_SIZE); */
+/*     t0 = wabi_vector_digit_table(d0); */
+/*     t = wabi_vector_digit_table(d); */
+/*     wordcopy(t, t0 + os, l); */
 /*   } */
+/*   return d; */
 /* } */
 
-
-
-/* int */
-/* wabi_vector_cmp(wabi_vector left, wabi_vector right) */
+/* wabi_vector */
+/* wabi_vector_sub_deep(wabi_vm vm, wabi_vector_deep d0, wabi_size os, wabi_size l, wabi_size lvl) */
 /* { */
-/*   wabi_vector_iter_t left_iter, right_iter; */
-/*   wabi_val left_val, right_val; */
-/*   int cmp; */
 
-/*   do { */
-/*     left_val = wabi_vector_iterator_current(&left_iter); */
-/*     right_val = wabi_vector_iterator_current(&right_iter); */
-
-/*     if(!left_val && !right_val) { */
-/*       return 0; */
-/*     } */
-/*     else if(!right_val) { */
-/*       return 1; */
-/*     } */
-/*     else if(!left_val) { */
-/*       return -1; */
-/*     } */
-/*     else { */
-/*       cmp = wabi_cmp(left_val, right_val); */
-/*       if(cmp) return cmp; */
-/*     } */
-/*     wabi_vector_iterator_next(&left_iter); */
-/*     wabi_vector_iterator_next(&right_iter); */
-/*   } while(1); */
 /* } */
 
 
@@ -1198,6 +1121,152 @@ wabi_vector_vec_set(wabi_vm vm)
 }
 
 
+static inline void
+wabi_vector_iter_move(wabi_vector_iter iter)
+{
+  wabi_vector_iter_frame f, f0;
+  wabi_size n0;
+  wabi_vector v0;
+  wabi_val t0;
+
+  for(;;) {
+    if(iter->top < iter->stack) return;
+    f0 = iter->top;
+    v0 = f0->vector;
+    if(wabi_vector_is_digit((wabi_val) v0)) {
+      n0 = wabi_vector_digit_node_size((wabi_vector_digit) v0);
+      if (f0->pos >= n0) {
+        iter->top--;
+        if(iter->top < iter->stack) return;
+        iter->top->pos++;
+        continue;
+      }
+      if (f0->level > 0) {
+        t0 = wabi_vector_digit_table((wabi_vector_digit) v0);
+        iter->top++;
+        f = iter->top;
+        f->level = f0->level - 1;
+        f->pos = 0;
+        f->vector = (wabi_vector) * (t0 + f0->pos);
+        continue;
+      }
+      return;
+    }
+    // deep
+    if (f0->pos >= 3) {
+      iter->top--;
+      if(iter->top < iter->stack) return;
+      iter->top->pos++;
+      continue;
+    }
+    iter->top++;
+    f = iter->top;
+    f->pos = 0;
+
+    if (f0->pos <= 0) {
+      f->level = f0->level;
+      f->vector = (wabi_vector) wabi_vector_deep_left((wabi_vector_deep) v0);
+    }
+    if (f0->pos == 1) {
+      f->level = f0->level + 1;
+      f->vector = (wabi_vector) wabi_vector_deep_middle((wabi_vector_deep) v0);
+    }
+    if (f0->pos == 2) {
+      f->level = f0->level;
+      f->vector = (wabi_vector) wabi_vector_deep_right((wabi_vector_deep) v0);
+    }
+  }
+}
+
+void
+wabi_vector_iter_next(wabi_vector_iter iter)
+{
+  iter->top->pos++;
+  wabi_vector_iter_move(iter);
+}
+
+
+void
+wabi_vector_iter_init(wabi_vector_iter iter, wabi_vector v)
+{
+  wabi_vector_iter_frame f, f0;
+
+  f0= iter->stack;
+  iter->top = f0;
+
+  f0->vector = v;
+  f0->level = 0L;
+  f0->pos = 0;
+  wabi_vector_iter_move(iter);
+}
+
+
+wabi_val
+wabi_vector_iter_current(wabi_vector_iter iter)
+{
+  wabi_vector_iter_frame f;
+  wabi_val t;
+
+  if(iter->top < iter->stack) {
+    return NULL;
+  }
+
+  f = iter->top;
+  t = wabi_vector_digit_table((wabi_vector_digit) f->vector);
+  return (wabi_val) *(t + f->pos);
+}
+
+
+int
+wabi_vector_cmp(wabi_vector left, wabi_vector right)
+{
+  wabi_vector_iter_t left_iter, right_iter;
+  wabi_val l, r;
+  int cmp;
+
+  cmp = wabi_vector_size(right) - wabi_vector_size(left);
+  if(cmp) return cmp;
+
+  wabi_vector_iter_init(&left_iter, left);
+  wabi_vector_iter_init(&right_iter, right);
+
+  for(;;) {
+    l = wabi_vector_iter_current(&left_iter);
+    r = wabi_vector_iter_current(&right_iter);
+    if(!l && !r) {
+      return 0;
+    }
+    if(!r) {
+      return 1;
+    }
+    if(!l) {
+      return -1;
+    }
+    cmp = wabi_cmp(l, r);
+    if(cmp) return cmp;
+    wabi_vector_iter_next(&left_iter);
+    wabi_vector_iter_next(&right_iter);
+  }
+}
+
+
+void
+wabi_vector_hash(wabi_hash_state state, wabi_vector v)
+{
+  wabi_vector_iter_t iter;
+  wabi_val x;
+
+  wabi_vector_iter_init(&iter, v);
+  wabi_hash_step(state, "V", 1);
+  for(;;) {
+    x = wabi_vector_iter_current(&iter);
+    if(! x) return;
+    wabi_hash_val(state, x);
+    wabi_vector_iter_next(&iter);
+  }
+}
+
+
 wabi_error_type
 wabi_vector_builtins(wabi_vm vm, wabi_env env)
 {
@@ -1208,7 +1277,7 @@ wabi_vector_builtins(wabi_vm vm, wabi_env env)
   if(res) return res;
   res = WABI_DEFN(vm, env, "vec?", "vec?", wabi_vector_vec_p);
   if(res) return res;
-  // it is really useful? `(= [] it)`
+  // it is really useful? `(part = [])`
   res = WABI_DEFN(vm, env, "vec-emp?", "vec-emp?", wabi_vector_vec_emp_p);
   if(res) return res;
   res = WABI_DEFN(vm, env, "push-right", "push-right", wabi_vector_vec_push_right);

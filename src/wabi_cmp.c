@@ -13,8 +13,8 @@
 #include "wabi_error.h"
 #include "wabi_builtin.h"
 #include "wabi_place.h"
+#include "wabi_vector.h"
 #include "wabi_cmp.h"
-
 
 int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
@@ -78,6 +78,9 @@ wabi_cmp(wabi_val a, wabi_val b)
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
     return wabi_map_cmp((wabi_map) a, (wabi_map) b);
+  case wabi_tag_vector_digit:
+  case wabi_tag_vector_deep:
+    return wabi_vector_cmp((wabi_vector) a, (wabi_vector) b);
   case wabi_tag_env:
     return wabi_env_cmp((wabi_env) a, (wabi_env) b);
   case wabi_tag_app:
