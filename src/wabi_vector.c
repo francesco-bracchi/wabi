@@ -12,10 +12,6 @@
 #include "wabi_cmp.h"
 #include "wabi_hash.h"
 
-static const wabi_size wabi_vector_digit_max_size = 32;
-static const wabi_size wabi_vector_digit_mid_size = 16;
-static const wabi_size wabi_vector_digit_mid_size_plus_one = 16;
-
 
 static inline wabi_vector_digit
 wabi_vector_empty_new(wabi_vm vm) {
@@ -673,7 +669,6 @@ wabi_vector_set_generic(wabi_vm vm, wabi_vector d, wabi_size p, wabi_val v, wabi
 
   return (wabi_vector) wabi_vector_set_digit(vm, (wabi_vector_digit) d, p, v, lvl);
 }
-// END SET
 
 
 static inline wabi_vector
@@ -681,31 +676,6 @@ wabi_vector_set(wabi_vm vm, wabi_vector d, wabi_size p, wabi_val v)
 {
   return wabi_vector_set_generic(vm,d, p, v, 0l);
 }
-
-/* wabi_vector */
-/* wabi_vector_sub_digit(wabi_vm vm, wabi_vector_digit d0, wabi_size os, wabi_size l, wabi_size lvl) */
-/* { */
-/*   wabi_vector_digit d; */
-/*   wabi_val t, t0; */
-
-/*   if(lvl == 0) { */
-/*     d = (wabi_vector_digit) wabi_vm_alloc(vm, WABI_VECTOR_DIGIT_SIZE + l); */
-/*     if(! d) */
-/*       return NULL; */
-
-/*     wordcopy((wabi_word*) d, (wabi_word*) d0, WABI_VECTOR_DIGIT_SIZE); */
-/*     t0 = wabi_vector_digit_table(d0); */
-/*     t = wabi_vector_digit_table(d); */
-/*     wordcopy(t, t0 + os, l); */
-/*   } */
-/*   return d; */
-/* } */
-
-/* wabi_vector */
-/* wabi_vector_sub_deep(wabi_vm vm, wabi_vector_deep d0, wabi_size os, wabi_size l, wabi_size lvl) */
-/* { */
-
-/* } */
 
 
 static wabi_error_type
@@ -783,32 +753,6 @@ wabi_vector_vec_len(wabi_vm vm)
   if(! r) return wabi_error_nomem;
 
   vm->ctrl = r;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
-}
-
-
-static wabi_error_type
-wabi_vector_vec_emp_p(wabi_vm vm)
-{
-  wabi_val res, ctrl, vec;
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
-
-  ctrl = vm->ctrl;
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
-    vec = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(! wabi_vector_is_empty(vec)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      return wabi_error_none;
-    }
-  }
-  if(!wabi_is_nil(ctrl)) return wabi_error_bindings;
-  *res = wabi_val_true;
-  vm->ctrl = res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   return wabi_error_none;
 }
@@ -1276,9 +1220,6 @@ wabi_vector_builtins(wabi_vm vm, wabi_env env)
   res = WABI_DEFN(vm, env, "vec-len", "vec-len", wabi_vector_vec_len);
   if(res) return res;
   res = WABI_DEFN(vm, env, "vec?", "vec?", wabi_vector_vec_p);
-  if(res) return res;
-  // it is really useful? `(part = [])`
-  res = WABI_DEFN(vm, env, "vec-emp?", "vec-emp?", wabi_vector_vec_emp_p);
   if(res) return res;
   res = WABI_DEFN(vm, env, "push-right", "push-right", wabi_vector_vec_push_right);
   if(res) return res;

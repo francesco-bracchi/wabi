@@ -53,6 +53,9 @@ typedef wabi_vector_iter_t* wabi_vector_iter;
 #define WABI_VECTOR_DIGIT_SIZE wabi_sizeof(wabi_vector_digit_t)
 #define WABI_VECTOR_DEEP_SIZE wabi_sizeof(wabi_vector_deep_t)
 
+static const wabi_size wabi_vector_digit_max_size = 32;
+
+
 static inline wabi_vector_digit
 wabi_vector_digit_new(wabi_vm vm, wabi_size nsize, wabi_size size)
 {
@@ -154,34 +157,6 @@ wabi_vector_deep_middle(wabi_vector_deep d)
 }
 
 
-wabi_vector
-wabi_vector_push_left(wabi_vm vm, wabi_val v, wabi_vector d);
-
-
-wabi_vector
-wabi_vector_push_right(wabi_vm vm, wabi_vector d, wabi_val v);
-
-
-wabi_val
-wabi_vector_left(wabi_vm vm, wabi_vector d);
-
-
-wabi_val
-wabi_vector_right(wabi_vm vm, wabi_vector d);
-
-
-wabi_val
-wabi_vector_pop_left(wabi_vm vm, wabi_vector d);
-
-
-wabi_val
-wabi_vector_pop_right(wabi_vm vm, wabi_vector d);
-
-
-wabi_error_type
-wabi_vector_builtins(wabi_vm vm, wabi_env env);
-
-
 static inline void
 wabi_vector_digit_copy_val(wabi_vm vm, wabi_vector_digit d)
 {
@@ -227,11 +202,43 @@ wabi_vector_deep_collect_val(wabi_vm vm, wabi_vector_deep d)
   vm->stor.scan += WABI_VECTOR_DEEP_SIZE;
 }
 
+wabi_vector
+wabi_vector_push_left(wabi_vm vm, wabi_val v, wabi_vector d);
+
+
+wabi_vector
+wabi_vector_push_right(wabi_vm vm, wabi_vector d, wabi_val v);
+
+
+wabi_val
+wabi_vector_left(wabi_vm vm, wabi_vector d);
+
+
+wabi_val
+wabi_vector_right(wabi_vm vm, wabi_vector d);
+
+
+wabi_val
+wabi_vector_pop_left(wabi_vm vm, wabi_vector d);
+
+
+wabi_val
+wabi_vector_pop_right(wabi_vm vm, wabi_vector d);
+
+
+wabi_error_type
+wabi_vector_builtins(wabi_vm vm, wabi_env env);
+
+
 int
 wabi_vector_cmp(wabi_vector left, wabi_vector right);
 
 
 void
 wabi_vector_hash(wabi_hash_state state, wabi_vector v);
+
+
+wabi_vector
+wabi_vector_concat(wabi_vm vm, wabi_vector l, wabi_vector r);
 
 #endif
