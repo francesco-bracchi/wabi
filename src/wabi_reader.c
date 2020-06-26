@@ -1,5 +1,5 @@
 /**
-xo * Fast and mostly incorrect reader
+ * Slow and mostly incorrect reader
  */
 
 #define wabi_reader_c
@@ -15,6 +15,7 @@ xo * Fast and mostly incorrect reader
 #include "wabi_binary.h"
 #include "wabi_pair.h"
 #include "wabi_symbol.h"
+#include "wabi_constant.h"
 #include "wabi_reader.h"
 
 #define IS_WS(c) ((c) == ' ' || (c) == '\n' || (c) == '\t')
@@ -70,108 +71,97 @@ wabi_reader_ws(char** c)
 }
 
 wabi_val
-wabi_reader_read_val(wabi_vm vm, char** c);
+wabi_reader_read_val(const wabi_vm vm, char** c);
 
 
 static inline wabi_val
-wabi_reader_read_list(wabi_vm vm, char** c)
+wabi_reader_read_list(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
   a = wabi_reader_read_val(vm, c);
-  if(! a) return NULL;
+  if(vm->ert) return NULL;
   wabi_reader_ws(c);
   if(**c == ')') {
     (*c)++;
-
-    d = wabi_vm_alloc(vm, 1);
-    if(d) {
-      *d = wabi_val_nil;
-    }
+    d = vm->nil;
   }
   else if(**c == '.') {
     (*c)++;
     wabi_reader_ws(c);
     d = wabi_reader_read_val(vm, c);
-    if(! d) return NULL;
+    if(vm->ert) return NULL;
     wabi_reader_ws(c);
-    if(**c != ')') return NULL;
+    if (**c != ')') {
+      vm->ert = wabi_error_read;
+      return NULL;
+    }
     (*c)++;
   }
   else {
     wabi_reader_ws(c);
     d = wabi_reader_read_list(vm, c);
-    if(! d) return NULL;
+    if(vm->ert) return NULL;
   }
   return (wabi_val) wabi_cons(vm, a, d);
 }
 
 
 static inline wabi_val
-wabi_reader_read_map(wabi_vm vm, char** c)
+wabi_reader_read_map(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
   if(**c == '}') {
     (*c)++;
-
-    d = wabi_vm_alloc(vm, 1);
-    if(d) {
-      *d = wabi_val_nil;
-    }
-    return d;
+    return vm->nil;
   }
   else {
     a = wabi_reader_read_val(vm, c);
-    if(! a) return NULL;
+    if(vm->ert) return NULL;
     wabi_reader_ws(c);
     d = wabi_reader_read_map(vm, c);
-    if(! d) return NULL;
+    if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, a, d);
   }
 }
 
 
 static inline wabi_val
-wabi_reader_read_vector(wabi_vm vm, char** c)
+wabi_reader_read_vector(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
   if(**c == ']') {
     (*c)++;
-
-    d = wabi_vm_alloc(vm, 1);
-    if(d) {
-      *d = wabi_val_nil;
-    }
-    return d;
+    return vm->nil;
   }
   else {
     a = wabi_reader_read_val(vm, c);
-    if(! a) return NULL;
+    if(vm->ert) return NULL;
     wabi_reader_ws(c);
     d = wabi_reader_read_vector(vm, c);
-    if(! d) return NULL;
+    if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, a, d);
   }
 }
 
 
 static inline wabi_val
-wabi_reader_read_quote(wabi_vm vm, char** c)
+wabi_reader_read_quote(const wabi_vm vm, char** c)
 {
   wabi_val a, x, bin, sym;
   wabi_reader_ws(c);
   a = wabi_reader_read_val(vm, c);
-  if(! a) return NULL;
+  if(vm->ert) return NULL;
   wabi_reader_ws(c);
   x = (wabi_val) wabi_cons(vm, a, vm->nil);
-  if(!x) return NULL;
+  if(vm->ert) return NULL;
 
   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q");
-  if(! bin) return NULL;
+  if(vm->ert) return NULL;
   sym = (wabi_val) wabi_symbol_new(vm, bin);
-  if(! sym) return NULL;
+  if(vm->ert) return NULL;
 
   return (wabi_val) wabi_cons(vm, sym, x);
 }
@@ -183,14 +173,14 @@ wabi_reader_read_afn(wabi_vm vm, char** c)
   wabi_val a, x, bin, afn;
   wabi_reader_ws(c);
   a = wabi_reader_read_val(vm, c);
-  if(! a) return NULL;
+  if(vm->ert) return NULL;
   wabi_reader_ws(c);
   x = (wabi_val) wabi_cons(vm, a, vm->nil);
-  if(!x) return NULL;
+  if(vm->ert) return NULL;
   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "afn");
-  if(! bin) return NULL;
+  if(vm->ert) return NULL;
   afn = wabi_symbol_new(vm, bin);
-  if(! afn) return NULL;
+  if(vm->ert) return NULL;
   return (wabi_val) wabi_cons(vm, afn, x);
 }
 
@@ -213,10 +203,9 @@ wabi_reader_read_num(wabi_vm vm, char** c)
 static inline wabi_val
 wabi_reader_read_string(wabi_vm vm, char** c)
 {
-  char *buff, *bptr;
+  char buff[1024], *bptr;
   wabi_val res;
-  buff = malloc(1024);
-  bptr = buff;
+  bptr = (char*) &buff;
   while(**c != '"' && **c != '\0' && (bptr - buff) < 1023) {
     if(**c == '\\') (*c)++;
     *bptr = **c;
@@ -224,9 +213,8 @@ wabi_reader_read_string(wabi_vm vm, char** c)
     (*c)++;
   }
   *bptr = '\0';
-  res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
+  res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, (char*) &buff);
   (*c)++;
-  free(buff);
   return res;
 }
 
@@ -255,8 +243,8 @@ static inline wabi_val
 wabi_reader_read_ignore(wabi_vm vm) {
   wabi_val res;
   res = wabi_vm_alloc(vm, 1);
-  if(res)
-    *res = wabi_val_ignore;
+  if(vm->ert) return NULL;
+  *res = wabi_val_ignore;
   return res;
 }
 
@@ -275,7 +263,6 @@ wabi_val
 wabi_reader_read_val(wabi_vm vm, char** c)
 {
   wabi_val bin, sym;
-
   wabi_reader_ws(c);
   if(**c == '!') {
     (*c)++;
@@ -292,17 +279,17 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   if(**c == '{') {
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap");
-    if(! bin) return NULL;
+    if(vm->ert) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
-    if(! sym) return NULL;
+    if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_map(vm, c));
   }
   if(**c == '[') {
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "vec");
-    if(! bin) return NULL;
+    if(vm->ert) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
-    if(! sym) return NULL;
+    if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
   }
   if(wabi_reader_is_num(**c)) {
@@ -332,4 +319,39 @@ wabi_reader_read_val(wabi_vm vm, char** c)
 wabi_val
 wabi_reader_read(wabi_vm vm, char* c) {
   return wabi_reader_read_val(vm, &c);
+}
+
+
+inline static wabi_val
+wabi_reader_reverse(const wabi_vm vm, wabi_val es)
+{
+  wabi_val xs;
+
+  xs = vm->nil;
+  while(wabi_is_pair(es)) {
+    xs = (wabi_val) wabi_cons(vm, wabi_car((wabi_pair) es), xs);
+    if(vm->ert) return NULL;
+    es = wabi_cdr((wabi_pair) es);
+  }
+  if(! wabi_is_nil(es)) {
+    vm->ert = wabi_error_read;
+  }
+  return xs;
+}
+
+wabi_val
+wabi_reader_read_all(const wabi_vm vm, char* c)
+{
+  wabi_val ex, exs;
+  exs = vm->nil;
+
+  for(;;) {
+    ex = wabi_reader_read_val(vm, &c);
+    if(vm->ert) return NULL;
+    if(! ex) break;
+
+    exs = (wabi_val) wabi_cons(vm, ex, exs);
+    if(vm->ert) return NULL;
+  }
+  return wabi_reader_reverse(vm, exs);
 }

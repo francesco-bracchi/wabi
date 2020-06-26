@@ -140,8 +140,8 @@ int
 wabi_map_cmp(wabi_map left, wabi_map right);
 
 
-wabi_error_type
-wabi_map_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_map_builtins(const wabi_vm vm, const wabi_env env);
 
 
 static inline void

@@ -14,43 +14,12 @@
 #include "wabi_builtin.h"
 #include "wabi_place.h"
 #include "wabi_vector.h"
+#include "wabi_constant.h"
 #include "wabi_cmp.h"
 
-int
-wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
-  long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
-  return d ? (d > 0L ? 1 : -1) : 0;
-}
-
 
 int
-wabi_cmp_builtin_combiner(wabi_combiner_builtin a, wabi_combiner_builtin b)
-{
-  return wabi_binary_cmp((wabi_binary) a->c_name, (wabi_binary) b->c_name);
-}
-
-
-int
-wabi_cmp_combiner_derived(wabi_combiner_derived a, wabi_combiner_derived b)
-{
-    int cmp;
-
-    cmp = wabi_cmp((wabi_val) a->body, (wabi_val) b->body);
-    if(cmp) return cmp;
-
-    cmp = wabi_cmp((wabi_val) a->parameters, (wabi_val) b->parameters);
-    if(cmp) return cmp;
-
-    cmp = wabi_cmp((wabi_val) a->caller_env_name, (wabi_val) b->caller_env_name);
-    if(cmp) return cmp;
-
-    return wabi_cmp((wabi_val) WABI_WORD_VAL(a->static_env),
-                    (wabi_val) WABI_WORD_VAL(b->static_env));
-}
-
-
-int
-wabi_cmp(wabi_val a, wabi_val b)
+wabi_cmp(const wabi_val a, const wabi_val b)
 {
   wabi_word tag;
   wabi_word diff;
@@ -85,10 +54,10 @@ wabi_cmp(wabi_val a, wabi_val b)
     return wabi_env_cmp((wabi_env) a, (wabi_env) b);
   case wabi_tag_app:
   case wabi_tag_oper:
-    return wabi_cmp_combiner_derived((wabi_combiner_derived) a, (wabi_combiner_derived) b);
+    return wabi_combiner_derived_cmp((wabi_combiner_derived) a, (wabi_combiner_derived) b);
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    return wabi_cmp_builtin_combiner((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
+    return wabi_combiner_builtin_cmp((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
   case wabi_tag_cont_eval:
   case wabi_tag_cont_apply:
   case wabi_tag_cont_call:
@@ -106,7 +75,7 @@ wabi_cmp(wabi_val a, wabi_val b)
 
 
 int
-wabi_eq(wabi_val left, wabi_val right)
+wabi_eq(const wabi_val left, const wabi_val right)
 {
   wabi_word tag;
   wabi_word diff;
@@ -128,22 +97,24 @@ wabi_eq(wabi_val left, wabi_val right)
 }
 
 
-wabi_error_type
-wabi_cmp_eq_builtin(wabi_vm vm)
+static void
+wabi_cmp_eq(const wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->ctrl;
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
 
   res = wabi_vm_alloc(vm, 1);
-  if(!res) return wabi_error_nomem;
+  if(vm->ert) return;
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  while(wabi_is_pair(ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b)) {
@@ -151,104 +122,180 @@ wabi_cmp_eq_builtin(wabi_vm vm)
       *res = wabi_val_false;
       vm->ctrl = res;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      return wabi_error_none;
+      return;
     }
   }
-  if(*ctrl == wabi_val_nil) {
-    *res = wabi_val_true;
-    vm->ctrl = res;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
+  if(!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-wabi_error_type
-wabi_cmp_gt_builtin(wabi_vm vm)
+static void
+wabi_cmp_gt(const wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->ctrl;
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  while(wabi_is_pair(ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) >= 0) {
-      res = wabi_vm_alloc(vm, 1);
-      if(!res) return wabi_error_nomem;
       *res = wabi_val_false;
       vm->ctrl = res;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      return wabi_error_none;
+      return;
     }
     a = b;
   }
-  if(*ctrl == wabi_val_nil) {
-    res = wabi_vm_alloc(vm, 1);
-    if(!res) return wabi_error_nomem;
-    *res = wabi_val_true;
-    vm->ctrl = res;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-wabi_error_type
-wabi_cmp_lt_builtin(wabi_vm vm)
+static void
+wabi_cmp_gt_eq(const wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
 
   ctrl = vm->ctrl;
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  while(wabi_is_pair(ctrl)) {
     b = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(a, b) <= 0) {
-      res = wabi_vm_alloc(vm, 1);
-      if(!res) return wabi_error_nomem;
+    if(wabi_cmp(a, b) > 0) {
       *res = wabi_val_false;
       vm->ctrl = res;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      return wabi_error_none;
+      return;
     }
     a = b;
   }
-  if(*ctrl == wabi_val_nil) {
-    res = wabi_vm_alloc(vm, 1);
-    if(!res) return wabi_error_nomem;
-    *res = wabi_val_true;
-    vm->ctrl = res;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+
+static void
+wabi_cmp_lt(const wabi_vm vm)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  while(wabi_is_pair(ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b) <= 0) {
+      *res = wabi_val_false;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return;
+    }
+    a = b;
+  }
+  if (!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+}
+
+
+static void
+wabi_cmp_lt_eq(const wabi_vm vm)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  while(wabi_is_pair(ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b) < 0) {
+      *res = wabi_val_false;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return;
+    }
+    a = b;
+  }
+  if (!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
 }
 
 // TODO
 // rename with eq gt lt since = < > must be for numbers only (maybe not =?)
-wabi_error_type
-wabi_cmp_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_cmp_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFN(vm, env, "=", "=", wabi_cmp_eq_builtin);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, ">", "gt", wabi_cmp_gt_builtin);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "<", "lt", wabi_cmp_lt_builtin);
-  return res;
-  /* res = WABI_DEFN(vm, env, ">=", wabi_cmp_gt_builtin); */
-  /* res = WABI_DEFN(vm, env, "<=", wabi_cmp_lt_builtin); */
+  wabi_defn(vm, env, "=", &wabi_cmp_eq);
+  if(vm->ert) return;
+  wabi_defn(vm, env, ">", &wabi_cmp_gt);
+  if(vm->ert) return;
+  wabi_defn(vm, env, "<", &wabi_cmp_lt);
+  if(vm->ert) return;
+  wabi_defn(vm, env, ">=", &wabi_cmp_gt_eq);
+  if(vm->ert) return;
+  wabi_defn(vm, env, "<=", &wabi_cmp_lt_eq);
 }

@@ -17,7 +17,7 @@
 
 
 static inline void
-wabi_system_error_signal(wabi_vm vm)
+wabi_system_error_signal(const wabi_vm vm)
 {
   printf("ERROR IN A VM: %s\n", wabi_error_name(vm->ert));
   wabi_prn(vm->ctrl);
@@ -25,7 +25,7 @@ wabi_system_error_signal(wabi_vm vm)
 
 
 static inline void
-wabi_system_inc_vmc(wabi_system sys) {
+wabi_system_inc_vmc(const wabi_system sys) {
   pthread_mutex_lock(&sys->rts.vmlock);
   sys->rts.vmcnt++;
   pthread_mutex_unlock(&sys->rts.vmlock);
@@ -33,7 +33,7 @@ wabi_system_inc_vmc(wabi_system sys) {
 
 
 static inline void
-wabi_system_dec_vmc(wabi_system sys) {
+wabi_system_dec_vmc(const wabi_system sys) {
   pthread_mutex_lock(&sys->rts.vmlock);
   sys->rts.vmcnt--;
   if(sys->rts.vmcnt <= 0)
@@ -42,7 +42,7 @@ wabi_system_dec_vmc(wabi_system sys) {
 }
 
 
-void*
+static inline void*
 wabi_system_consume_queue(void* args) {
   wabi_system sys;
   sys = (wabi_system) args;
@@ -63,7 +63,7 @@ wabi_system_consume_queue(void* args) {
 
 
 void
-wabi_system_init(wabi_system sys)
+wabi_system_init(const wabi_system sys)
 {
   wabi_word t;
 
@@ -80,7 +80,7 @@ wabi_system_init(wabi_system sys)
 
 
 void
-wabi_system_destroy(wabi_system sys)
+wabi_system_destroy(const wabi_system sys)
 {
   wabi_word t;
   wabi_system_wait(sys);
@@ -96,25 +96,25 @@ wabi_system_destroy(wabi_system sys)
 }
 
 wabi_vm
-wabi_system_new_vm(wabi_system sys)
+wabi_system_new_vm(const wabi_system sys)
 {
   wabi_vm vm;
   vm = (wabi_vm) malloc(sizeof(wabi_vm_t));
-  if(wabi_vm_init(vm, sys->config.store_size))
-    return NULL;
+  if(! vm) return NULL;
+  wabi_vm_init(vm, sys->config.store_size);
   return vm;
 }
 
 
 void
-wabi_system_run(wabi_system sys, wabi_vm vm) {
+wabi_system_run(const wabi_system sys, const wabi_vm vm) {
   wabi_system_inc_vmc(sys);
   wabi_queue_enq(&sys->rts.vm_queue, vm);
 }
 
 
 void
-wabi_system_wait(wabi_system sys)
+wabi_system_wait(const wabi_system sys)
 {
   pthread_mutex_lock(&sys->rts.vmlock);
   while(sys->rts.vmcnt > 0)

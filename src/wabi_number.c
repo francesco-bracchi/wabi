@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "wabi_value.h"
 #include "wabi_vm.h"
+#include "wabi_constant.h"
 #include "wabi_number.h"
 #include "wabi_combiner.h"
 #include "wabi_builtin.h"
@@ -11,22 +12,26 @@
 
 
 wabi_fixnum
-wabi_fixnum_new(wabi_vm vm,
-                int64_t val)
+wabi_fixnum_new(const wabi_vm vm,
+                const int64_t val)
 {
   wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    *res = val & wabi_word_value_mask;
-    WABI_SET_TAG(res, wabi_tag_fixnum);
-    return res;
+
+  if(val >= wabi_fixnum_max) {
+    vm->ert = wabi_error_out_of_range;
+    return NULL;
   }
-  return NULL;
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return NULL;
+
+  *res = val & wabi_word_value_mask;
+  WABI_SET_TAG(res, wabi_tag_fixnum);
+  return res;
 }
 
 
-wabi_error_type
-wabi_number_builtin_sum(wabi_vm vm)
+static void
+wabi_number_builtin_sum(const wabi_vm vm)
 {
   long ac;
   wabi_val a, ctrl;
@@ -34,28 +39,27 @@ wabi_number_builtin_sum(wabi_vm vm)
   ac = 0L;
   ctrl = vm->ctrl;
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  a = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac += WABI_CAST_INT64(a);
   }
-  if(*ctrl == wabi_val_nil) {
-    a = wabi_vm_alloc(vm, 1);
-    if(a) {
-      *a = ac & wabi_word_value_mask;
-      WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = a;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  if(!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  *a = ac & wabi_word_value_mask;
+  WABI_SET_TAG(a, wabi_tag_fixnum);
+  vm->ctrl = a;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-wabi_error_type
-wabi_number_builtin_mul(wabi_vm vm)
+static void
+wabi_number_builtin_mul(const wabi_vm vm)
 {
   long ac;
   wabi_val a, ctrl;
@@ -63,119 +67,117 @@ wabi_number_builtin_mul(wabi_vm vm)
   ac = 1L;
   ctrl = vm->ctrl;
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  a = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac *= WABI_CAST_INT64(a);
   }
-  if(*ctrl == wabi_val_nil) {
-    a = wabi_vm_alloc(vm, 1);
-    if(a) {
-      *a = ac& wabi_word_value_mask;
-      WABI_SET_TAG(a, wabi_tag_fixnum);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = a;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  *a = ac & wabi_word_value_mask;
+  WABI_SET_TAG(a, wabi_tag_fixnum);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->ctrl = a;
 }
 
 
-wabi_error_type
-wabi_number_builtin_diff(wabi_vm vm)
+static void
+wabi_number_builtin_diff(const wabi_vm vm)
 {
   long ac;
   wabi_val a, res, ctrl;
 
   ctrl = vm->ctrl;
 
-  if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    return wabi_error_bindings;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
   res = wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
+  if(vm->ert) return;
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
-  if(*ctrl == wabi_val_nil) {
+  if(wabi_is_nil(ctrl)) {
+    // unary op
     *res = (- ac) & wabi_word_value_mask;
     WABI_SET_TAG(res, wabi_tag_fixnum);
     vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
     vm->ctrl = res;
-    return wabi_error_none;
+    return;
   }
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac -= WABI_CAST_INT64(a);
   }
-  if(*ctrl == wabi_val_nil) {
-    *res = ac & wabi_word_value_mask;
-    WABI_SET_TAG(res, wabi_tag_fixnum);
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
   }
-  return wabi_error_bindings;
+  *res = ac & wabi_word_value_mask;
+  WABI_SET_TAG(res, wabi_tag_fixnum);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->ctrl = res;
 }
 
 
-wabi_error_type
-wabi_number_builtin_div(wabi_vm vm)
+static void
+wabi_number_builtin_div(const wabi_vm vm)
 {
   long x, ac;
   wabi_val a, ctrl, res;
 
   ctrl = vm->ctrl;
 
-  if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    return wabi_error_bindings;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
   res = wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
+  if(vm->ert) return;
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
+  while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     x = WABI_CAST_INT64(a);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(x == 0) {
-      return wabi_error_division_by_zero;
+      vm->ert = wabi_error_division_by_zero;
+      return;
     }
     ac /= x;
   }
-  if(*ctrl != wabi_val_nil)
-    return wabi_error_bindings;
-
-  res = wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
 
   *res = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   vm->ctrl = res;
-  return wabi_error_none;
 }
 
 
-wabi_error_type
-wabi_number_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_number_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFN(vm, env, "+", "+", wabi_number_builtin_sum);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "*", "*", wabi_number_builtin_mul);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "-", "-", wabi_number_builtin_diff);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "/", "/", wabi_number_builtin_div);
-  return res;
+  WABI_DEFN(vm, env, "+", "+", wabi_number_builtin_sum);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "*", "*", wabi_number_builtin_mul);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "-", "-", wabi_number_builtin_diff);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "/", "/", wabi_number_builtin_div);
 }

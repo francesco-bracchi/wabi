@@ -226,8 +226,8 @@ wabi_val
 wabi_vector_pop_right(wabi_vm vm, wabi_vector d);
 
 
-wabi_error_type
-wabi_vector_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_vector_builtins(const wabi_vm vm, const wabi_env env);
 
 
 int

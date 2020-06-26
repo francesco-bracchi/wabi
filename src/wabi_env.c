@@ -18,6 +18,10 @@
  * When a funciton is called, for example, the body is evaluated in the context
  * of an environment that is the extension of the static env, and the binding
  * operation is run on formal parameters.
+ *
+ * TODO:
+ * 1. merge multiple environmnets
+ * 2. more environment manipulation (i.e. undef?)
  */
 
 #define wabi_env_c
@@ -32,10 +36,13 @@
 #include "wabi_map.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
+#include "wabi_constant.h"
 #include "wabi_hash.h"
 
 static inline void
-wabi_env_actually_set(wabi_env env, wabi_val k, wabi_val v)
+wabi_env_actually_set(const wabi_env env,
+                      const wabi_val k,
+                      const wabi_val v)
 {
   *(((wabi_val) env->data) + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) k;
   *(((wabi_val) env->data) + 1 + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) v;
@@ -43,27 +50,26 @@ wabi_env_actually_set(wabi_env env, wabi_val k, wabi_val v)
 }
 
 
-static inline wabi_error_type
-wabi_env_set_expand(wabi_vm vm, wabi_env env)
+static inline void
+wabi_env_set_expand(const wabi_vm vm,
+                    const wabi_env env)
 {
   uint32_t new_size;
   wabi_word *new_data;
 
   new_size = env->numE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
   new_data = (wabi_word*) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
-  if(new_data) {
-    wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);
-    env->data = (wabi_word) new_data;
-    env->maxE = new_size;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
+  if(vm->ert) return;
+
+  wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);
+  env->data = (wabi_word) new_data;
+  env->maxE = new_size;
 }
 
 static wabi_size rnd = 0;
 
 static inline wabi_val
-wabi_env_lookup_local(wabi_env env, wabi_val k)
+wabi_env_lookup_local(const wabi_env env, const wabi_val k)
 {
   wabi_size j, l;
   wabi_val k0, res;
@@ -90,20 +96,21 @@ wabi_env_lookup_local(wabi_env env, wabi_val k)
 }
 
 
-wabi_error_type
-wabi_env_set(wabi_vm vm, wabi_env env, wabi_val k, wabi_val v)
+void
+wabi_env_set(const wabi_vm vm,
+             const wabi_env env,
+             const wabi_val k,
+             const wabi_val v)
 {
-
-  wabi_error_type err;
   if(wabi_env_lookup_local(env, k)) {
-    return wabi_error_already_defined;
+    vm->ert = wabi_error_already_defined;
+    return;
   }
   if(env->numE >= env->maxE) {
-    err = wabi_env_set_expand(vm, env);
-    if(err) return err;
+    wabi_env_set_expand(vm, env);
+    if(vm->ert) return;
   }
   wabi_env_actually_set(env, k, v);
-  return wabi_error_none;
 }
 
 
@@ -196,47 +203,46 @@ wabi_env_cmp(wabi_env left, wabi_env right)
 /**
  * Builtins
  */
-
-static inline wabi_error_type
-wabi_env_p_bt(wabi_vm vm, wabi_val e0)
+static void
+wabi_env_p_bt(const wabi_vm vm)
 {
-  wabi_val res;
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(res) {
-    *res = WABI_IS(wabi_tag_env, e0) ? wabi_val_true : wabi_val_false;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
+  wabi_builtin_predicate(vm, &wabi_is_env);
+}
+
+static void
+wabi_env_extend_bt(const wabi_vm vm)
+{
+  // todo: how about multiple extensions?
+  wabi_val ctrl, res;
+  wabi_env e0;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_nomem;
-}
+  e0 = (wabi_env) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if(! wabi_is_env((wabi_val) e0)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-static inline wabi_error_type
-wabi_env_extend_bt(wabi_vm vm, wabi_val e0)
-{
-  wabi_val res;
-  if(! WABI_IS(wabi_tag_env, e0))
-    return wabi_error_type_mismatch;
+  res = (wabi_val) wabi_env_extend(vm, e0);
+  if(vm->ert) return;
 
-  res = (wabi_val) wabi_env_extend(vm, (wabi_env) e0);
-
-  if(! res)
-    return wabi_error_nomem;
-
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
   vm->ctrl = res;
-  return wabi_error_none;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-WABI_BUILTIN_WRAP1(wabi_env_p_builtin, wabi_env_p_bt)
-WABI_BUILTIN_WRAP1(wabi_env_ext_excl, wabi_env_extend_bt)
-
-wabi_error_type
-wabi_env_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_env_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFN(vm, env, "env?", "env?", wabi_env_p_builtin);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "ext!", "ext!", wabi_env_ext_excl);
-  return res;
+  WABI_DEFN(vm, env, "env?", "env?", wabi_env_p_bt);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "ext!", "ext!", wabi_env_extend_bt);
 }

@@ -24,7 +24,7 @@ main(int argc,
   char *buffer;
   long length;
 
-  sys.config.store_size = 10000000;
+  sys.config.store_size = 100000000;
   sys.config.fuel = 300000;
   sys.config.num_threads = get_nprocs() + 1;
 
@@ -38,7 +38,6 @@ main(int argc,
     fprintf(stderr, "usage: wabi <filename>\n");
     return 2;
   }
-
   FILE * f = fopen(argv[1], "rb");
   fseek(f, 0, SEEK_END);
   length = ftell(f);
@@ -48,7 +47,8 @@ main(int argc,
   buffer[length] = '\0';
   fclose (f);
   e0 = wabi_builtin_stdenv(vm);
-  wabi_builtin_load(vm, e0, buffer);
+  wabi_builtin_load_cstring(vm, e0, buffer);
+  free(buffer);
   wabi_system_run(&sys, vm);
   wabi_system_wait(&sys);
   return (int) vm->ert;

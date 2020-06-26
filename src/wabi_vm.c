@@ -52,17 +52,20 @@
 #include "wabi_binary.h"
 #include "wabi_symbol.h"
 #include "wabi_constant.h"
+#include "wabi_error.h"
 
 
 static inline wabi_val
-wabi_vm_nil(wabi_vm vm)
+wabi_vm_const(wabi_vm vm, wabi_word val)
 {
+
   wabi_val v = wabi_vm_alloc(vm, WABI_CONSTANT_SIZE);
-  if(v) {
-    *v = wabi_val_nil;
-  }
+  if(vm->ert) return NULL;
+
+  *v = val;
   return v;
 }
+
 
 
 static inline wabi_val
@@ -72,11 +75,11 @@ wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
   wabi_val sym;
   int j = 0;
   bin = wabi_binary_leaf_new_from_cstring(vm, cstr);
-  if(! bin) return NULL;
+  if(vm->ert) return NULL;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
-  if(! sym) return NULL;
+  if(vm->ert) return NULL;
   res = (wabi_val) wabi_cons(vm, sym, res);
-  if(! res) return NULL;
+  if(vm->ert) return NULL;
   return res;
 }
 
@@ -85,30 +88,33 @@ static inline wabi_val
 wabi_vm_others(wabi_vm vm, wabi_val res)
 {
   res = wabi_vm_declare_other_sym(vm, "q", res);
-  if(! res) return NULL;
+  if(! vm->ert) return NULL;
   res = wabi_vm_declare_other_sym(vm, "hmap", res);
   return res;
 }
 
 
-int
-wabi_vm_init(wabi_vm vm, wabi_size size)
+void
+wabi_vm_init(const wabi_vm vm, const wabi_size size)
 {
   wabi_val stbl, nil, oth;
-  if(wabi_store_init(&(vm->stor), size))
-    return 1;
+
+  if(wabi_store_init(&(vm->stor), size)) {
+    vm->ert = wabi_error_nomem;
+    return;
+  }
+  vm->ert = wabi_error_none;
 
   stbl = (wabi_val) wabi_map_empty(vm);
-  if(! stbl) return 2;
+  if(vm->ert) return;
 
-  nil = wabi_vm_nil(vm);
-  if(!nil) return 3;
+  nil = wabi_vm_const(vm, wabi_val_nil);
+  if(vm->ert) return;
 
   vm->stbl  = stbl;
 
   oth = wabi_vm_others(vm, nil);
-  if(!oth) return 4;
-
+  if(vm->ert) return;
 
   vm->ctrl = NULL;
   vm->env = NULL;
@@ -119,31 +125,37 @@ wabi_vm_init(wabi_vm vm, wabi_size size)
   vm->fuel = 0;
   vm->erv = nil;
   vm->ert = wabi_error_none;
-  return 0;
+
 }
 
 
-int
-wabi_vm_collect(wabi_vm vm)
+void
+wabi_vm_collect(const wabi_vm vm)
 {
   int res;
   wabi_store_prepare(&vm->stor);
 
   vm->stbl = (wabi_val) wabi_map_empty(vm);
-  if(!vm->stbl) return 1;
+  if(vm->ert) return;
   vm->stor.scan+=WABI_MAP_SIZE;
 
   if(vm->ctrl) vm->ctrl = wabi_copy_val(vm, vm->ctrl);
+  if(vm->ert) return;
   if(vm->env) vm->env = wabi_copy_val(vm, vm->env);
+  if(vm->ert) return;
   if(vm->cont) vm->cont = wabi_copy_val(vm, vm->cont);
+  if(vm->ert) return;
   if(vm->prmt) vm->prmt = wabi_copy_val(vm, vm->prmt);
+  if(vm->ert) return;
   if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
+  if(vm->ert) return;
   if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
+  if(vm->ert) return;
   if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);
+  if(vm->ert) return;
 
   wabi_collect(vm);
   vm->ert = wabi_error_none;
-  return 0;
 }
 
 
@@ -178,39 +190,41 @@ wabi_vm_reverse(wabi_vm vm,
 }
 
 
-static wabi_error_type
-wabi_vm_bind(wabi_vm vm,
-             wabi_env env,
-             wabi_val args,
-             wabi_val params)
+static void
+wabi_vm_bind(const wabi_vm vm,
+             const wabi_env env,
+             const wabi_val args,
+             const wabi_val params)
 {
-  int partial;
-  if(WABI_IS(wabi_tag_symbol, params)) {
-    return wabi_env_set(vm, env, (wabi_symbol) params, args);
+  if(wabi_is_symbol(params)) {
+    wabi_env_set(vm, env, (wabi_symbol) params, args);
+    return;
   }
-  if(*params == wabi_val_ignore) {
-    return wabi_error_none;
+  if(wabi_is_ignore(params)) {
+    return;
   }
-  if(WABI_IS(wabi_tag_pair, params)) {
-    if(WABI_IS(wabi_tag_pair, args)) {
-      partial = wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
-      if(partial != wabi_error_none) return partial;
-      return wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+  if(wabi_is_pair(params)) {
+    if(wabi_is_pair(args)) {
+      wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
+      if(vm->ert) return;
+      wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+      return;
     }
-    if(*args == wabi_val_nil) {
-      partial = wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
-      if(partial != wabi_error_none) return partial;
-      return wabi_vm_bind(vm, env, vm->nil, wabi_cdr((wabi_pair) params));
+    if(wabi_is_nil(args)) {
+      wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
+      if(vm->ert) return;
+      wabi_vm_bind(vm, env, vm->nil, wabi_cdr((wabi_pair) params));
+      return;
     }
   }
-  if(wabi_cmp(params, args) == 0) {
-    return wabi_error_none;
+  if(wabi_cmp(params, args)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
 }
 
 static inline void
-wabi_vm_reduce(wabi_vm vm)
+wabi_vm_reduce(const wabi_vm vm)
 {
   wabi_val ctrl, ctrl0;
   wabi_cont cont, cont0;
@@ -432,14 +446,11 @@ wabi_vm_reduce(wabi_vm vm)
         env = (wabi_env) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->static_env;
         env = wabi_env_extend(vm, env);
         if(env) {
-          vm->ert = wabi_vm_bind(vm, env, (wabi_val) ((wabi_cont_call) cont)->env, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->caller_env_name);
-          if(vm->ert) {
-            return;
-          }
-          vm->ert = wabi_vm_bind(vm, env, ctrl, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->parameters);
-          if(vm->ert) {
-            return;
-          }
+          wabi_vm_bind(vm, env, (wabi_val) ((wabi_cont_call) cont)->env, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->caller_env_name);
+          if(vm->ert) return;
+          wabi_vm_bind(vm, env, ctrl, (wabi_val) ((wabi_combiner_derived) ((wabi_cont_call) cont)->combiner)->parameters);
+          if(vm->ert) return;
+
           cont0 = wabi_cont_next(cont);
           if(WABI_IS(wabi_tag_pair, wabi_cdr((wabi_pair) ctrl0))) {
             cont0 = wabi_cont_push_prog(vm, env, wabi_cdr((wabi_pair) ctrl0), cont0);
@@ -479,7 +490,7 @@ wabi_vm_reduce(wabi_vm vm)
     /* (btcall bt as &s) */
     if(wabi_combiner_is_builtin((wabi_val) ((wabi_cont_call) cont)->combiner)) {
       // todo: do not return error state
-      vm->ert = ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) ((wabi_cont_call) cont)->combiner)->c_ptr)))(vm);
+      ((wabi_builtin_fun) (WABI_WORD_VAL(((wabi_combiner_builtin) ((wabi_cont_call) cont)->combiner)->c_ptr)))(vm);
       return;
     }
     // things that implements invoke
@@ -567,7 +578,7 @@ wabi_vm_reduce(wabi_vm vm)
     /* ctrl: (last vs) */
     /* envr: e0 */
     /* cont: s // (bind e0 ps as) */
-    vm->ert = wabi_vm_bind(vm, (wabi_env) ((wabi_cont_def) cont)->env, ctrl, (wabi_val) ((wabi_cont_def) cont)->pattern);
+    wabi_vm_bind(vm, (wabi_env) ((wabi_cont_def) cont)->env, ctrl, (wabi_val) ((wabi_cont_def) cont)->pattern);
     if(vm->ert) {
       return;
     }
@@ -580,7 +591,9 @@ wabi_vm_reduce(wabi_vm vm)
 
 
 void
-wabi_vm_run(wabi_vm vm, wabi_size fuel) {
+wabi_vm_run(const wabi_vm vm,
+            const wabi_size fuel)
+{
   vm->fuel = fuel;
   vm->ert = wabi_error_none;
 
@@ -596,8 +609,9 @@ wabi_vm_run(wabi_vm vm, wabi_size fuel) {
     if(!vm->ert)
       continue;
 
-    if(vm->ert == wabi_error_nomem && !wabi_vm_collect(vm)) {
-      vm->ert = wabi_error_none;
+    if(vm->ert == wabi_error_nomem) {
+      wabi_vm_collect(vm);
+      if(vm->ert) return;
       continue;
     }
     return;

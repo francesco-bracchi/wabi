@@ -7,13 +7,13 @@
 #include "wabi_vm.h"
 
 
-typedef struct wabi_delim_control {
+typedef struct wabi_delim_control_struct {
 } wabi_delim_control_t;
 
 typedef wabi_delim_control_t* wabi_delim_control;
 
-wabi_error_type
-wabi_delim_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_delim_builtins(const wabi_vm vm, const wabi_env env);
 
 
 #endif

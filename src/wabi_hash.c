@@ -12,43 +12,14 @@
 #include "wabi_place.h"
 #include "wabi_vector.h"
 
-void
-wabi_hash_state_init(wabi_hash_state_t* state)
+
+static void
+wabi_hash_state_init(const wabi_hash_state state)
 {
   state->a = 3141527183;
   state->b = 2718331415;
   state->v_hash = 179;
   state->err = 0;
-}
-
-void
-wabi_hash_step(wabi_hash_state_t *state,
-               char *data,
-               wabi_word size)
-{
-  wabi_word j;
-  for(j = 0; j < size; j++) {
-    state->v_hash = state->a * state->v_hash + *(data + j);
-    state->a *= state->b;
-  }
-}
-
-void
-wabi_hash_combiner(wabi_hash_state_t *state, wabi_combiner c)
-{
-  switch(WABI_TAG(c)) {
-  case wabi_tag_bt_app:
-  case wabi_tag_bt_oper:
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_builtin) c)->c_name);
-    return;
-  /* case wabi_tag_app: */
-  /* case wabi_tag_oper: */
-  default:
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->static_env);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->caller_env_name);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->parameters);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->body);
-  }
 }
 
 void
@@ -60,8 +31,7 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
     wabi_hash_step(state, (char *) val, 8);
     return;
   case wabi_tag_symbol:
-    wabi_hash_step(state, "S", 1);
-    wabi_hash_val(state, wabi_symbol_to_binary((wabi_symbol) val));
+    wabi_symbol_hash(state, (wabi_symbol) val);
     return;
   case wabi_tag_pair:
     wabi_pair_hash(state, (wabi_pair) val);
@@ -84,12 +54,12 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
     wabi_env_hash(state, (wabi_env) val);
     return;
   case wabi_tag_app:
-  case wabi_tag_bt_app:
   case wabi_tag_oper:
+  case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    wabi_hash_step(state, "C", 1);
-    wabi_hash_step(state, (char*) val, 1);
-    wabi_hash_combiner(state, (wabi_combiner) val);
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
+    wabi_combiner_hash(state, (wabi_combiner) val);
     return;
 
   case wabi_tag_cont_eval:
@@ -107,6 +77,7 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
   }
   state->err = 1;
 }
+
 
 wabi_word
 wabi_hash(wabi_val val)

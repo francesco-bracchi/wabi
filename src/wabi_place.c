@@ -11,8 +11,9 @@
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
 
+
 static inline wabi_word
-wabi_place_uid(wabi_place place)
+wabi_place_uid(const wabi_place place)
 {
   static wabi_word wabi_place_cnt = 0;
   return ((wabi_word) place) ^ (++wabi_place_cnt);
@@ -20,20 +21,21 @@ wabi_place_uid(wabi_place place)
 
 
 wabi_place
-wabi_place_new(wabi_vm vm, wabi_val init)
+wabi_place_new(const wabi_vm vm,
+               const wabi_val init)
 {
   wabi_place place = (wabi_place) wabi_vm_alloc(vm, WABI_PLACE_SIZE);
-  if(place) {
-    place->uid = wabi_place_uid(place);
-    place->val = (wabi_word) init;
-    WABI_SET_TAG(place, wabi_tag_place);
-  }
+  if(vm->ert) return NULL;
+
+  place->uid = wabi_place_uid(place);
+  place->val = (wabi_word) init;
+  WABI_SET_TAG(place, wabi_tag_place);
   return place;
 }
 
 
-static wabi_error_type
-wabi_place_plc(wabi_vm vm)
+static void
+wabi_place_plc(const wabi_vm vm)
 {
   wabi_val ctrl, init;
   wabi_place res;
@@ -41,125 +43,110 @@ wabi_place_plc(wabi_vm vm)
   if(wabi_is_nil(ctrl)) {
     init = vm->nil;
   }
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
+  if(wabi_is_pair(ctrl)) {
     init = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
   }
   if(!wabi_is_nil(ctrl)) {
-    return wabi_error_bindings;
+    vm->ert = wabi_error_bindings;
+    return;
   }
   res = wabi_place_new(vm, init);
-  if(! res)
-    return wabi_error_nomem;
+  if(vm->ert) return;
 
   vm->ctrl = (wabi_val) res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 }
 
 
-static wabi_error_type
-wabi_place_plc_p(wabi_vm vm)
+static void
+wabi_place_plc_p(const wabi_vm vm)
 {
-  wabi_val res, ctrl, plc;
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
-
-  ctrl = vm->ctrl;
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
-    plc = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(! WABI_IS(wabi_tag_place, plc)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      return wabi_error_none;
-    }
-  }
-  if(!wabi_is_nil(ctrl)) return wabi_error_bindings;
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
+  wabi_builtin_predicate(vm, &wabi_is_place);
 }
 
-static wabi_error_type
-wabi_place_plc_val(wabi_vm vm)
+static void
+wabi_place_plc_val(const wabi_vm vm)
 {
   wabi_val ctrl;
   wabi_place plc;
 
   ctrl = vm->ctrl;
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
-
+  if(wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   plc = (wabi_place) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!wabi_is_nil(ctrl))
-    return wabi_error_bindings;
-
-  if(! WABI_IS(wabi_tag_place, plc))
-    return wabi_error_type_mismatch;
-
+  if(!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if(!wabi_is_place((wabi_val) plc)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
   vm->ctrl = wabi_place_val(plc);
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 }
 
 
-static wabi_error_type
-wabi_place_plc_cas(wabi_vm vm)
+static void
+wabi_place_plc_cas(const wabi_vm vm)
 {
-  wabi_val ctrl, val, old, new, res;
+  wabi_val ctrl, val, res;
+  wabi_word old, new;
   wabi_place plc;
 
   ctrl = vm->ctrl;
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
-
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   plc = (wabi_place) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! WABI_IS(wabi_tag_place, plc))
-    return wabi_error_type_mismatch;
-
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
-
-  old = wabi_car((wabi_pair) ctrl);
+  if(! wabi_is_place((wabi_val) plc)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  old = (wabi_word) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  new = (wabi_word) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_bindings;
-
-  new = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  if(!wabi_is_nil(ctrl))
-    return wabi_error_bindings;
-
+  if(!wabi_is_nil(ctrl)){
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(! res) return wabi_error_nomem;
+  if(vm->ert) return;
 
   *res = __sync_bool_compare_and_swap (&plc->val, old, new) ? wabi_val_true : wabi_val_false;
 
   vm->ctrl = res;
   vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
-  return wabi_error_none;
 }
 
 
-wabi_error_type
-wabi_place_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_place_builtins(const wabi_vm vm,
+                    const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFN(vm, env, "plc", "plc", wabi_place_plc);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "plc?", "plc", wabi_place_plc_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "plc-val", "plc-val", wabi_place_plc_val);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "plc-cas", "plc-cas", wabi_place_plc_cas);
-  return res;
+  WABI_DEFN(vm, env, "plc", "plc", wabi_place_plc);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "plc?", "plc", wabi_place_plc_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "plc-val", "plc-val", wabi_place_plc_val);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "plc-cas", "plc-cas", wabi_place_plc_cas);
 }

@@ -18,49 +18,47 @@ typedef wabi_pair_t* wabi_pair;
 
 #define WABI_PAIR_SIZE wabi_sizeof(wabi_pair_t)
 
-/** CY775VF */
-/** CY775FV */
 
 static inline wabi_pair
-wabi_cons(wabi_vm vm, wabi_val car, wabi_val cdr)
+wabi_cons(const wabi_vm vm, const wabi_val car, const wabi_val cdr)
 {
   wabi_pair pair = (wabi_pair) wabi_vm_alloc(vm, WABI_PAIR_SIZE);
-  if(pair) {
-    pair->car = (wabi_word) car;
-    pair->cdr = (wabi_word) cdr;
-    WABI_SET_TAG(pair, wabi_tag_pair);
-  }
+  if(vm->ert) return NULL;
+
+  pair->car = (wabi_word) car;
+  pair->cdr = (wabi_word) cdr;
+  WABI_SET_TAG(pair, wabi_tag_pair);
   return pair;
 }
 
 
 static inline wabi_val
-wabi_car(wabi_pair pair)
+wabi_car(const wabi_pair pair)
 {
   return (wabi_val) pair->car;
 }
 
 
 static inline wabi_val
-wabi_cdr(wabi_pair pair)
+wabi_cdr(const wabi_pair pair)
 {
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
 }
 
 static inline void
-wabi_pair_copy_val(wabi_vm vm, wabi_pair pair)
+wabi_pair_copy_val(const wabi_vm vm, const wabi_pair pair)
 {
   wabi_copy_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void
-wabi_pair_collect_val(wabi_vm vm, wabi_pair pair)
+wabi_pair_collect_val(const wabi_vm vm, const wabi_pair pair)
 {
   wabi_collect_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void
-wabi_pair_hash(wabi_hash_state state, wabi_pair pair) {
+wabi_pair_hash(const wabi_hash_state state, const wabi_pair pair) {
   wabi_hash_step(state, "P", 1);
   wabi_hash_val(state, wabi_car(pair));
   wabi_hash_val(state, wabi_cdr(pair));
@@ -68,22 +66,22 @@ wabi_pair_hash(wabi_hash_state state, wabi_pair pair) {
 
 
 static inline int
-wabi_pair_cmp(wabi_pair left, wabi_pair right)
+wabi_pair_cmp(const wabi_pair left, const wabi_pair right)
 {
   int cmp0 = wabi_cmp(wabi_car(left), wabi_car(right));
   if(cmp0) return cmp0;
   return wabi_cmp(wabi_cdr(left), wabi_cdr(right));
 }
 
-wabi_error_type
-wabi_pair_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_pair_builtins(const wabi_vm vm, const wabi_env env);
 
 static inline int
-wabi_is_pair(wabi_val v)
+wabi_is_pair(const wabi_val v)
 {
   return WABI_IS(wabi_tag_pair, v);
 }
 
-wabi_val
-wabi_pair_concat(wabi_vm vm, wabi_val l, wabi_val r);
+/* wabi_val */
+/* wabi_pair_concat(const wabi_vm vm, const wabi_val l, const wabi_val r); */
 #endif

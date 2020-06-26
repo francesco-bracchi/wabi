@@ -9,10 +9,10 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 
-typedef struct wabi_queue_elem
+typedef struct wabi_queue_elem_struct
 {
   wabi_vm vm;
-  struct wabi_queue_elem *next;
+  struct wabi_queue_elem_struct *next;
 } wabi_queue_elem_t;
 
 typedef wabi_queue_elem_t* wabi_queue_elem;

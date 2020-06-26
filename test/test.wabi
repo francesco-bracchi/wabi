@@ -507,23 +507,23 @@
 
 (test (kont 10) 13)
 
-(test (blen "") 0)
-(test (blen "ciao") 4)
-(test (bsub "ciao" 1 2) "ia")
+(test (bin-len "") 0)
+(test (bin-len "ciao") 4)
+(test (bin-sub "ciao" 1 2) "ia")
 (test (> "ciao" "ao") false)
 (test (> "ao" "ciao") true)
 (test (> "a" "") true)
 (test (< "" "a") true)
 
-(test (bsub "ciao" 0 0) "")
+(test (bin-sub "ciao" 0 0) "")
 
-(test (bcat) "")
-(test (bcat "") "")
-(test (bcat "" "a") "a")
-(test (bcat "a" "") "a")
-(test (bcat "a" "b" "c") "abc")
-(test (bcat "c" (bsub "ciao" 1 2) "o") "ciao")
-(test (blen (bcat "c" (bsub "ciao" 1 2) "o")) 4)
+(test (bin-cat) "")
+(test (bin-cat "") "")
+(test (bin-cat "" "a") "a")
+(test (bin-cat "a" "") "a")
+(test (bin-cat "a" "b" "c") "abc")
+(test (bin-cat "c" (bin-sub "ciao" 1 2) "o") "ciao")
+(test (bin-len (bin-cat "c" (bin-sub "ciao" 1 2) "o")) 4)
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
@@ -753,7 +753,7 @@
 
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
 
-(test (hash "ciao") (hash (bcat "ci" "ao")))
+(test (hash "ciao") (hash (bin-cat "ci" "ao")))
 
 (test {(env) 10} {(env) 10})
 

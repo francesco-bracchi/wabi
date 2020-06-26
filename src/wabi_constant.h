@@ -9,13 +9,23 @@
 
 #define WABI_CONSTANT_SIZE 1
 
-wabi_error_type
-wabi_constant_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_constant_builtins(const wabi_vm vm, const wabi_env env);
 
 
 static inline int
-wabi_is_nil(wabi_val v) {
+wabi_is_nil(const wabi_val v) {
   return *v == wabi_val_nil;
+}
+
+static int
+wabi_is_ignore(const wabi_val v) {
+  return *v == wabi_val_ignore;
+}
+
+static int
+wabi_is_boolean(const wabi_val v) {
+  return *v == wabi_val_true || *v == wabi_val_false;
 }
 
 #endif

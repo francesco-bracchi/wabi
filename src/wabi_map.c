@@ -786,8 +786,8 @@ wabi_map_length(wabi_map map) {
   return 0;
 }
 
-wabi_error_type
-wabi_map_builtin_hmap(wabi_vm vm)
+static void
+wabi_map_builtin_hmap(const wabi_vm vm)
 {
   // if arity is odd it raises an error.
   // the alternative is that is associate the last value (key) to
@@ -798,7 +798,7 @@ wabi_map_builtin_hmap(wabi_vm vm)
   wabi_map res;
   ctrl = vm->ctrl;
   res = wabi_map_empty(vm);
-  if(! res) return wabi_error_nomem;
+  if(vm->ert) return;
 
   while(*ctrl != wabi_val_nil) {
     k = wabi_car((wabi_pair) ctrl);
@@ -807,24 +807,26 @@ wabi_map_builtin_hmap(wabi_vm vm)
       v = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
       res = wabi_map_assoc(vm, res, k, v);
-      if(!res) return wabi_error_nomem;
+      if(vm->ert) return;
     } else {
-      return wabi_error_bindings;
+      vm->ert =  wabi_error_bindings;
+      return;
     }
   }
   vm->ctrl = (wabi_val) res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 }
 
-wabi_error_type
-wabi_map_builtin_assoc(wabi_vm vm)
+
+static void
+wabi_map_builtin_assoc(const wabi_vm vm)
 {
   wabi_val ctrl, k, v;
   wabi_map res;
   ctrl = vm->ctrl;
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    return wabi_error_bindings;
+    vm->ert = wabi_error_bindings;
+    return;
   }
   res = (wabi_map) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
@@ -835,7 +837,8 @@ wabi_map_builtin_assoc(wabi_vm vm)
   case wabi_tag_map_entry:
     break;
   default:
-    return wabi_error_type_mismatch;
+    vm->ert = wabi_error_type_mismatch;
+    return;
   }
   while(*ctrl != wabi_val_nil) {
     k = wabi_car((wabi_pair) ctrl);
@@ -844,73 +847,57 @@ wabi_map_builtin_assoc(wabi_vm vm)
       v = wabi_car((wabi_pair) ctrl);
       ctrl = wabi_cdr((wabi_pair) ctrl);
       res = wabi_map_assoc(vm, res, k, v);
-      if(!res) return wabi_error_nomem;
+      if(vm->ert) return;
     } else {
-      return wabi_error_bindings;
+      vm->ert = wabi_error_bindings;
+      return;
     }
   }
   vm->ctrl = (wabi_val) res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 }
 
-wabi_error_type
-wabi_map_builtin_dissoc(wabi_vm vm)
+
+static void
+wabi_map_builtin_dissoc(const wabi_vm vm)
 {
   wabi_val ctrl, k, res;
   ctrl = vm->ctrl;
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    return wabi_error_bindings;
+    vm->ert = wabi_error_bindings;
+    return;
   }
   res = wabi_car((wabi_pair) ctrl);
   ctrl  = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_map(res))
-    return wabi_error_bindings;
-
+  if(! wabi_is_map(res)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     k = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     res = (wabi_val) wabi_map_dissoc(vm, (wabi_map) res, k);
-    if(! res)
-      return wabi_error_nomem;
+    if(vm->ert) return;
   }
-  if(!wabi_is_nil(ctrl))
-    return wabi_error_bindings;
-
+  if(!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   vm->ctrl = res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 }
 
 
-static wabi_error_type
-wabi_map_builtin_map_p(wabi_vm vm)
+static void
+wabi_map_builtin_map_p(const wabi_vm vm)
 {
-  wabi_val ctrl, a, res;
-
-  ctrl = vm->ctrl;
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(! res)
-    return wabi_error_none;
-  *res = wabi_val_true;
-
-  while(WABI_IS(wabi_tag_pair, ctrl)) {
-    a = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(!wabi_is_map(a)) {
-      *res = wabi_val_false;
-      break;
-    }
-  }
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
+  wabi_builtin_predicate(vm, &wabi_is_map);
 }
 
 
-static wabi_error_type
-wabi_map_builtin_len(wabi_vm vm)
+static void
+wabi_map_builtin_len(const wabi_vm vm)
 {
   wabi_val ctrl, k;
   wabi_map m;
@@ -918,23 +905,25 @@ wabi_map_builtin_len(wabi_vm vm)
 
   ctrl = vm->ctrl;
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
-    return wabi_error_bindings;
+    vm->ert = wabi_error_bindings;
+    return;
   }
   m = (wabi_map) wabi_car((wabi_pair) ctrl);
   ctrl  = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_map((wabi_val) m))
-    return wabi_error_bindings;
-
-  if(!wabi_is_nil(ctrl))
-    return wabi_error_bindings;
-
+  if(! wabi_is_map((wabi_val) m)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if(!wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   len = wabi_fixnum_new(vm, wabi_map_length(m));
-  if(! len) return wabi_error_nomem;
+  if(vm->ert) return;
 
   vm->ctrl = len;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-  return wabi_error_none;
 
 }
 
@@ -1008,20 +997,24 @@ wabi_map_cmp(wabi_map left, wabi_map right)
 }
 
 
-wabi_error_type
-wabi_map_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_map_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFN(vm, env, "hmap", "hmap", wabi_map_builtin_hmap);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "assoc", "assoc", wabi_map_builtin_assoc);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "dissoc", "dissoc", wabi_map_builtin_dissoc);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "map-len", "map-len", wabi_map_builtin_len);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "map?", "map?", wabi_map_builtin_map_p);
-  if(res) return res;
+  wabi_defx(vm, env, "hmap", &wabi_map_builtin_hmap);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "assoc", &wabi_map_builtin_assoc);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "dissoc", &wabi_map_builtin_dissoc);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "map-len", &wabi_map_builtin_len);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "map?", &wabi_map_builtin_map_p);
+  if(vm->ert) return;
+
   /* res = WABI_DEFN(vm, env, "map-merge", "mamerge?", wabi_map_builtin_map_merge); */
   /* if(res) return res; */
   /* res = WABI_DEFN(vm, env, "map-keys", "ma-keys", wabi_map_builtin_map_keys); */
@@ -1030,5 +1023,4 @@ wabi_map_builtins(wabi_vm vm, wabi_env env)
   /* if(res) return res; */
   /* res = WABI_DEFN(vm, env, "map-take", "ma-take", wabi_map_builtin_map_take); */
   /* if(res) return res; */
-  return res;
 }

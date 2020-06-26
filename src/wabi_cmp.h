@@ -7,12 +7,12 @@
 #include "wabi_env.h"
 
 int
-wabi_cmp(wabi_val left, wabi_val right);
+wabi_cmp(const wabi_val left, const wabi_val right);
 
 int
-wabi_eq(wabi_val left, wabi_val right);
+wabi_eq(const wabi_val left, const wabi_val right);
 
-wabi_error_type
-wabi_cmp_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_cmp_builtins(const wabi_vm vm, const wabi_env env);
 
 #endif

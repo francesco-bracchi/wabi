@@ -39,7 +39,7 @@ typedef wabi_binary_t* wabi_binary;
 
 
 static inline wabi_size
-wabi_binary_word_size(wabi_size size)
+wabi_binary_word_size(const wabi_size size)
 {
   wabi_size word_size;
   word_size = size >> 2;
@@ -49,13 +49,14 @@ wabi_binary_word_size(wabi_size size)
 
 
 static inline wabi_size
-wabi_binary_length(wabi_binary bin)
+wabi_binary_length(const wabi_binary bin)
 {
   return WABI_WORD_VAL(bin->length);
 }
 
+
 static inline int
-wabi_binary_p(wabi_val v) {
+wabi_is_binary(const wabi_val v) {
   switch(WABI_TAG(v)) {
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
@@ -64,32 +65,29 @@ wabi_binary_p(wabi_val v) {
   return 0;
 }
 
-wabi_binary_leaf
-wabi_binary_leaf_new(wabi_vm vm, wabi_size size);
-
 
 wabi_binary_leaf
-wabi_binary_leaf_new_from_cstring(wabi_vm vm, char* cstring);
+wabi_binary_leaf_new(const wabi_vm vm, const wabi_size size);
 
 
-wabi_size
-wabi_binary_length(wabi_binary bin);
+wabi_binary_leaf
+wabi_binary_leaf_new_from_cstring(const wabi_vm vm, const char* cstring);
 
 
 wabi_binary_node
-wabi_binary_concat(wabi_vm vm, wabi_binary left, wabi_binary right);
+wabi_binary_concat(const wabi_vm vm, const wabi_binary left, const wabi_binary right);
 
 
 wabi_binary
-wabi_binary_sub(wabi_vm vm, wabi_binary bin, wabi_size from, wabi_size len);
+wabi_binary_sub(const wabi_vm vm, const wabi_binary bin, const wabi_size from, const wabi_size len);
 
 
 void
-wabi_binary_copy_val(wabi_vm vm, wabi_binary src);
+wabi_binary_copy_val(const wabi_vm vm, const wabi_binary src);
 
 
 static inline void
-wabi_binary_collect_val(wabi_vm vm, wabi_binary src)
+wabi_binary_collect_val(const wabi_vm vm, const wabi_binary src)
 {
   // once in the new heap all binaries are of leaf type
   vm->stor.scan += WABI_BINARY_LEAF_SIZE;
@@ -97,14 +95,14 @@ wabi_binary_collect_val(wabi_vm vm, wabi_binary src)
 
 
 void
-wabi_binary_hash(wabi_hash_state state, wabi_binary bin);
+wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin);
 
 
 int
-wabi_binary_cmp(wabi_binary left, wabi_binary right);
+wabi_binary_cmp(const wabi_binary left, const wabi_binary right);
 
 
-wabi_error_type
-wabi_binary_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_binary_builtins(const wabi_vm vm, const wabi_env env);
 
 #endif

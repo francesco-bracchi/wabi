@@ -8,50 +8,50 @@
 #include "wabi_value.h"
 #include "wabi_vm.h"
 #include "wabi_builtin.h"
+#include "wabi_symbol.h"
+#include "wabi_constant.h"
 #include "wabi_error.h"
 
+
 wabi_combiner
-wabi_operator_builtin_new(wabi_vm vm,
-                          wabi_binary cname,
-                          wabi_builtin_fun cfun)
+wabi_operator_builtin_new(const wabi_vm vm,
+                          const wabi_binary cname,
+                          const wabi_builtin_fun cfun)
 {
-  // todo: verify cfun pointer is less then 2^59
   wabi_combiner_builtin res;
   res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-  if(res) {
-    res->c_ptr = (wabi_word) cfun;
-    res->c_name = (wabi_word) cname;
-    WABI_SET_TAG(res, wabi_tag_bt_oper);
-  }
+  if(vm->ert) return NULL;
+
+  res->c_ptr = (wabi_word) cfun;
+  res->c_name = (wabi_word) cname;
+  WABI_SET_TAG(res, wabi_tag_bt_oper);
   return (wabi_combiner) res;
 }
 
 
 wabi_combiner
-wabi_application_builtin_new(wabi_vm vm,
-                             wabi_binary cname,
-                             wabi_builtin_fun cfun)
+wabi_application_builtin_new(const wabi_vm vm,
+                             const wabi_binary cname,
+                             const wabi_builtin_fun cfun)
 {
   // todo: verify cfun pointer is less then 2^59
   wabi_combiner_builtin res;
   res = (wabi_combiner_builtin) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-  if(res) {
-    res->c_ptr = (wabi_word) cfun;
-    res->c_name = (wabi_word) cname;
-    WABI_SET_TAG(res, wabi_tag_bt_app);
-  }
+  if(vm->ert) return NULL;
+  res->c_ptr = (wabi_word) cfun;
+  res->c_name = (wabi_word) cname;
+  WABI_SET_TAG(res, wabi_tag_bt_app);
   return (wabi_combiner) res;
 }
 
 wabi_combiner
-wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont)
+wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont)
 {
   wabi_combiner_continuation res;
   res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-  if(res) {
-    res->cont = (wabi_word) cont;
-    WABI_SET_TAG(res, wabi_tag_ct_app);
-  }
+  if(vm->ert) return NULL;
+  res->cont = (wabi_word) cont;
+  WABI_SET_TAG(res, wabi_tag_ct_app);
   return (wabi_combiner) res;
 }
 
@@ -60,480 +60,481 @@ wabi_combiner_continuation_new(wabi_vm vm, wabi_cont cont)
  * Basic vocabulary stuff
  */
 
-static inline wabi_error_type
-wabi_combiner_builtin_fx(wabi_vm vm)
+static inline void
+wabi_combiner_fx(const wabi_vm vm)
 {
   wabi_combiner_derived fx;
   wabi_val ctrl, e, fs;
-  ctrl = vm->ctrl; // (e (a b) (+ a b))
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
-    e = wabi_car((wabi_pair) ctrl);
-    if(!WABI_IS(wabi_tag_symbol, e) && *e != wabi_val_ignore) {
-      return wabi_error_type_mismatch;
-    }
-    ctrl = wabi_cdr((wabi_pair) ctrl); // ((a b) (+ a b) (pr "ok"))
-    if(WABI_IS(wabi_tag_pair, ctrl)) {
-      fs = wabi_car((wabi_pair) ctrl);
-      ctrl = wabi_cdr((wabi_pair) ctrl); // ((+ a b) (pr "ok"))
-      if(WABI_IS(wabi_tag_pair, ctrl)) {
-        fx = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-        if(fx) {
-          fx->static_env = (wabi_word) ((wabi_cont_call) vm->cont)->env;
-          fx->caller_env_name = (wabi_word) e;
-          fx->parameters = (wabi_word) fs;
-          fx->body = (wabi_word) ctrl;
-          fx->compiled_body = (wabi_word) vm->nil;
-          WABI_SET_TAG(fx, wabi_tag_oper);
-
-          vm->ctrl = (wabi_val) fx;
-          vm->cont = (wabi_val) wabi_cont_next((wabi_cont)vm->cont);
-          return wabi_error_none;
-        }
-        return wabi_error_nomem;
-      }
-    }
+  ctrl = vm->ctrl; // (e fs . ctrl)
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
-  return wabi_error_bindings;
+  e = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_is_symbol(e) && !wabi_is_ignore(e)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  fs = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  fx = (wabi_combiner_derived) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
+  if(vm->ert) return;
+
+  fx->static_env = (wabi_word) ((wabi_cont_call) vm->cont)->env;
+  fx->caller_env_name = (wabi_word) e;
+  fx->parameters = (wabi_word) fs;
+  fx->body = (wabi_word) ctrl;
+  fx->compiled_body = (wabi_word) vm->nil;
+  WABI_SET_TAG(fx, wabi_tag_oper);
+
+  vm->ctrl = (wabi_val) fx;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont)vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_wrap_bt(wabi_vm vm, wabi_val fx)
+static void
+wabi_combiner_wrap(const wabi_vm vm)
 {
-  wabi_val res;
+  wabi_val ctrl, fx, res;
 
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  fx = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   switch(WABI_TAG(fx)) {
   case wabi_tag_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-    if(res) {
-      memcpy(res, fx, sizeof(wabi_combiner_derived_t));
-      *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
-      WABI_SET_TAG(res, wabi_tag_app);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    if(vm->ert) return;
+    wordcopy(res, fx, WABI_COMBINER_DERIVED_SIZE);
+    WABI_SET_TAG(res, wabi_tag_app);
+    break;
   case wabi_tag_bt_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-    if(res) {
-      memcpy(res, fx, sizeof(wabi_combiner_builtin_t));
-      *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
-      WABI_SET_TAG(res, wabi_tag_bt_app);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    if(vm->ert) return;
+    wordcopy(res, fx, WABI_COMBINER_BUILTIN_SIZE);
+    WABI_SET_TAG(res, wabi_tag_bt_app);
+    break;
   case wabi_tag_ct_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-    if(! res) return wabi_error_nomem;
-
-    memcpy(res, fx, sizeof(wabi_combiner_continuation_t));
-    WABI_SET_TAG(res, wabi_tag_ct_app);
-    vm->ctrl = res;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
+    if(vm->ert) return;
+    wordcopy(res, fx, WABI_COMBINER_CONTINUATION_SIZE);
+    WABI_SET_TAG(res, wabi_tag_bt_app);
+    break;
 
   case wabi_tag_app:
   case wabi_tag_bt_app:
   case wabi_tag_ct_app:
-    vm->ctrl = fx;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
+    res = fx;
+    break;
+
+  default:
+    vm->ert = wabi_error_type_mismatch;
+    return;
   }
-  return wabi_error_type_mismatch;
+
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_unwrap_bt(wabi_vm vm, wabi_val fn)
-{
-  wabi_val res;
 
+static void
+wabi_combiner_unwrap(const wabi_vm vm)
+{
+  wabi_val ctrl, fn, res;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  fn = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   switch(WABI_TAG(fn)) {
   case wabi_tag_app:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
-    if(res) {
-      memcpy(res, fn, sizeof(wabi_combiner_derived_t));
-      *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
-      WABI_SET_TAG(res, wabi_tag_oper);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    if(vm->ert) return;
+    wordcopy(res, fn, WABI_COMBINER_DERIVED_SIZE);
+    WABI_SET_TAG(res, wabi_tag_oper);
+    break;
   case wabi_tag_bt_app:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
-    if(res) {
-      memcpy(res, fn, sizeof(wabi_combiner_builtin_t));
-      *((wabi_word *) res) = WABI_WORD_VAL(*((wabi_word *) res));
-      WABI_SET_TAG(res, wabi_tag_bt_oper);
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+    if(vm->ert) return;
+    wordcopy(res, fn, WABI_COMBINER_BUILTIN_SIZE);
+    WABI_SET_TAG(res, wabi_tag_bt_oper);
+    break;
   case wabi_tag_ct_app:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-    if(! res) return wabi_error_nomem;
+    if(vm->ert) return;
+    wordcopy(res, fn, WABI_COMBINER_CONTINUATION_SIZE);
+    WABI_SET_TAG(res, wabi_tag_bt_oper);
+    break;
 
-    memcpy(res, fn, sizeof(wabi_combiner_continuation_t));
-    WABI_SET_TAG(res, wabi_tag_ct_oper);
-    vm->ctrl = res;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    return wabi_error_none;
   case wabi_tag_oper:
   case wabi_tag_bt_oper:
   case wabi_tag_ct_oper:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = fn;
-    return wabi_error_none;
+    res = fn;
+    break;
+
   default:
-    return wabi_error_type_mismatch;
+    vm->ert = wabi_error_type_mismatch;
+    return;
   }
+
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_combiner_p_bt(wabi_vm vm, wabi_val v)
+static void
+wabi_combiner_combiner_p(const wabi_vm vm)
 {
-  wabi_val res;
+  wabi_val ctrl, val, res;
 
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    // todo optimize in a single bitwise operation?
-    switch(WABI_TAG(v)) {
-    case wabi_tag_app:
-    case wabi_tag_oper:
-    case wabi_tag_bt_app:
-    case wabi_tag_bt_oper:
-    case wabi_tag_ct_app:
-    case wabi_tag_ct_oper:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
-}
-
-
-static inline wabi_error_type
-wabi_combiner_applicative_p_bt(wabi_vm vm, wabi_val v)
-{
-  wabi_val res;
-
-    // todo optimize in a single bitwise operation?
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    switch(WABI_TAG(v)) {
-    case wabi_tag_app:
-    case wabi_tag_bt_app:
-    case wabi_tag_ct_app:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
-}
-
-static inline wabi_error_type
-wabi_combiner_operative_p_bt(wabi_vm vm, wabi_val v)
-{
-  wabi_val res;
-
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    // todo optimize in a single bitwise operation?
-    switch(WABI_TAG(v)) {
-    case wabi_tag_oper:
-    case wabi_tag_bt_oper:
-    case wabi_tag_ct_oper:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
-}
-
-
-static inline wabi_error_type
-wabi_combiner_builtin_p_bt(wabi_vm vm, wabi_val v)
-{
-  wabi_val res;
+  if(vm->ert) return;
 
   // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
+  case wabi_tag_app:
+  case wabi_tag_oper:
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
+    *res = wabi_val_true;
+    break;
+  default:
+    *res = wabi_val_false;
+  }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+static void
+wabi_combiner_applicative_p(const wabi_vm vm)
+{
+  wabi_val ctrl, val, res;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    switch(WABI_TAG(v)) {
-    case wabi_tag_bt_app:
-    case wabi_tag_bt_oper:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
+  if(vm->ert) return;
+
+  // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
+  case wabi_tag_app:
+  case wabi_tag_bt_app:
+  case wabi_tag_ct_app:
+    *res = wabi_val_true;
+    break;
+  default:
+    *res = wabi_val_false;
   }
-  return wabi_error_nomem;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-
-static inline wabi_error_type
-wabi_combiner_derived_p_bt(wabi_vm vm, wabi_val v)
+static void
+wabi_combiner_operative_p(const wabi_vm vm)
 {
-  wabi_val res;
+  wabi_val ctrl, val, res;
 
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    // todo optimize in a single bitwise operation?
-    switch(WABI_TAG(v)) {
-    case wabi_tag_app:
-    case wabi_tag_oper:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
+  if(vm->ert) return;
+
+  // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
+  case wabi_tag_oper:
+  case wabi_tag_bt_oper:
+  case wabi_tag_ct_oper:
+    *res = wabi_val_true;
+    break;
+  default:
+    *res = wabi_val_false;
   }
-  return wabi_error_nomem;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-static inline wabi_error_type
-wabi_combiner_cont_p_bt(wabi_vm vm, wabi_val v)
-{
-  wabi_val res;
 
+static void
+wabi_combiner_builtin_p(const wabi_vm vm)
+{
+  wabi_val ctrl, val, res;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    // todo optimize in a single bitwise operation?
-    switch(WABI_TAG(v)) {
-    case wabi_tag_ct_app:
-    case wabi_tag_ct_oper:
-      *res = wabi_val_true;
-      break;
-    default:
-      *res = wabi_val_false;
-      break;
-    }
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
-}
+  if(vm->ert) return;
 
-
-static inline wabi_error_type
-wabi_combiner_body_bt(wabi_vm vm, wabi_val f)
-{
-  wabi_val res;
-  switch(WABI_TAG(f)) {
-  case wabi_tag_oper:
-  case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = (wabi_val) ((wabi_combiner_derived) f)->body;
-    return wabi_error_none;
+  // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
+  case wabi_tag_bt_app:
+  case wabi_tag_bt_oper:
+    *res = wabi_val_true;
+    break;
   default:
-      res = wabi_vm_alloc(vm, 1);
-      if(res) {
-        *res = wabi_val_nil;
-        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-        vm->ctrl = res;
-        return wabi_error_none;
-      }
-      return wabi_error_nomem;
+    *res = wabi_val_false;
   }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_compiled_body_bt(wabi_vm vm, wabi_val f)
+static void
+wabi_combiner_derived_p(const wabi_vm vm)
 {
-  wabi_val res;
-  switch(WABI_TAG(f)) {
-  case wabi_tag_oper:
+  wabi_val ctrl, val, res;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
   case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = (wabi_val) ((wabi_combiner_derived) f)->compiled_body;
-    return wabi_error_none;
-  default:
-      res = wabi_vm_alloc(vm, 1);
-      if(res) {
-        *res = wabi_val_nil;
-        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-        vm->ctrl = res;
-        return wabi_error_none;
-      }
-      return wabi_error_nomem;
-  }
-}
-
-static inline wabi_error_type
-wabi_combiner_compiled_body_set_qmark_bt(wabi_vm vm, wabi_val f, wabi_val cf)
-{
-  wabi_val res;
-  switch(WABI_TAG(f)) {
   case wabi_tag_oper:
-  case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    ((wabi_combiner_derived) f)->compiled_body = (wabi_word) cf;
-    vm->ctrl = cf;
-    return wabi_error_none;
+    *res = wabi_val_true;
+    break;
   default:
-      res = wabi_vm_alloc(vm, 1);
-      if(res) {
-        *res = wabi_val_nil;
-        vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-        vm->ctrl = res;
-        return wabi_error_none;
-      }
-    return wabi_error_nomem;
+    *res = wabi_val_false;
   }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+static void
+wabi_combiner_cont_p(const wabi_vm vm)
+{
+  wabi_val ctrl, val, res;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  // todo optimize in a single bitwise operation?
+  switch(WABI_TAG(val)) {
+  case wabi_tag_ct_app:
+  case wabi_tag_ct_oper:
+    *res = wabi_val_true;
+    break;
+  default:
+    *res = wabi_val_false;
+  }
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+static void
+wabi_combiner_derived_combiner_body(const wabi_vm vm)
+{
+  wabi_val ctrl, val;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if (!wabi_combiner_is_derived(val)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  vm->ctrl = (wabi_val) wabi_combiner_derived_body((wabi_combiner_derived) val);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_static_env_bt(wabi_vm vm, wabi_val f)
+static void
+wabi_combiner_derived_combiner_static_env(const wabi_vm vm)
 {
-  wabi_val res;
-  switch(WABI_TAG(f)) {
-  case wabi_tag_oper:
-  case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = (wabi_val) WABI_WORD_VAL(((wabi_combiner_derived) f)->static_env);
-    return wabi_error_none;
-  default:
-    res = wabi_vm_alloc(vm, 1);
-    if(res) {
-      *res = wabi_val_nil;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  wabi_val ctrl, val;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if (!wabi_combiner_is_derived(val)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  vm->ctrl = (wabi_val) wabi_combiner_derived_static_env((wabi_combiner_derived) val);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
-static inline wabi_error_type
-wabi_combiner_parameters_bt(wabi_vm vm, wabi_val f)
+static void
+wabi_combiner_derived_combiner_parameters(const wabi_vm vm)
 {
-  wabi_val res;
-  switch(WABI_TAG(f)) {
-  case wabi_tag_oper:
-  case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = (wabi_val) ((wabi_combiner_derived) f)->parameters;
-    return wabi_error_none;
-  default:
-    res = wabi_vm_alloc(vm, 1);
-    if(res) {
-      *res = wabi_val_nil;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  wabi_val ctrl, val;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if (!wabi_combiner_is_derived(val)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  vm->ctrl = (wabi_val) wabi_combiner_derived_parameters((wabi_combiner_derived) val);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-
-static inline wabi_error_type
-wabi_combiner_caller_env_name_bt(wabi_vm vm, wabi_val f)
+static void
+wabi_combiner_derived_combiner_caller_env_name(const wabi_vm vm)
 {
-  wabi_val res;
-  switch(WABI_TAG(f)) {
-  case wabi_tag_oper:
-  case wabi_tag_app:
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = (wabi_val) ((wabi_combiner_derived) f)->caller_env_name;
-    return wabi_error_none;
-  default:
-    res = wabi_vm_alloc(vm, 1);
-    if(res) {
-      *res = wabi_val_nil;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-      return wabi_error_none;
-    }
-    return wabi_error_nomem;
+  wabi_val ctrl, val;
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
   }
+  val = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_nil(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  if (!wabi_combiner_is_derived(val)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  vm->ctrl = wabi_combiner_derived_caller_env_name((wabi_combiner_derived) val);
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_wrap, wabi_combiner_wrap_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_unwrap, wabi_combiner_unwrap_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_combiner_p, wabi_combiner_combiner_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_applicative_p, wabi_combiner_applicative_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_operative_p, wabi_combiner_operative_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_builtin_p, wabi_combiner_builtin_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_cont_p, wabi_combiner_cont_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_derived_p, wabi_combiner_derived_p_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_body, wabi_combiner_body_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_static_env, wabi_combiner_static_env_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_parameters, wabi_combiner_parameters_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_caller_env_name, wabi_combiner_caller_env_name_bt)
-WABI_BUILTIN_WRAP1(wabi_combiner_builtin_compiled_body, wabi_combiner_compiled_body_bt)
-WABI_BUILTIN_WRAP2(wabi_combiner_builtin_compiled_body_set_qmark, wabi_combiner_compiled_body_set_qmark_bt)
-
-
-wabi_error_type
-wabi_combiner_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_combiner_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  res = WABI_DEFX(vm, env, "fx", "fx", wabi_combiner_builtin_fx);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "wrap", "wrap", wabi_combiner_builtin_wrap);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "unwrap", "unwrap", wabi_combiner_builtin_unwrap);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "comb?", "comb?", wabi_combiner_builtin_combiner_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "app?", "app?", wabi_combiner_builtin_applicative_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "oper?", "oper?", wabi_combiner_builtin_operative_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "cont?", "cont?", wabi_combiner_builtin_cont_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "builtin?", "builtin?", wabi_combiner_builtin_builtin_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "derived?", "derived?", wabi_combiner_builtin_derived_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-body", "combiner-body", wabi_combiner_builtin_body);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-static-env", "combiner-static-env", wabi_combiner_builtin_static_env);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-parameters", "combiner-parameters", wabi_combiner_builtin_parameters);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-compiled-body", "combiner-compiled-body", wabi_combiner_builtin_compiled_body);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-compiled-body-set!", "combiner-compiled-body-set!", wabi_combiner_builtin_compiled_body_set_qmark);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "combiner-caller-env-name", "combiner-caller-env-name", wabi_combiner_builtin_caller_env_name);
-  return res;
+  WABI_DEFX(vm, env, "fx", "fx", wabi_combiner_fx);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "wrap", "wrap", wabi_combiner_wrap);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "unwrap", "unwrap", wabi_combiner_unwrap);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "comb?", "comb?", wabi_combiner_combiner_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "app?", "app?", wabi_combiner_applicative_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "oper?", "oper?", wabi_combiner_operative_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "cont?", "cont?", wabi_combiner_cont_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "builtin?", "builtin?", wabi_combiner_builtin_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "derived?", "derived?", wabi_combiner_derived_p);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "combiner-body", "combiner-body", wabi_combiner_derived_combiner_body);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "combiner-static-env", "combiner-static-env", wabi_combiner_derived_combiner_static_env);
+  if(vm->ert) return;
+  WABI_DEFN(vm, env, "combiner-parameters", "combiner-parameters", wabi_combiner_derived_combiner_parameters);
+  if(vm->ert) return;
+  /* WABI_DEFN(vm, env, "combiner-compiled-body", "combiner-compiled-body", wabi_combiner_builtin_compiled_body); */
+  /* if(vm->ert) return; */
+  /* WABI_DEFN(vm, env, "combiner-compiled-body-set!", "combiner-compiled-body-set!", wabi_combiner_builtin_compiled_body_set_qmark); */
+  /* if(vm->ert) return; */
+  WABI_DEFN(vm, env, "combiner-caller-env-name", "combiner-caller-env-name", wabi_combiner_derived_combiner_caller_env_name);
 }

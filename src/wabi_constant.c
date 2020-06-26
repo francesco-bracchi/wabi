@@ -8,90 +8,58 @@
 #include "wabi_builtin.h"
 
 
-static inline wabi_error_type
-wabi_constant_nil_p(wabi_vm vm,
-                    wabi_val v)
+
+static void
+wabi_constant_ignore_p(const wabi_vm vm)
 {
-  wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    *res = *v == wabi_val_nil ? wabi_val_true : wabi_val_false;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
+  wabi_builtin_predicate(vm, &wabi_is_ignore);
 }
 
 
-static inline wabi_error_type
-wabi_constant_ignore_p(wabi_vm vm,
-                       wabi_val v)
+static void
+wabi_constant_boolean_p(const wabi_vm vm)
 {
-  wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    *res = *v == wabi_val_ignore ? wabi_val_true : wabi_val_false;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
+  wabi_builtin_predicate(vm, &wabi_is_boolean);
 }
 
-
-static inline wabi_error_type
-wabi_constant_boolean_p(wabi_vm vm,
-                        wabi_val v)
-{
-  wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  if(res) {
-    *res = *v == (wabi_val_true || *v == wabi_val_false) ? wabi_val_true : wabi_val_false;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-    vm->ctrl = res;
-    return wabi_error_none;
-  }
-  return wabi_error_nomem;
+void
+wabi_constant_nil_p(const wabi_vm vm) {
+  wabi_builtin_predicate(vm, &wabi_is_nil);
 }
 
-WABI_BUILTIN_WRAP1(wabi_constant_builtin_nil_p, wabi_constant_nil_p)
-WABI_BUILTIN_WRAP1(wabi_constant_builtin_ignore_p, wabi_constant_ignore_p)
-WABI_BUILTIN_WRAP1(wabi_constant_builtin_boolean_p, wabi_constant_boolean_p)
-
-
-wabi_error_type
-wabi_constant_builtins(wabi_vm vm, wabi_env env)
+void
+wabi_constant_builtins(const wabi_vm vm, wabi_env env)
 {
   wabi_val val;
-  wabi_error_type res;
 
   val = (wabi_val) wabi_vm_alloc(vm, 5);
-  if(val) {
-    *val = wabi_val_nil;
-    WABI_DEF(vm, env, "nil", val);
-    val++;
+  if(vm->ert) return;
 
-    *val = wabi_val_true;
-    WABI_DEF(vm, env, "true", val);
-    val++;
+  *val = wabi_val_nil;
+  WABI_DEF(vm, env, "nil", val);
+  val++;
 
-    *val = wabi_val_false;
-    WABI_DEF(vm, env, "false", val);
-    val++;
+  *val = wabi_val_true;
+  WABI_DEF(vm, env, "true", val);
+  val++;
 
-    *val = wabi_val_ignore;
-    WABI_DEF(vm, env, "ignore", val);
-    val++;
+  *val = wabi_val_false;
+  WABI_DEF(vm, env, "false", val);
+  val++;
 
-    *val = wabi_val_zero;
-    WABI_DEF(vm, env, "zero", val);
-  }
+  *val = wabi_val_ignore;
+  WABI_DEF(vm, env, "ignore", val);
+  val++;
 
-  res = WABI_DEFN(vm, env, "nil?", "nil?", wabi_constant_builtin_nil_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "ignore?", "ignore?", wabi_constant_builtin_ignore_p);
-  if(res) return res;
-  res = WABI_DEFN(vm, env, "bool?", "bool?", wabi_constant_builtin_boolean_p);
-  return res;
+  *val = wabi_val_zero;
+  WABI_DEF(vm, env, "zero", val);
+
+  WABI_DEFN(vm, env, "nil?", "nil?", wabi_constant_nil_p);
+  if(vm->ert) return;
+
+  WABI_DEFN(vm, env, "ignore?", "ignore?", wabi_constant_ignore_p);
+  if(vm->ert) return;
+
+  WABI_DEFN(vm, env, "bool?", "bool?", wabi_constant_boolean_p);
+  if(vm->ert) return;
 }

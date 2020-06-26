@@ -42,18 +42,18 @@ typedef wabi_system_t* wabi_system;
 
 
 void
-wabi_system_init(wabi_system sys);
+wabi_system_init(const wabi_system sys);
 
 void
-wabi_system_destroy(wabi_system sys);
+wabi_system_destroy(const wabi_system sys);
 
 wabi_vm
 wabi_system_new_vm();
 
 void
-wabi_system_run(wabi_system sys, wabi_vm vm);
+wabi_system_run(const wabi_system sys, const wabi_vm vm);
 
 void
-wabi_system_wait(wabi_system sys);
+wabi_system_wait(const wabi_system sys);
 
 #endif

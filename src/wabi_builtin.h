@@ -11,68 +11,7 @@
 #include "wabi_symbol.h"
 
 
-#define WABI_BUILTIN_WRAP1(name, fun)                           \
-  wabi_error_type                                               \
-  name(wabi_vm vm)                                              \
-  {                                                             \
-    wabi_val ctrl, x;                                           \
-    ctrl = vm->ctrl;                                         \
-    if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
-      x = wabi_car((wabi_pair) ctrl);                           \
-      ctrl = wabi_cdr((wabi_pair) ctrl);                        \
-      if(*ctrl == wabi_val_nil) {                               \
-        return fun(vm, x);                                      \
-      }                                                         \
-    }                                                           \
-    return wabi_error_bindings;                                 \
-  }                                                             \
-
-
-#define WABI_BUILTIN_WRAP2(name, fun)                           \
-  wabi_error_type                                               \
-  name(wabi_vm vm)                                              \
-  {                                                             \
-    wabi_val ctrl, x, y;                                        \
-    ctrl = vm->ctrl;                                         \
-    if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
-      x = wabi_car((wabi_pair) ctrl);                           \
-      ctrl = wabi_cdr((wabi_pair) ctrl);                        \
-      if(WABI_IS(wabi_tag_pair, ctrl)) {                        \
-        y = wabi_car((wabi_pair) ctrl);                         \
-        ctrl = wabi_cdr((wabi_pair) ctrl);                      \
-        if(*ctrl == wabi_val_nil) {                             \
-          return fun(vm, x, y);                                 \
-        }                                                       \
-      }                                                         \
-    }                                                           \
-    return wabi_error_bindings;                                 \
-  }                                                             \
-
-
-#define WABI_BUILTIN_WRAP3(name, fun)                           \
-  wabi_error_type                                               \
-  name(wabi_vm vm)                                              \
-  {                                                             \
-    wabi_val ctrl, x, y, z;                                     \
-    ctrl = vm->ctrl;                                         \
-    if(WABI_IS(wabi_tag_pair, ctrl)) {                          \
-      x = wabi_car((wabi_pair) ctrl);                           \
-      ctrl = wabi_cdr((wabi_pair) ctrl);                        \
-      if(WABI_IS(wabi_tag_pair, ctrl)) {                        \
-        y = wabi_car((wabi_pair) ctrl);                         \
-        ctrl = wabi_cdr((wabi_pair) ctrl);                      \
-        if(WABI_IS(wabi_tag_pair, ctrl)) {                      \
-          z = wabi_car((wabi_pair) ctrl);                       \
-          ctrl = wabi_cdr((wabi_pair) ctrl);                    \
-          if(*ctrl == wabi_val_nil) {                           \
-            return fun(vm, x, y, z);                            \
-          }                                                     \
-        }                                                       \
-      }                                                         \
-    }                                                           \
-    return wabi_error_bindings;                                 \
-  }                                                             \
-
+typedef int (*wabi_builtin_test_fn)(wabi_val);
 
 
 #define SYM(vm, str)                                                    \
@@ -103,7 +42,7 @@
 #define WABI_DEFN(vm, env, name, btname, fun)                           \
   wabi_env_set(vm,                                                      \
                env,                                                     \
-               (wabi_val) SYM(vm, name),                                 \
+               (wabi_val) SYM(vm, name),                                \
                (wabi_val) BTAPP(vm, btname, fun)                        \
                )
 
@@ -111,17 +50,63 @@
 #define WABI_DEF(vm, env, name, val)                                    \
   wabi_env_set(vm,                                                      \
                env,                                                     \
-               (wabi_val) SYM(vm, name),                                 \
+               (wabi_val) SYM(vm, name),                                \
                (wabi_val) val                                           \
                )
 
 
+#define WABI_BIND_START(vm)                     \
+  wabi_val ctrl;                                \
+  ctrl = (vm)->ctrl;
+
+#define WABI_BIND(vm, t, v)                                             \
+  if (!wabi_is_pair(ctrl)) {                                            \
+    (vm)->ert = wabi_error_bindings;                                    \
+    return;                                                             \
+  }                                                                     \
+  (v) = ((t))wabi_car((wabi_pair)ctrl);                                 \
+  ctrl = wabi_cdr((wabi_pair)ctrl);                                     \
+  if(!wabi_is_##t(vm)) {                                                \
+    (vm)->ert = wabi_error_type_mismatch;                               \
+    return;                                                             \
+  }
+
+#define WABI_BIND_END(vm)                          \
+  if (!wabi_is_nil((ctrl))) {                      \
+    (vm)->ert = wabi_error_bindings;               \
+    return;                                        \
+  }
+
 wabi_env
-wabi_builtin_stdenv(wabi_vm vm);
+wabi_builtin_stdenv(const wabi_vm vm);
 
 
-/*** this function doesn't belong to this header ***/
-wabi_error_type
-wabi_builtin_load(wabi_vm vm, wabi_env env, char* data);
+void
+wabi_builtin_load_cstring(const wabi_vm vm, const wabi_env env, char* data);
+
+
+void
+wabi_builtin_predicate(const wabi_vm vm, const wabi_builtin_test_fn fn);
+
+
+void
+wabi_def(const wabi_vm vm,
+         const wabi_env env,
+         char* name,
+         wabi_val val);
+
+
+void
+wabi_defn(const wabi_vm vm,
+          const wabi_env env,
+         char* name,
+          const wabi_builtin_fun fun);
+
+
+void
+wabi_defx(const wabi_vm vm,
+          const wabi_env env,
+          char* name,
+          const wabi_builtin_fun fun);
 
 #endif

@@ -12,7 +12,7 @@
 
 
 static inline wabi_size
-wabi_cont_size(wabi_cont cont)
+wabi_cont_size(const wabi_cont cont)
 {
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
@@ -38,7 +38,7 @@ wabi_cont_size(wabi_cont cont)
 
 
 void
-wabi_cont_copy_val(wabi_store store, wabi_cont cont)
+wabi_cont_copy_val(const wabi_store store, const wabi_cont cont)
 {
   wabi_size size = wabi_cont_size(cont);
   wordcopy(store->heap, (wabi_word*) cont, size);
@@ -47,14 +47,14 @@ wabi_cont_copy_val(wabi_store store, wabi_cont cont)
 
 
 static inline wabi_cont
-wabi_cont_copy(wabi_vm vm, wabi_cont cont) {
+wabi_cont_copy(const wabi_vm vm, const wabi_cont cont) {
   wabi_size size;
   wabi_cont res;
   size = wabi_cont_size(cont);
   res = (wabi_cont) wabi_vm_alloc(vm, size);
-  if(res)
-    wordcopy((wabi_word*) res, (wabi_word*) cont, size);
+  if(vm->ert) return NULL;
 
+  wordcopy((wabi_word*) res, (wabi_word*) cont, size);
   return res;
 }
 
@@ -63,8 +63,10 @@ wabi_cont_copy(wabi_vm vm, wabi_cont cont) {
  * hashing
  */
 void
-wabi_cont_hash(wabi_hash_state state, wabi_cont cont)
+wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont0)
 {
+  wabi_cont cont;
+  cont = cont0;
   wabi_hash_step(state, "O", 1);
   while(cont) {
     switch(WABI_TAG(cont)) {
@@ -114,15 +116,17 @@ wabi_cont_hash(wabi_hash_state state, wabi_cont cont)
   }
 }
 
+
 void
-wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
+wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont0)
 {
-  wabi_cont res_cont, prev_cont, new_prev_cont, new_cont, right_cont;
+  wabi_cont cont, res_cont, prev_cont, new_prev_cont, new_cont, right_cont;
   wabi_cont_prompt res_prompt, new_prompt, prev_new_prompt, right_prompt;
 
   wabi_val ctrl, fst;
 
   ctrl = vm->ctrl;
+  cont = cont0;
 
   if(!WABI_IS(wabi_tag_pair, ctrl)) {
     vm->ert = wabi_error_type_mismatch;
@@ -135,10 +139,8 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
     return;
   }
   new_cont = (wabi_cont) wabi_cont_copy(vm, cont);
-  if(! new_cont) {
-    vm->ert = wabi_error_nomem;
-    return;
-  }
+  if(vm->ert) return;
+
   res_cont = new_cont;
   res_prompt = (wabi_cont_prompt) wabi_cont_done;
   new_prompt = (wabi_cont_prompt) wabi_cont_done;
@@ -150,10 +152,7 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
     new_prev_cont = new_cont;
     cont = wabi_cont_next(cont);
     new_cont = wabi_cont_copy(vm, cont);
-    if(! new_cont) {
-      vm->ert = wabi_error_nomem;
-      return;
-    }
+    if(vm->ert) return;
     if(new_prev_cont) new_prev_cont->next = ((wabi_word) new_cont) | WABI_TAG(prev_cont);
 
     if(WABI_IS(wabi_tag_cont_prompt, cont)) {
@@ -174,11 +173,11 @@ wabi_cont_concat_cont(wabi_vm vm, wabi_cont cont)
     new_prompt->next_prompt = (wabi_word) right_prompt;
     vm->prmt = (wabi_val) res_prompt;
   }
-  return;
 }
 
-wabi_error_type
-wabi_cont_cmp(wabi_cont a, wabi_cont b)
+
+int
+wabi_cont_cmp(const wabi_cont a, const wabi_cont b)
 {
   int cmp;
   switch(WABI_TAG(a)) {

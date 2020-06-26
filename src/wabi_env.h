@@ -29,29 +29,33 @@ typedef wabi_env_t* wabi_env;
 #define WABI_ENV_LOW_LIMIT 8
 
 wabi_env
-wabi_env_extend(wabi_vm vm, wabi_env prev);
-
-wabi_error_type
-wabi_env_set(wabi_vm vm, wabi_env env, wabi_val k, wabi_val v);
+wabi_env_extend(const wabi_vm vm, const wabi_env prev);
 
 
-wabi_error_type
-wabi_env_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_env_set(const wabi_vm vm,
+             const wabi_env env,
+             const wabi_val k,
+             const wabi_val v);
+
+
+void
+wabi_env_builtins(const wabi_vm vm, const wabi_env env);
 
 
 wabi_val
-wabi_env_lookup(wabi_env env, wabi_val k);
+wabi_env_lookup(const wabi_env env, const wabi_val k);
 
 
 static inline wabi_env
-wabi_env_new(wabi_vm vm)
+wabi_env_new(const wabi_vm vm)
 {
   return wabi_env_extend(vm, NULL);
 }
 
 
 static inline void
-wabi_env_copy_val(wabi_vm vm, wabi_env env)
+wabi_env_copy_val(const wabi_vm vm, const wabi_env env)
 {
   wabi_size size;
   wabi_word *res;
@@ -66,14 +70,20 @@ wabi_env_copy_val(wabi_vm vm, wabi_env env)
 
 
 void
-wabi_env_collect_val(wabi_vm vm, wabi_env env);
+wabi_env_collect_val(const wabi_vm vm, const wabi_env env);
 
 
 void
-wabi_env_hash(wabi_hash_state state, wabi_env env);
+wabi_env_hash(const wabi_hash_state state, const wabi_env env);
 
 
 int
-wabi_env_cmp(wabi_env left, wabi_env right);
+wabi_env_cmp(const wabi_env left, const wabi_env right);
+
+
+static inline int
+wabi_is_env(const wabi_val val) {
+  return WABI_IS(wabi_tag_env, val);
+}
 
 #endif

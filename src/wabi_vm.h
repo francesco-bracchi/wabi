@@ -50,8 +50,8 @@ typedef wabi_vm_t* wabi_vm;
 void
 wabi_vm_run(wabi_vm vm, wabi_word fuel);
 
-int
-wabi_vm_init(wabi_vm vm, wabi_size size);
+void
+wabi_vm_init(const wabi_vm vm, const wabi_size size);
 
 void
 wabi_vm_destroy(wabi_vm vm);
@@ -59,13 +59,21 @@ wabi_vm_destroy(wabi_vm vm);
 int
 wabi_vm_prepare(wabi_vm vm, wabi_size size);
 
-int
-wabi_vm_collect(wabi_vm vm);
+void
+wabi_vm_collect(const wabi_vm vm);
 
 static inline wabi_word*
 wabi_vm_alloc(wabi_vm vm, wabi_size size)
 {
-  return wabi_store_alloc(&vm->stor, size);
+  wabi_word* res;
+
+  if(vm->stor.heap + size < vm->stor.limit) {
+    res = vm->stor.heap;
+    vm->stor.heap += size;
+    return res;
+  }
+  vm->ert = wabi_error_nomem;
+  return NULL;
 }
 
 #endif

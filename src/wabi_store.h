@@ -22,37 +22,25 @@ typedef struct wabi_store_struct
 typedef wabi_store_t* wabi_store;
 
 int
-wabi_store_init(wabi_store store,
-                wabi_word size);
+wabi_store_init(const wabi_store store,
+                const wabi_word size);
 
 void
-wabi_store_destroy(wabi_store store);
+wabi_store_destroy(const wabi_store store);
+
 
 void
-wabi_store_prepare(wabi_store store);
+wabi_store_prepare(const wabi_store store);
 
-
-static inline wabi_word*
-wabi_store_alloc(wabi_store store, wabi_size size)
-{
-  wabi_word* res;
-
-  if(store->heap + size < store->limit) {
-    res = store->heap;
-    store->heap += size;
-    return res;
-  }
-  return NULL;
-}
 
 static inline int
-wabi_store_free_words(wabi_store store)
+wabi_store_free_words(const wabi_store store)
 {
   return store->limit - store->heap;
 }
 
 static inline void*
-wordcopy(wabi_word *dst, wabi_word *src, wabi_size size)
+wordcopy(wabi_word *dst, const wabi_word *src, const wabi_size size)
 {
   return memcpy(dst, src, size * WABI_WORD_SIZE);
 }

@@ -1,53 +1,57 @@
 #define wabi_delim_c
 
-#include "wabi_vm.h"
-#include "wabi_cont.h"
 #include "wabi_delim.h"
 #include "wabi_builtin.h"
 #include "wabi_cmp.h"
+#include "wabi_constant.h"
+#include "wabi_cont.h"
+#include "wabi_vm.h"
 
-wabi_error_type
-wabi_cont_prompt_bt(wabi_vm vm)
-{
+static void wabi_cont_prompt_bt(const wabi_vm vm) {
   wabi_env env;
   wabi_val fst, ctrl, tag;
   wabi_cont cont, prmt;
 
   ctrl = vm->ctrl;
 
-  if(!WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  tag = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
+  tag = wabi_car((wabi_pair)ctrl);
+  ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  if(!WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  fst = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
+  fst = wabi_car((wabi_pair)ctrl);
+  ctrl = wabi_cdr((wabi_pair)ctrl);
+  env = (wabi_env)((wabi_cont_call)vm->cont)->env;
 
-  cont = wabi_cont_next((wabi_cont) vm->cont);
-  prmt = cont = wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt) vm->prmt, cont);
+  cont = wabi_cont_next((wabi_cont)vm->cont);
+  prmt = cont =
+      wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt)vm->prmt, cont);
+  if (vm->ert)
+    return;
 
-  if(! cont) return wabi_error_nomem;
-
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
+  if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
-    if(! cont) return wabi_error_nomem;
+    if (vm->ert)
+      return;
   }
   cont = wabi_cont_push_eval(vm, cont);
-  if(! cont) return wabi_error_nomem;
+  if (vm->ert)
+    return;
 
   vm->ctrl = fst;
-  vm->cont = (wabi_val) cont;
-  vm->prmt = (wabi_val) prmt;
-  return wabi_error_none;
+  vm->cont = (wabi_val)cont;
+  vm->prmt = (wabi_val)prmt;
 }
 
-
-wabi_error_type
-wabi_cont_control_bt(wabi_vm vm)
-{
+static void wabi_cont_control_bt(const wabi_vm vm) {
   wabi_env env;
   wabi_val kname, ctrl, tag, fst;
   wabi_cont_prompt prompt;
@@ -56,75 +60,87 @@ wabi_cont_control_bt(wabi_vm vm)
   wabi_error_type err;
 
   ctrl = vm->ctrl;
-  if(! WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  tag = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
+  tag = wabi_car((wabi_pair)ctrl);
+  ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  if(! WABI_IS(wabi_tag_pair, ctrl)) return wabi_error_type_mismatch;
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  kname = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
+  kname = wabi_car((wabi_pair)ctrl);
+  ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  if(! WABI_IS(wabi_tag_symbol, kname) && (*kname != wabi_val_ignore))
-    return wabi_error_type_mismatch;
+  if (!wabi_is_symbol(kname) && !wabi_is_ignore(kname)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  if(! WABI_IS(wabi_tag_pair, ctrl))
-    return wabi_error_type_mismatch;
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
 
-  fst = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
+  fst = wabi_car((wabi_pair)ctrl);
+  ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
+  env = (wabi_env)((wabi_cont_call)vm->cont)->env;
   env = wabi_env_extend(vm, env);
-  if(!env) return wabi_error_nomem;
+  if (vm->ert)
+    return;
 
-  cont = wabi_cont_next((wabi_cont) vm->cont);
-  prompt = (wabi_cont_prompt) vm->prmt;
+  cont = wabi_cont_next((wabi_cont)vm->cont);
+  prompt = (wabi_cont_prompt)vm->prmt;
 
   kval = wabi_combiner_continuation_new(vm, cont);
+  if (vm->ert)
+    return;
 
-  if(!kval) return wabi_error_nomem;
-  for(;;) {
-    if(! prompt)
-      return wabi_error_no_prompt;
+  for (;;) {
+    if (!prompt) {
+      vm->ert = wabi_error_no_prompt;
+      return;
+    }
 
-    if(wabi_eq(tag, (wabi_val) wabi_cont_prompt_tag(prompt)))
+    if (wabi_eq(tag, (wabi_val)wabi_cont_prompt_tag(prompt)))
       break;
 
     prompt = wabi_cont_prompt_next_prompt(prompt);
   }
-  err = wabi_env_set(vm, env, kname, (wabi_val) kval);
-  if(err) return err;
+  wabi_env_set(vm, env, kname, (wabi_val)kval);
+  if (vm->ert)
+    return;
 
-  cont = wabi_cont_next((wabi_cont) prompt);
+  cont = wabi_cont_next((wabi_cont)prompt);
 
-  if(WABI_IS(wabi_tag_pair, ctrl)) {
+  if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
-    if(! cont) return wabi_error_nomem;
+    if (vm->ert)
+      return;
   }
-
   cont = wabi_cont_push_eval(vm, cont);
-  if(! cont) return wabi_error_nomem;
+  if (vm->ert)
+    return;
+
   vm->ctrl = fst;
-  vm->env = (wabi_val) env;
-  vm->cont = (wabi_val) cont;
-  vm->prmt = (wabi_val) wabi_cont_prompt_next_prompt(prompt);
+  vm->env = (wabi_val)env;
+  vm->cont = (wabi_val)cont;
+  vm->prmt = (wabi_val)wabi_cont_prompt_next_prompt(prompt);
 
-  prompt->tag = (wabi_word) vm->nil;
-  prompt->next_prompt = (wabi_word) wabi_cont_done;
-  prompt->next = (wabi_word) wabi_cont_done;
+  prompt->tag = (wabi_word)vm->nil;
+  prompt->next_prompt = (wabi_word)wabi_cont_done;
+  prompt->next = (wabi_word)wabi_cont_done;
   WABI_SET_TAG(prompt, wabi_tag_cont_prompt);
-
-  return wabi_error_none;
 }
 
-wabi_error_type
-wabi_delim_builtins(wabi_vm vm, wabi_env env)
-{
-  wabi_error_type res;
-  res = WABI_DEFX(vm, env, "prompt", "prompt", wabi_cont_prompt_bt);
-  if(res) return res;
-  res = WABI_DEFX(vm, env, "control", "control", wabi_cont_control_bt);
-  return res;
+void wabi_delim_builtins(const wabi_vm vm, const wabi_env env) {
+  WABI_DEFX(vm, env, "prompt", "prompt", wabi_cont_prompt_bt);
+  if (vm->ert)
+    return;
+  WABI_DEFX(vm, env, "control", "control", wabi_cont_control_bt);
 }

@@ -13,15 +13,31 @@ static const int wabi_fixnum_sign_offset = wabi_word_tag_offset - 1;
 
 static const wabi_word wabi_fixnum_sign_mask = 1UL << wabi_fixnum_sign_offset;
 
+static const wabi_word wabi_fixnum_max = wabi_word_value_mask;
+
 #define FIXNUM_NEG(v) ((v) & wabi_fixnum_sign_mask)
 
 #define WABI_CAST_INT64(v) ((int64_t) (FIXNUM_NEG(*v) ? *v | 0xFF00000000000000 : WABI_WORD_VAL(*v)))
 
 wabi_fixnum
-wabi_fixnum_new(wabi_vm vm,
-                int64_t val);
+wabi_fixnum_new(const wabi_vm vm,
+                const int64_t val);
 
-wabi_error_type
-wabi_number_builtins(wabi_vm vm, wabi_env env);
+void
+wabi_number_builtins(const wabi_vm vm, const wabi_env env);
+
+
+static inline int
+wabi_is_fixnum(const wabi_val val)
+{
+  return WABI_IS(wabi_tag_fixnum, val);
+}
+
+
+static inline int
+wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
+  long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
+  return d ? (d > 0L ? 1 : -1) : 0;
+}
 
 #endif
