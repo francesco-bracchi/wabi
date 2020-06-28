@@ -34,9 +34,9 @@ typedef struct wabi_combiner_derived_struct {
 typedef wabi_combiner_derived_t* wabi_combiner_derived;
 
 typedef struct wabi_combiner_builtin_struct {
+  wabi_word c_xtra;
   wabi_word c_name;
   wabi_word c_ptr;
-  wabi_word c_xtra;
 } wabi_combiner_builtin_t;
 
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
@@ -107,13 +107,13 @@ wabi_combiner_builtin_cptr(const wabi_combiner_builtin c)
 static inline wabi_binary
 wabi_combiner_builtin_cname(const wabi_combiner_builtin c)
 {
-  return (wabi_binary) WABI_WORD_VAL(c->c_name);
+  return (wabi_binary) c->c_name;
 }
 
 static inline void*
 wabi_combiner_builtin_xtra(const wabi_combiner_builtin c)
 {
-  return (void*) c->c_xtra;
+  return (void*) WABI_WORD_VAL(c->c_xtra);
 }
 
 void
@@ -196,12 +196,14 @@ wabi_combiner_derived_collect_val(const wabi_vm vm, const wabi_combiner_derived 
 static inline void
 wabi_combiner_builtin_collect_val(const wabi_vm vm, const wabi_combiner_builtin c)
 {
+  wabi_word tag;
+  tag = WABI_TAG(c);
+
   ((wabi_combiner_builtin) c)->c_name =
-    (wabi_word) wabi_copy_val(vm, (wabi_word*) ((wabi_combiner_builtin) c)->c_name);
-  if(((wabi_combiner_builtin) c)->c_xtra) {
-    ((wabi_combiner_builtin) c)->c_xtra =
-      (wabi_word) wabi_copy_val(vm, (wabi_word*) WABI_WORD_VAL(((wabi_combiner_builtin) c)->c_ptr));
-  }
+    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_cname(c));
+  ((wabi_combiner_builtin) c)->c_xtra =
+    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_xtra(c));
+  WABI_SET_TAG(c, tag);
   vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
 }
 

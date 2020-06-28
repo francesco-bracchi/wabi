@@ -647,10 +647,8 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defx(vm, env, "def", &wabi_builtin_def);
   if(vm->ert) return NULL;
 
-
   WABI_DEFX(vm, env, "if", "if", wabi_builtin_if);
   if(vm->ert) return NULL;
-
 
   WABI_DEFX(vm, env, "do", "do", wabi_builtin_do);
   if(vm->ert) return NULL;

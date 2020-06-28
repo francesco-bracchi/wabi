@@ -13,6 +13,7 @@
 #include "wabi_combiner.h"
 #include "wabi_place.h"
 #include "wabi_vector.h"
+#include "wabi_constant.h"
 /* #include "wabi_env.h" */
 
 void
@@ -140,19 +141,7 @@ wabi_pr_map(wabi_map map)
 void
 wabi_pr_env(wabi_env env)
 {
-  wabi_size j;
-
-  printf("#env{");
-  do {
-    for(j = 0; j < env->numE; j++) {
-      wabi_pr((wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE));
-      printf(" ");
-    }
-    env= (wabi_env) WABI_WORD_VAL(env->prev);
-    if(env) printf(" -> ");
-  } while(env);
-
-  printf("}\n");
+  printf("#env[%lx]", env->uid);
 }
 
 
@@ -161,7 +150,7 @@ wabi_pr_applicative(wabi_combiner_derived val)
 {
   wabi_val body;
 
-  printf("(fn ");
+  printf("(fn \n");
   wabi_pr((wabi_val) val->parameters);
   printf(" ");
   body = (wabi_val) val->body;
@@ -187,10 +176,10 @@ wabi_pr_operative(wabi_combiner_derived val)
   wabi_pr((wabi_val) val->parameters);
   printf(" ");
   body = (wabi_val) val->body;
-  while(WABI_IS(wabi_tag_pair, body)) {
+  while(wabi_is_pair(body)) {
     wabi_pr(wabi_car((wabi_pair) body));
     body = wabi_cdr((wabi_pair) body);
-    if(*body != wabi_val_nil) {
+    if(!wabi_is_nil(body)) {
       printf(" ");
     }
   }
@@ -431,7 +420,7 @@ wabi_pr(wabi_val val) {
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
     printf("~B");
-    wabi_pr((wabi_val) ((wabi_combiner_builtin) val)->c_name);
+    wabi_pr((wabi_val) wabi_combiner_builtin_cname((wabi_combiner_builtin) val));
     break;
   case wabi_tag_cont_eval:
   case wabi_tag_cont_apply:

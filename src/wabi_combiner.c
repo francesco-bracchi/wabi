@@ -24,7 +24,9 @@ wabi_operator_builtin_new(const wabi_vm vm,
 
   res->c_ptr = (wabi_word) cfun;
   res->c_name = (wabi_word) cname;
+  res->c_xtra = (wabi_word) vm->nil;
   WABI_SET_TAG(res, wabi_tag_bt_oper);
+
   return (wabi_combiner) res;
 }
 
@@ -40,6 +42,7 @@ wabi_application_builtin_new(const wabi_vm vm,
   if(vm->ert) return NULL;
   res->c_ptr = (wabi_word) cfun;
   res->c_name = (wabi_word) cname;
+  res->c_xtra = (wabi_word) vm->nil;
   WABI_SET_TAG(res, wabi_tag_bt_app);
   return (wabi_combiner) res;
 }
@@ -123,18 +126,21 @@ wabi_combiner_wrap(const wabi_vm vm)
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_DERIVED_SIZE);
     if(vm->ert) return;
     wordcopy(res, fx, WABI_COMBINER_DERIVED_SIZE);
+    *res = WABI_WORD_VAL(*res);
     WABI_SET_TAG(res, wabi_tag_app);
     break;
   case wabi_tag_bt_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_BUILTIN_SIZE);
     if(vm->ert) return;
     wordcopy(res, fx, WABI_COMBINER_BUILTIN_SIZE);
+    *res = WABI_WORD_VAL(*res);
     WABI_SET_TAG(res, wabi_tag_bt_app);
     break;
   case wabi_tag_ct_oper:
     res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
     if(vm->ert) return;
     wordcopy(res, fx, WABI_COMBINER_CONTINUATION_SIZE);
+    *res = WABI_WORD_VAL(*res);
     WABI_SET_TAG(res, wabi_tag_bt_app);
     break;
 
@@ -508,33 +514,33 @@ wabi_combiner_derived_combiner_caller_env_name(const wabi_vm vm)
 void
 wabi_combiner_builtins(const wabi_vm vm, const wabi_env env)
 {
-  WABI_DEFX(vm, env, "fx", "fx", wabi_combiner_fx);
+  wabi_defx(vm, env, "fx", wabi_combiner_fx);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "wrap", "wrap", wabi_combiner_wrap);
+  wabi_defn(vm, env, "wrap", wabi_combiner_wrap);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "unwrap", "unwrap", wabi_combiner_unwrap);
+  wabi_defn(vm, env, "unwrap", wabi_combiner_unwrap);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "comb?", "comb?", wabi_combiner_combiner_p);
+  wabi_defn(vm, env, "comb?", wabi_combiner_combiner_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "app?", "app?", wabi_combiner_applicative_p);
+  wabi_defn(vm, env, "app?", wabi_combiner_applicative_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "oper?", "oper?", wabi_combiner_operative_p);
+  wabi_defn(vm, env, "oper?", wabi_combiner_operative_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "cont?", "cont?", wabi_combiner_cont_p);
+  wabi_defn(vm, env, "cont?", wabi_combiner_cont_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "builtin?", "builtin?", wabi_combiner_builtin_p);
+  wabi_defn(vm, env, "builtin?", wabi_combiner_builtin_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "derived?", "derived?", wabi_combiner_derived_p);
+  wabi_defn(vm, env, "derived?", wabi_combiner_derived_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "combiner-body", "combiner-body", wabi_combiner_derived_combiner_body);
+  wabi_defn(vm, env, "combiner-body", wabi_combiner_derived_combiner_body);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "combiner-static-env", "combiner-static-env", wabi_combiner_derived_combiner_static_env);
+  wabi_defn(vm, env, "combiner-static-env", wabi_combiner_derived_combiner_static_env);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "combiner-parameters", "combiner-parameters", wabi_combiner_derived_combiner_parameters);
+  wabi_defn(vm, env, "combiner-parameters", wabi_combiner_derived_combiner_parameters);
   if(vm->ert) return;
-  /* WABI_DEFN(vm, env, "combiner-compiled-body", "combiner-compiled-body", wabi_combiner_builtin_compiled_body); */
+  /* wabi_defn(vm, env, "combiner-compiled-body", "combiner-compiled-body", wabi_combiner_builtin_compiled_body); */
   /* if(vm->ert) return; */
-  /* WABI_DEFN(vm, env, "combiner-compiled-body-set!", "combiner-compiled-body-set!", wabi_combiner_builtin_compiled_body_set_qmark); */
+  /* wabi_defn(vm, env, "combiner-compiled-body-set!", "combiner-compiled-body-set!", wabi_combiner_builtin_compiled_body_set_qmark); */
   /* if(vm->ert) return; */
-  WABI_DEFN(vm, env, "combiner-caller-env-name", "combiner-caller-env-name", wabi_combiner_derived_combiner_caller_env_name);
+  wabi_defn(vm, env, "combiner-caller-env-name", wabi_combiner_derived_combiner_caller_env_name);
 }

@@ -67,7 +67,6 @@ wabi_vm_const(wabi_vm vm, wabi_word val)
 }
 
 
-
 static inline wabi_val
 wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
 {
@@ -132,13 +131,12 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
 void
 wabi_vm_collect(const wabi_vm vm)
 {
-  int res;
+  vm->ert = wabi_error_none;
   wabi_store_prepare(&vm->stor);
 
   vm->stbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
   vm->stor.scan+=WABI_MAP_SIZE;
-
   if(vm->ctrl) vm->ctrl = wabi_copy_val(vm, vm->ctrl);
   if(vm->ert) return;
   if(vm->env) vm->env = wabi_copy_val(vm, vm->env);
@@ -153,9 +151,7 @@ wabi_vm_collect(const wabi_vm vm)
   if(vm->ert) return;
   if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);
   if(vm->ert) return;
-
   wabi_collect(vm);
-  vm->ert = wabi_error_none;
 }
 
 
@@ -598,6 +594,8 @@ wabi_vm_run(const wabi_vm vm,
   vm->ert = wabi_error_none;
 
   for(;;) {
+    /* wabi_prn(vm->ctrl); */
+    /* wabi_prn(vm->cont); */
     wabi_vm_reduce(vm);
     if((wabi_cont) vm->cont == wabi_cont_done) {
       return;
