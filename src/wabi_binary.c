@@ -209,6 +209,9 @@ wabi_binary_copy_val(const wabi_vm vm, const wabi_binary src)
  * Hashing
  */
 
+static void
+wabi_binary_hash_generic(const wabi_hash_state state, const wabi_binary bin);
+
 static inline void
 wabi_binary_leaf_hash(const wabi_hash_state state, const wabi_binary_leaf leaf)
 {
@@ -218,14 +221,13 @@ wabi_binary_leaf_hash(const wabi_hash_state state, const wabi_binary_leaf leaf)
 static inline void
 wabi_binary_node_hash(const wabi_hash_state state, const wabi_binary_node node)
 {
-  wabi_binary_hash(state, (wabi_binary) node->left);
-  wabi_binary_hash(state, (wabi_binary) node->right);
+  wabi_binary_hash_generic(state, (wabi_binary) node->left);
+  wabi_binary_hash_generic(state, (wabi_binary) node->right);
 }
 
-void
-wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin)
+static void
+wabi_binary_hash_generic(const wabi_hash_state state, const wabi_binary bin)
 {
-  wabi_hash_step(state, "B", 1);
   switch(WABI_TAG(bin)) {
   case wabi_tag_bin_leaf:
     wabi_binary_leaf_hash(state, (wabi_binary_leaf_t *) bin);
@@ -234,6 +236,15 @@ wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin)
     wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
     break;
   }
+}
+
+
+void
+wabi_binary_hash(const wabi_hash_state state,
+                 const wabi_binary bin)
+{
+  wabi_hash_step(state, "B", 1);
+  wabi_binary_hash_generic(state, bin);
 }
 
 
@@ -343,8 +354,9 @@ wabi_binary_bin_concat(const wabi_vm vm)
       vm->ert = wabi_error_type_mismatch;
       return;
     }
-
-    bin = (wabi_binary) wabi_binary_node_new(vm, bin, bin0);
+    if(wabi_binary_length(bin0)) {
+      bin = (wabi_binary) wabi_binary_node_new(vm, bin, bin0);
+    }
     if(vm->ert) return;
   }
   if(! wabi_is_nil(ctrl)) {
@@ -398,7 +410,7 @@ wabi_binary_bin_sub(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(!wabi_is_pair(ctrl)) {
+  if(!wabi_is_nil(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -487,11 +499,11 @@ wabi_binary_bin_p(const wabi_vm vm)
 void
 wabi_binary_builtins(const wabi_vm vm, const wabi_env env)
 {
-  WABI_DEFN(vm, env, "bin?", "bin?", wabi_binary_bin_p);
+  wabi_defn(vm, env, "bin?", &wabi_binary_bin_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "bin-len", "bin-len", wabi_binary_bin_length);
+  wabi_defn(vm, env, "bin-len", &wabi_binary_bin_length);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "bin-cat", "bin-cat", wabi_binary_bin_concat);
+  wabi_defn(vm, env, "bin-cat", &wabi_binary_bin_concat);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "bin-sub", "bin-sub", wabi_binary_bin_sub);
+  wabi_defn(vm, env, "bin-sub", &wabi_binary_bin_sub);
 }

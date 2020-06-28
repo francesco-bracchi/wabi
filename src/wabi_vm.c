@@ -280,7 +280,10 @@ wabi_vm_reduce(const wabi_vm vm)
     /* cont: s */
     if(WABI_IS(wabi_tag_symbol, ctrl)) {
       ctrl0 = wabi_env_lookup(env, (wabi_symbol) ctrl);
-      if(vm->ert) return;
+      if(!ctrl0) {
+        vm->ert = wabi_error_unbound_name;
+        return;
+      }
       vm->ctrl = ctrl0;
       vm->cont = (wabi_val) wabi_cont_next(cont);
       return;

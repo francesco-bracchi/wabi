@@ -1000,7 +1000,7 @@ wabi_map_cmp(wabi_map left, wabi_map right)
 void
 wabi_map_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_defx(vm, env, "hmap", &wabi_map_builtin_hmap);
+  wabi_defn(vm, env, "hmap", &wabi_map_builtin_hmap);
   if(vm->ert) return;
 
   wabi_defn(vm, env, "assoc", &wabi_map_builtin_assoc);

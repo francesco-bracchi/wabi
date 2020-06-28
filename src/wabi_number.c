@@ -39,8 +39,6 @@ wabi_number_builtin_sum(const wabi_vm vm)
   ac = 0L;
   ctrl = vm->ctrl;
 
-  a = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
 
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
@@ -51,6 +49,8 @@ wabi_number_builtin_sum(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
+  a = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
   *a = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
   vm->ctrl = a;
@@ -67,9 +67,6 @@ wabi_number_builtin_mul(const wabi_vm vm)
   ac = 1L;
   ctrl = vm->ctrl;
 
-  a = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
@@ -79,6 +76,8 @@ wabi_number_builtin_mul(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
+  a = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
   *a = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);

@@ -27,37 +27,67 @@ wabi_cmp(const wabi_val a, const wabi_val b)
   if(a == b) return 0;
   // types are different => type order
   tag = WABI_TAG(a);
+
   diff = tag - WABI_TAG(b);
-  if(diff) {
-    return (int)(diff >> wabi_word_tag_offset);
-  }
+
   switch(tag) {
   case wabi_tag_constant:
-    return (*a - *b);
+    if(WABI_IS(wabi_tag_constant, b)) {
+      return (*a - *b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_fixnum:
-    return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
+    if(wabi_is_fixnum(b)) {
+      return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_symbol:
-    return wabi_cmp(wabi_symbol_to_binary((wabi_symbol) a), wabi_symbol_to_binary((wabi_symbol) b));
+    if (wabi_is_symbol(b)) {
+      return wabi_cmp(wabi_symbol_to_binary((wabi_symbol)a),
+                      wabi_symbol_to_binary((wabi_symbol)b));
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_bin_leaf:
   case wabi_tag_bin_node:
-    return wabi_binary_cmp((wabi_binary) a, (wabi_binary) b);
+    if(wabi_is_binary(b)) {
+      return wabi_binary_cmp((wabi_binary) a, (wabi_binary) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_pair:
-    return wabi_pair_cmp((wabi_pair) a, (wabi_pair) b);
+    if(wabi_is_pair(b)) {
+      return wabi_pair_cmp((wabi_pair) a, (wabi_pair) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_map_array:
   case wabi_tag_map_hash:
   case wabi_tag_map_entry:
-    return wabi_map_cmp((wabi_map) a, (wabi_map) b);
+    if (wabi_is_map(b)) {
+      return wabi_map_cmp((wabi_map)a, (wabi_map)b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_vector_digit:
   case wabi_tag_vector_deep:
-    return wabi_vector_cmp((wabi_vector) a, (wabi_vector) b);
+    if(wabi_is_vector(b)) {
+      return wabi_vector_cmp((wabi_vector) a, (wabi_vector) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_env:
-    return wabi_env_cmp((wabi_env) a, (wabi_env) b);
+    if(wabi_is_env(b)) {
+      return wabi_env_cmp((wabi_env) a, (wabi_env) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_app:
   case wabi_tag_oper:
-    return wabi_combiner_derived_cmp((wabi_combiner_derived) a, (wabi_combiner_derived) b);
+    if(WABI_TAG(b) == tag) {
+      return wabi_combiner_derived_cmp((wabi_combiner_derived) a, (wabi_combiner_derived) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    return wabi_combiner_builtin_cmp((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
+    if(WABI_TAG(b) == tag) {
+      return wabi_combiner_builtin_cmp((wabi_combiner_builtin) a, (wabi_combiner_builtin) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_cont_eval:
   case wabi_tag_cont_apply:
   case wabi_tag_cont_call:
@@ -65,11 +95,17 @@ wabi_cmp(const wabi_val a, const wabi_val b)
   case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
-    return wabi_cont_cmp((wabi_cont) a, (wabi_cont) b);
+    if(WABI_TAG(b) == tag) {
+      return wabi_cont_cmp((wabi_cont) a, (wabi_cont) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_place:
-    return wabi_place_cmp((wabi_place) a, (wabi_place) b);
+    if(wabi_is_place(b)) {
+      return wabi_place_cmp((wabi_place) a, (wabi_place) b);
+    }
+    return (int)(diff >> wabi_word_tag_offset);
   default:
-    return *a - *b;
+    return -10000;
   }
 }
 

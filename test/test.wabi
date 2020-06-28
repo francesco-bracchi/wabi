@@ -722,35 +722,6 @@
 (test (map-len (apply hmap (ran 100))) 50)
 (test (map-len (apply hmap (ran 8))) 4)
 
-;;; tentave compiling, inlining constant values
-(def good-special-forms (list if do prompt control))
-
-(defn compile-expr
-    (e ps x)
-  (rec compile (x x)
-    (if
-     (and (sym? x) (in? x ps)) x
-     (sym? x) (eval e x)
-     (not (pair? x)) x
-     (let (a (compile (car x)))
-       (cons a
-             (if
-              (app? a) (map compile (cdr x))
-              (in? a good-special-forms) (map compile (cdr x))
-              (cdr x)))))))
-
-(defn compile-combiner!
-    (c)
-  (letr (e  (combiner-static-env c)
-         bs (combiner-body c)
-         en (combiner-caller-env-name c)
-         ps (combiner-parameters c)
-         ss (filter sym? (flat (cons en ps))))
-    (combiner-compiled-body-set! c (map (part compile-expr e ss) bs))))
-
-
-(compile-combiner! fib)
-
 ;; (time (each (fn (_) (fib 25)) (ran 40)))
 
 (test (hash "ciao") (hash (bin-cat "ci" "ao")))

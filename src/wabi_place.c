@@ -72,7 +72,7 @@ wabi_place_plc_val(const wabi_vm vm)
   wabi_place plc;
 
   ctrl = vm->ctrl;
-  if(wabi_is_pair(ctrl)) {
+  if(! wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -142,11 +142,11 @@ void
 wabi_place_builtins(const wabi_vm vm,
                     const wabi_env env)
 {
-  WABI_DEFN(vm, env, "plc", "plc", wabi_place_plc);
+  wabi_defn(vm, env, "plc", &wabi_place_plc);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "plc?", "plc", wabi_place_plc_p);
+  wabi_defn(vm, env, "plc?", &wabi_place_plc_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "plc-val", "plc-val", wabi_place_plc_val);
+  wabi_defn(vm, env, "plc-val", &wabi_place_plc_val);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "plc-cas", "plc-cas", wabi_place_plc_cas);
+  wabi_defn(vm, env, "plc-cas", &wabi_place_plc_cas);
 }
