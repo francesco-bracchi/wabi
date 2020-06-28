@@ -150,7 +150,7 @@ wabi_pr_applicative(wabi_combiner_derived val)
 {
   wabi_val body;
 
-  printf("(fn \n");
+  printf("(fn ");
   wabi_pr((wabi_val) val->parameters);
   printf(" ");
   body = (wabi_val) val->body;

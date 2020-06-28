@@ -240,7 +240,6 @@ wabi_builtin_load_cstring(const wabi_vm vm, const wabi_env env, char* str)
   wabi_cont cont;
   int x = 0;
   exs = (wabi_pair) wabi_reader_read_all(vm, str);
-  printf("err: %s\n", wabi_error_name(vm->ert));
   if(vm->ert) return;
   if(! wabi_is_pair((wabi_val) exs)) {
     vm->ert = wabi_error_bindings;
@@ -489,8 +488,9 @@ wabi_builtin_eval(const wabi_vm vm)
   cont = wabi_cont_push_eval(vm, cont);
   if(vm->ert) return;
 
-  vm->cont = (wabi_val) cont;
   vm->ctrl = ex;
+  vm->env = (wabi_val) env;
+  vm->cont = (wabi_val) cont;
 }
 
 
@@ -647,31 +647,31 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defx(vm, env, "def", &wabi_builtin_def);
   if(vm->ert) return NULL;
 
-  WABI_DEFX(vm, env, "if", "if", wabi_builtin_if);
+  wabi_defx(vm, env, "if", wabi_builtin_if);
   if(vm->ert) return NULL;
 
-  WABI_DEFX(vm, env, "do", "do", wabi_builtin_do);
+  wabi_defx(vm, env, "do", wabi_builtin_do);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "pr", "pr", wabi_builtin_pr);
+  wabi_defn(vm, env, "pr", wabi_builtin_pr);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "eval", "eval", wabi_builtin_eval);
+  wabi_defn(vm, env, "eval", wabi_builtin_eval);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "clock", "clock", wabi_builtin_clock);
+  wabi_defn(vm, env, "clock", wabi_builtin_clock);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "not", "not", wabi_builtin_not);
+  wabi_defn(vm, env, "not", wabi_builtin_not);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "hash", "hash", wabi_builtin_hash);
+  wabi_defn(vm, env, "hash", wabi_builtin_hash);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "l0", "l0", wabi_builtin_language0);
+  wabi_defn(vm, env, "l0", wabi_builtin_language0);
   if(vm->ert) return NULL;
 
-  WABI_DEFN(vm, env, "collect", "collect", wabi_builtin_collect);
+  wabi_defn(vm, env, "collect", wabi_builtin_collect);
   if(vm->ert) return NULL;
 
 

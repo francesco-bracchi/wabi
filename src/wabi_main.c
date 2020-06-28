@@ -39,6 +39,11 @@ main(int argc,
     return 2;
   }
   FILE * f = fopen(argv[1], "rb");
+  if(!f) {
+    fprintf(stderr, "Error opening file: %s\n", argv[1]);
+    return 3;
+  }
+
   fseek(f, 0, SEEK_END);
   length = ftell(f);
   fseek(f, 0, SEEK_SET);

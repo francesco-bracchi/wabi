@@ -189,32 +189,38 @@ wabi_vm_reverse(wabi_vm vm,
 static void
 wabi_vm_bind(const wabi_vm vm,
              const wabi_env env,
-             const wabi_val args,
-             const wabi_val params)
+             const wabi_val args0,
+             const wabi_val params0)
 {
-  if(wabi_is_symbol(params)) {
-    wabi_env_set(vm, env, (wabi_symbol) params, args);
-    return;
-  }
-  if(wabi_is_ignore(params)) {
-    return;
-  }
-  if(wabi_is_pair(params)) {
-    if(wabi_is_pair(args)) {
-      wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
-      if(vm->ert) return;
-      wabi_vm_bind(vm, env, wabi_cdr((wabi_pair) args), wabi_cdr((wabi_pair) params));
+  wabi_val args, params;
+  args = args0;
+  params = params0;
+  for(;;) {
+    if(wabi_is_symbol(params)) {
+      wabi_env_set(vm, env, (wabi_symbol) params, args);
       return;
     }
-    if(wabi_is_nil(args)) {
-      wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
-      if(vm->ert) return;
-      wabi_vm_bind(vm, env, vm->nil, wabi_cdr((wabi_pair) params));
+    if(wabi_is_ignore(params)) {
       return;
     }
-  }
-  if(wabi_cmp(params, args)) {
-    vm->ert = wabi_error_bindings;
+    if(wabi_is_pair(params)) {
+      if(wabi_is_pair(args)) {
+        wabi_vm_bind(vm, env, wabi_car((wabi_pair) args), wabi_car((wabi_pair) params));
+        if(vm->ert) return;
+        args = wabi_cdr((wabi_pair) args);
+        params = wabi_cdr((wabi_pair) params);
+        continue;
+      }
+      if(wabi_is_nil(args)) {
+        wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
+        if(vm->ert) return;
+        params = wabi_cdr((wabi_pair) params);
+        continue;
+      }
+    }
+    if(wabi_cmp(params, args)) {
+      vm->ert = wabi_error_bindings;
+    }
     return;
   }
 }
@@ -308,14 +314,11 @@ wabi_vm_reduce(const wabi_vm vm)
     if(wabi_combiner_is_operative(ctrl)) {
       cont0 = wabi_cont_next(cont);
       cont0 = wabi_cont_push_call(vm, (wabi_env) ((wabi_cont_apply) cont)->env, ctrl, cont0);
-      if(cont0) {
-        ctrl0 = (wabi_val) ((wabi_cont_apply) cont)->args;
-        vm->ctrl = ctrl0;
-        vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
-        vm->cont = (wabi_val) cont0;
-        return;
-      }
-      vm->ert = wabi_error_nomem;
+      if(vm->ert) return;
+      ctrl0 = (wabi_val) ((wabi_cont_apply) cont)->args;
+      vm->ctrl = ctrl0;
+      vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
+      vm->cont = (wabi_val) cont0;
       return;
     }
     if(wabi_combiner_is_applicative(ctrl)) {
@@ -330,13 +333,10 @@ wabi_vm_reduce(const wabi_vm vm)
       if(*((wabi_val) (((wabi_cont_apply) cont)->args)) == wabi_val_nil) {
         cont0 = wabi_cont_next(cont);
         cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
-        if(cont0) {
-          vm->ctrl = vm->nil;
-          vm->env = vm->nil;
-          vm->cont = (wabi_val) cont0;
-          return;
-        }
-        vm->ert = wabi_error_nomem;
+        if(vm->ert) return;
+        vm->ctrl = vm->nil;
+        vm->env = vm->nil;
+        vm->cont = (wabi_val) cont0;
         return;
       }
       /* ctrl: c when (app? c) */
@@ -349,21 +349,18 @@ wabi_vm_reduce(const wabi_vm vm)
       pair = (wabi_pair) ((wabi_cont_apply) cont)->args;
       cont0 = wabi_cont_next(cont);
       cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
-      if(cont0) {
-        cont0 = wabi_cont_push_args(vm, (wabi_env) ((wabi_cont_apply) cont)->env, wabi_cdr(pair), vm->nil, cont0);
-        if(cont0) {
-          cont0 = wabi_cont_push_eval(vm, cont0);
-          if(cont0) {
-            vm->ctrl = wabi_car(pair);
-            vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
-            vm->cont = (wabi_val) cont0;
-            return;
-          }
-        }
-      }
-      vm->ert = wabi_error_nomem;
+      if(vm->ert) return;
+      cont0 = wabi_cont_push_args(vm, (wabi_env) ((wabi_cont_apply) cont)->env, wabi_cdr(pair), vm->nil, cont0);
+      if(vm->ert) return;
+      cont0 = wabi_cont_push_eval(vm, cont0);
+      if(vm->ert) return;
+
+      vm->ctrl = wabi_car(pair);
+      vm->env = (wabi_val) ((wabi_cont_apply) cont)->env;
+      vm->cont = (wabi_val) cont0;
       return;
     }
+
     vm->ert = wabi_error_other;
     return;
 
@@ -594,6 +591,7 @@ wabi_vm_run(const wabi_vm vm,
   vm->ert = wabi_error_none;
 
   for(;;) {
+    /* printf("- %lu ---------------------\n", vm->fuel); */
     /* wabi_prn(vm->ctrl); */
     /* wabi_prn(vm->cont); */
     wabi_vm_reduce(vm);
