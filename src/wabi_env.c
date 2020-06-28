@@ -39,92 +39,6 @@
 #include "wabi_constant.h"
 #include "wabi_hash.h"
 
-static inline void
-wabi_env_actually_set(const wabi_env env,
-                      const wabi_val k,
-                      const wabi_val v)
-{
-  *(((wabi_val) env->data) + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) k;
-  *(((wabi_val) env->data) + 1 + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) v;
-  env->numE++;
-}
-
-
-static inline void
-wabi_env_set_expand(const wabi_vm vm,
-                    const wabi_env env)
-{
-  uint32_t new_size;
-  wabi_word *new_data;
-
-  new_size = env->numE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
-  new_data = (wabi_word*) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
-  if(vm->ert) return;
-
-  wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);
-  env->data = (wabi_word) new_data;
-  env->maxE = new_size;
-}
-
-static wabi_size rnd = 0;
-
-static inline wabi_val
-wabi_env_lookup_local(const wabi_env env, const wabi_val k)
-{
-  wabi_size j, l;
-  wabi_val k0, res;
-  wabi_word sk, sv;
-
-  for(j = 0; j < env->numE; j++) {
-    k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
-    if(k0 != k) continue;
-    res = (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
-    if(j >= WABI_ENV_LOW_LIMIT) {
-      // this stuff moves the most recent visited symbols at the first part of the list
-      // can a better algorithm be devised?
-      rnd = l = (rnd+1) % WABI_ENV_LOW_LIMIT;
-      sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
-      sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE) = sk;
-      *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE) = sv;
-    }
-    return res;
-  }
-  return NULL;
-}
-
-
-void
-wabi_env_set(const wabi_vm vm,
-             const wabi_env env,
-             const wabi_val k,
-             const wabi_val v)
-{
-  if(wabi_env_lookup_local(env, k)) {
-    vm->ert = wabi_error_already_defined;
-    return;
-  }
-  if(env->numE >= env->maxE) {
-    wabi_env_set_expand(vm, env);
-    if(vm->ert) return;
-  }
-  wabi_env_actually_set(env, k, v);
-}
-
-
-wabi_val
-wabi_env_lookup(wabi_env env, wabi_val k)
-{
-  wabi_val res;
-  do {
-    res = wabi_env_lookup_local(env, k);
-    if(res) return res;
-    env = (wabi_env) WABI_WORD_VAL(env->prev);
-  } while(env);
-  return NULL;
-}
 
 
 static inline wabi_word
@@ -150,11 +64,9 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
   return res;
 }
 
-
 /**
  * Collecting
  */
-
 
 void
 wabi_env_collect_val(wabi_vm vm, wabi_env env)
