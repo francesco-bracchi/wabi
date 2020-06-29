@@ -209,12 +209,10 @@ static void wabi_builtin_if
     vm->env = (wabi_val)env;
     return;
   }
-
   if(!wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
-
   // (if tst lft . ctrl)
   lft = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);

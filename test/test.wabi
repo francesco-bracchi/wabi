@@ -698,7 +698,7 @@
 (test (hd nil) (car nil))
 (test (fst nil) (car nil))
 
-(fib 20)
+;; (fib 20)
 
 ;; (pr (kont 100))
 
@@ -752,29 +752,6 @@
 (test (pair? (list 1) (list 2)) true)
 (test (pair? (list 1) (list)) false)
 
-;; (test (pop-left []) nil)
-;; (test (pop-left [1]) [])
-;; (test (pop-left [0 1]) [0])
-;; (test (pop-left (apply vec (ran 100)))
-;;       (apply vec (map inc (ran 99))))
-
-;; (test (pop-right []) nil)
-;; (test (pop-right [1]) [])
-;; (test (pop-right [0 1]) [1])
-;; (test (pop-left (apply vec (ran 100)))
-;;       (apply vec (ran 99)))
-
-;; (pr (vec-concat (apply vec (ran 100))
-;;                 (apply vec (map (part + 100) (ran 100)))))
-
-;; ;; (test [] [])
-;; ;; (test [0] [0])
-
-;; ;; (pr [])
-;; ;; (pr [1])
-
-;; (pr [0 10 20 30 40 50 60])
-
 
 ;; (defn vec-to-list
 ;;     (d)
@@ -790,14 +767,14 @@
 ;; ;; (time (fib 37))
 
 
-;; (test (vec-len []) 0)
-;; (test (vec-len [1]) 1)
-;; (test (vec-len [1 2]) 2)
-;; (test (vec-len (apply vec (ran 33))) 33)
+(test (vec-len []) 0)
+(test (vec-len [1]) 1)
+(test (vec-len [1 2]) 2)
+(test (vec-len (apply vec (ran 33))) 33)
 
-;; (test (vec? []) true)
-;; (test (vec? [] []) true)
-;; (test (vec? [] nil) false)
+(test (vec? []) true)
+(test (vec? [] []) true)
+(test (vec? [] nil) false)
 
 ;; (test (vec-emp?) true)
 ;; (test (vec-emp? []) true)
@@ -806,88 +783,77 @@
 ;; (test (vec-emp? [] []) true)
 ;; (test (vec-emp? [] [1]) false)
 
-;; (test (push-right [] 1) [1])
-;; (test (push-right [] 1 2) [1 2])
-;; (test (push-right [0] 1 2) [0 1 2])
+(test (push-right [] 1) [1])
+(test (push-right [] 1 2) [1 2])
+(test (push-right [0] 1 2) [0 1 2])
 
-;; (test (push-left 1 []) [1])
-;; (test (push-left 0 [1]) [0 1])
-;; (test (push-left 1 []) [1])
-;; (test (push-left 0 (apply vec (map inc (ran 32))))
-;;       (apply vec (ran 33)))
+(test (push-left 1 []) [1])
+(test (push-left 0 [1]) [0 1])
+(test (push-left 1 []) [1])
+(test (push-left 0 (apply vec (map inc (ran 32))))
+      (apply vec (ran 33)))
 
+(test (left []) nil)
+(test (left [0 1 2]) 0)
+(test (left (apply vec (ran 100))) 0)
 
-;; (test (left []) nil)
-;; (test (left [0 1 2]) 0)
-;; (test (left (apply vec (ran 100))) 0)
+(test (right []) nil)
+(test (right [0 1 2]) 2)
+(test (right (apply vec (ran 100))) 99)
 
-;; (test (right []) nil)
-;; (test (right [0 1 2]) 2)
-;; (test (right (apply vec (ran 100))) 99)
+(test (pop-left []) nil)
+(test (pop-left [1]) [])
+(test (pop-left [1 2 3]) [2 3])
 
-;; (test (pop-left []) nil)
-;; (test (pop-left [1]) [])
-;; (test (pop-left [1 2 3]) [2 3])
+(test (pop-right []) nil)
+(test (pop-right [1]) [])
+(test (pop-right [1 2 3]) [1 2])
 
-;; (test (pop-right []) nil)
-;; (test (pop-right [1]) [])
-;; (test (pop-right [1 2 3]) [1 2])
-
-;; (test (vec-ref [] 0) nil)
-;; (test (vec-ref [1 2 3] -1) nil)
-;; (test (vec-ref [1 2 3] 0) 1)
-;; (test (vec-ref [1 2 3] 2) 3)
-;; (test (vec-ref [1 2 3] 3) nil)
-;; (test (vec-ref (apply vec (ran 1000)) 500) 500)
-
-
-;; (letr (r (ran 1000) q (apply vec r))
-;;   (test (map #(vec-ref q it) r) r))
+(test (vec-ref [] 0) nil)
+(test (vec-ref [1 2 3] -1) nil)
+(test (vec-ref [1 2 3] 0) 1)
+(test (vec-ref [1 2 3] 2) 3)
+(test (vec-ref [1 2 3] 3) nil)
+(test (vec-ref (apply vec (ran 1000)) 500) 500)
 
 
-;; (test (vec-set [] 0 10) nil)
-;; (test (vec-ref (vec-set [1] 0 100) 0) 100)
-;; (test (vec-ref (vec-set [0 1] 0 !zero 1 !one) 0) !zero)
-
-;; (letr (rx (ran 1000) qx (apply vec rx))
-;;     (test
-;;      (map #(vec-ref (vec-set qx it !other) it) rx)
-;;      (map (always !other) rx)))
-
-;; (test (vec-ref (vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
-
-;; (test (vec-concat [] []) [])
-
-;; (def xxxx (apply vec (ran 1000)))
-
-;; (pr (fib 20))
-;; (pr !fib)
-;; (pr (ran 100))
-;; (pr xxxx)
-
-;; (pr (list (apply vec (ran 100)) (apply vec (ran 96))))
-
-;; (pr x)
-;; (pr (vec-concat (apply vec (ran 100)) (apply vec (ran 96))))
+(letr (r (ran 1000) q (apply vec r))
+  (test (map #(vec-ref q it) r) r))
 
 
-;; (test (map (fn (xs) (left (apply vec (ran (inc xs))))) (ran 27))
-;;       (map (always 0) (ran 27)))
+(test (vec-set [] 0 10) nil)
+(test (vec-ref (vec-set [1] 0 100) 0) 100)
+(test (vec-ref (vec-set [0 1] 0 !zero 1 !one) 0) !zero)
 
-;; (test (map (fn (xs) (right (apply vec (ran (inc xs))))) (ran 27))
-;;       (ran 27))
+(letr (rx (ran 1000) qx (apply vec rx))
+    (test
+     (map #(vec-ref (vec-set qx it !other) it) rx)
+     (map (always !other) rx)))
 
-;; (test (= [1 2] [1 2]) true)
-;; (test (= [1 2] [2 1]) false)
+(test (vec-ref (vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
 
-;; (pr {!x 10 [20] 30 [] 33})
-
-;; (let (h (apply vec (ran 100000)))
-;;   (time (hash h)))
-
+(test (vec-concat [] []) [])
 
 (test (push-right (apply vec (ran 32)) 32)
       (push-left 0 (apply vec (map inc (ran 32)))))
 
 (test (hash (push-right (apply vec (ran 32)) 32))
       (hash (push-left 0 (apply vec (map inc (ran 32))))))
+
+
+
+(defn xran
+    (n cb)
+  (rec xran (j 0)
+    (when (< j n)
+      (cb j)
+      (xran (inc j)))))
+
+
+(xran 10 pr)
+
+(prompt x
+  (rec for (r (xran (fn (j) (control x k (list j (fn () (prompt x (k !x))))))))
+    (def (v k1) r)
+    (pr v)
+    (for (k1))))

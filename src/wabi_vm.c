@@ -170,23 +170,24 @@ wabi_vm_destroy(wabi_vm vm)
 
 
 static inline wabi_val
-wabi_vm_reverse(wabi_vm vm,
-                wabi_val done,
-                wabi_val res)
+wabi_vm_reverse(const wabi_vm vm,
+                const wabi_val done0,
+                const wabi_val res0)
 {
-  while(WABI_IS(wabi_tag_pair, done)) {
+  wabi_val res;
+  wabi_val done;
+  done = done0;
+  res = res0;
+  while(wabi_is_pair(done)) {
     res = (wabi_val) wabi_cons(vm, wabi_car((wabi_pair) done), res);
-    if(res) {
-      done = wabi_cdr((wabi_pair) done);
-      continue;
-    }
-    return NULL;
+    if(vm->ert) return NULL;
+    done = wabi_cdr((wabi_pair) done);
   }
   return res;
 }
 
 
-static void
+inline static void
 wabi_vm_bind(const wabi_vm vm,
              const wabi_env env,
              const wabi_val args0,
@@ -325,7 +326,7 @@ wabi_vm_reduce(const wabi_vm vm)
       /* ctrl: nil */
       /* envr: nil */
       /* cont: ((call nil c) . s) */
-      if(*((wabi_val) (((wabi_cont_apply) cont)->args)) == wabi_val_nil) {
+      if(wabi_is_nil((wabi_val) (((wabi_cont_apply) cont)->args))) {
         cont0 = wabi_cont_next(cont);
         cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
         if(vm->ert) return;
@@ -561,14 +562,13 @@ wabi_vm_run(const wabi_vm vm,
       vm->ert = wabi_error_timeout;
       return;
     }
-    if(!vm->ert)
-      continue;
-
-    if(vm->ert == wabi_error_nomem) {
+    if (vm->ert == wabi_error_nomem) {
       wabi_vm_collect(vm);
-      if(vm->ert) return;
+      if (vm->ert)
+        return;
       continue;
     }
-    return;
+    if (vm->ert)
+      return;
   }
 }

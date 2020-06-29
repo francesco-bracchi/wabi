@@ -529,6 +529,7 @@ wabi_vector_ref_digit(const wabi_vector_digit d,
   wabi_size n, s, j, x;
   wabi_val t;
   wabi_vector_digit d1;
+
   n = wabi_vector_digit_node_size(d);
   s = wabi_vector_size((wabi_vector) d);
   t = wabi_vector_digit_table(d);
@@ -540,7 +541,7 @@ wabi_vector_ref_digit(const wabi_vector_digit d,
     d1 = (wabi_vector_digit) *(t + j);
     s = wabi_vector_size((wabi_vector) d1);
     if(p < x + s) {
-      return wabi_vector_ref_digit(d, p - x, lvl - 1);
+      return wabi_vector_ref_digit(d1, p - x, lvl - 1);
     }
     x+= s;
   }
@@ -1273,30 +1274,30 @@ wabi_vector_hash(const wabi_hash_state state,
 void
 wabi_vector_builtins(const wabi_vm vm, const wabi_env env)
 {
-  WABI_DEFN(vm, env, "vec", "vec", wabi_vector_vec);
+  wabi_defn(vm, env,  "vec", &wabi_vector_vec);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "vec-len", "vec-len", wabi_vector_vec_len);
+  wabi_defn(vm, env, "vec-len", &wabi_vector_vec_len);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "vec?", "vec?", wabi_vector_vec_p);
+  wabi_defn(vm, env, "vec?", &wabi_vector_vec_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "push-right", "push-right", wabi_vector_vec_push_right);
+  wabi_defn(vm, env, "push-right", &wabi_vector_vec_push_right);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "push-left", "push-left", wabi_vector_vec_push_left);
+  wabi_defn(vm, env, "push-left", &wabi_vector_vec_push_left);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "right", "right", wabi_vector_vec_right);
+  wabi_defn(vm, env, "right", &wabi_vector_vec_right);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "left", "left", wabi_vector_vec_left);
+  wabi_defn(vm, env, "left", &wabi_vector_vec_left);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "pop-left", "pop-left", wabi_vector_vec_pop_left);
+  wabi_defn(vm, env, "pop-left", &wabi_vector_vec_pop_left);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "pop-right", "pop-right", wabi_vector_vec_pop_right);
+  wabi_defn(vm, env, "pop-right", &wabi_vector_vec_pop_right);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "vec-concat", "vec-concat", wabi_vector_vec_concat);
+  wabi_defn(vm, env, "vec-concat", &wabi_vector_vec_concat);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "vec-ref", "vec-ref", wabi_vector_vec_ref);
+  wabi_defn(vm, env, "vec-ref", &wabi_vector_vec_ref);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "vec-set", "vec-set", wabi_vector_vec_set);
+  wabi_defn(vm, env, "vec-set", &wabi_vector_vec_set);
   // if(vm->ert) return;
-  /* WABI_DEFN(vm, env, "vec-sub", "vec-sub", wabi_vector_vec_sub); */
+  /* wabi_defn(vm, env, "vec-sub", "vec-sub", wabi_vector_vec_sub); */
   /* if(vm->ert) return; */
 }
