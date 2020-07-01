@@ -33,10 +33,16 @@ void
 wabi_store_prepare(const wabi_store store);
 
 
-static inline int
+static inline wabi_size
 wabi_store_free_words(const wabi_store store)
 {
   return store->limit - store->heap;
+}
+
+static inline wabi_size
+wabi_store_size(const wabi_store store)
+{
+  return store->size;
 }
 
 static inline void*

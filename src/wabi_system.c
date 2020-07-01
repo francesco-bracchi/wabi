@@ -60,6 +60,7 @@ wabi_system_consume_queue(void* args) {
       free(vm);
     }
   }
+  return NULL;
 }
 
 

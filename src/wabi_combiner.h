@@ -13,7 +13,7 @@
 #include "wabi_vm.h"
 #include "wabi_binary.h"
 #include "wabi_symbol.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
 #include "wabi_collect.h"

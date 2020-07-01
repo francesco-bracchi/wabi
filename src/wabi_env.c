@@ -135,7 +135,7 @@ wabi_env_extend_bt(const wabi_vm vm)
   }
   e0 = (wabi_env) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -154,7 +154,7 @@ wabi_env_extend_bt(const wabi_vm vm)
 void
 wabi_env_builtins(const wabi_vm vm, const wabi_env env)
 {
-  WABI_DEFN(vm, env, "env?", "env?", wabi_env_p_bt);
+  wabi_defn(vm, env, "env?", &wabi_env_p_bt);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "ext!", "ext!", wabi_env_extend_bt);
+  wabi_defn(vm, env, "ext!", &wabi_env_extend_bt);
 }

@@ -9,6 +9,7 @@
 #include "wabi_combiner.h"
 #include "wabi_builtin.h"
 #include "wabi_error.h"
+#include "wabi_list.h"
 
 
 wabi_fixnum
@@ -45,7 +46,7 @@ wabi_number_builtin_sum(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac += WABI_CAST_INT64(a);
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -72,7 +73,7 @@ wabi_number_builtin_mul(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac *= WABI_CAST_INT64(a);
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -104,7 +105,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
-  if(wabi_is_nil(ctrl)) {
+  if(wabi_is_empty(ctrl)) {
     // unary op
     *res = (- ac) & wabi_word_value_mask;
     WABI_SET_TAG(res, wabi_tag_fixnum);
@@ -118,7 +119,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac -= WABI_CAST_INT64(a);
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
   }
   *res = ac & wabi_word_value_mask;
@@ -157,7 +158,7 @@ wabi_number_builtin_div(const wabi_vm vm)
     }
     ac /= x;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -172,11 +173,12 @@ wabi_number_builtin_div(const wabi_vm vm)
 void
 wabi_number_builtins(const wabi_vm vm, const wabi_env env)
 {
-  WABI_DEFN(vm, env, "+", "+", wabi_number_builtin_sum);
+  wabi_defn(vm, env, "+", &wabi_number_builtin_sum);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "*", "*", wabi_number_builtin_mul);
+  wabi_defn(vm, env, "*", &wabi_number_builtin_mul);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "-", "-", wabi_number_builtin_diff);
+  wabi_defn(vm, env, "-", &wabi_number_builtin_diff);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "/", "/", wabi_number_builtin_div);
+  wabi_defn(vm, env, "/", &wabi_number_builtin_div);
+  if(vm->ert) return;
 }

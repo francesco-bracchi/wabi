@@ -15,7 +15,7 @@
 #include "wabi_vm.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_constant.h"
 #include "wabi_map.h"
 #include "wabi_store.h"
@@ -804,6 +804,10 @@ wabi_map_builtin_hmap(const wabi_vm vm)
     res = wabi_map_assoc(vm, res, k, v);
     if(vm->ert) return;
   }
+  if(!wabi_is_empty(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
   vm->ctrl = (wabi_val) res;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
@@ -837,7 +841,7 @@ wabi_map_builtin_assoc(const wabi_vm vm)
     res = wabi_map_assoc(vm, res, k, v);
     if(vm->ert) return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -868,7 +872,7 @@ wabi_map_builtin_dissoc(const wabi_vm vm)
     res = (wabi_val) wabi_map_dissoc(vm, (wabi_map) res, k);
     if(vm->ert) return;
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -887,7 +891,7 @@ wabi_map_builtin_map_p(const wabi_vm vm)
 static void
 wabi_map_builtin_len(const wabi_vm vm)
 {
-  wabi_val ctrl, k;
+  wabi_val ctrl;
   wabi_map m;
   wabi_fixnum len;
 
@@ -903,7 +907,7 @@ wabi_map_builtin_len(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

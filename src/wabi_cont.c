@@ -134,7 +134,7 @@ wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont0)
   }
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }

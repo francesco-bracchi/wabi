@@ -28,38 +28,50 @@ wabi_constant_nil_p(const wabi_vm vm) {
 }
 
 void
+wabi_constant_empty_p(const wabi_vm vm) {
+  wabi_builtin_predicate(vm, &wabi_is_empty);
+}
+
+void
 wabi_constant_builtins(const wabi_vm vm, wabi_env env)
 {
   wabi_val val;
 
-  val = (wabi_val) wabi_vm_alloc(vm, 5);
+  val = (wabi_val) wabi_vm_alloc(vm, 6);
   if(vm->ert) return;
 
   *val = wabi_val_nil;
-  WABI_DEF(vm, env, "nil", val);
+  wabi_def(vm, env, "nil", val);
   val++;
 
   *val = wabi_val_true;
-  WABI_DEF(vm, env, "true", val);
+  wabi_def(vm, env, "true", val);
   val++;
 
   *val = wabi_val_false;
-  WABI_DEF(vm, env, "false", val);
+  wabi_def(vm, env, "false", val);
   val++;
 
   *val = wabi_val_ignore;
-  WABI_DEF(vm, env, "ignore", val);
+  wabi_def(vm, env, "ignore", val);
+  val++;
+
+  *val = wabi_val_empty;
+  wabi_def(vm, env, "emp", val);
   val++;
 
   *val = wabi_val_zero;
-  WABI_DEF(vm, env, "zero", val);
+  wabi_def(vm, env, "zero", val);
 
-  WABI_DEFN(vm, env, "nil?", "nil?", wabi_constant_nil_p);
+  wabi_defn(vm, env, "nil?", wabi_constant_nil_p);
   if(vm->ert) return;
 
-  WABI_DEFN(vm, env, "ignore?", "ignore?", wabi_constant_ignore_p);
+  wabi_defn(vm, env, "ignore?", wabi_constant_ignore_p);
   if(vm->ert) return;
 
-  WABI_DEFN(vm, env, "bool?", "bool?", wabi_constant_boolean_p);
+  wabi_defn(vm, env, "bool?", wabi_constant_boolean_p);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "emp?", wabi_constant_empty_p);
   if(vm->ert) return;
 }

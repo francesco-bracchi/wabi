@@ -4,7 +4,7 @@
 #include "wabi_value.h"
 #include "wabi_symbol.h"
 #include "wabi_binary.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_map.h"
 #include "wabi_env.h"
 #include "wabi_cont.h"
@@ -16,8 +16,6 @@ wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
 {
   wabi_word* res;
-  wabi_size size;
-
 
   if(!src || (src >= vm->stor.new_space && src < vm->stor.limit))
     return src;

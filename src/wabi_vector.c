@@ -3,7 +3,7 @@
 #include "wabi_vector.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_error.h"
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
@@ -330,12 +330,12 @@ wabi_vector_deep_pop_left(const wabi_vm vm,
     if(vm->ert) return NULL;
     return (wabi_vector) wabi_vector_deep_new(vm, l, m0, r0);
   }
-  if(wabi_vector_is_empty((wabi_val) m)) {
+  if(wabi_vector_is_empty((wabi_val) m0)) {
     return (wabi_vector) r0;
   }
   l = (wabi_vector_digit) wabi_vector_left(vm, m0);
   if(vm->ert) return NULL;
-  m = wabi_vector_pop_left_generic(vm, m, wabi_vector_size((wabi_vector) l));
+  m = wabi_vector_pop_left_generic(vm, m0, wabi_vector_size((wabi_vector) l));
   if(vm->ert) return NULL;
 
   return (wabi_vector) wabi_vector_deep_new(vm, l, m, r0);
@@ -415,12 +415,12 @@ wabi_vector_deep_pop_right(const wabi_vm vm,
     if(vm->ert) return NULL;
     return (wabi_vector) wabi_vector_deep_new(vm, l0, m0, r);
   }
-  if(wabi_vector_is_empty((wabi_val) m)) {
+  if(wabi_vector_is_empty((wabi_val) m0)) {
     return (wabi_vector) l0;
   }
   r = (wabi_vector_digit) wabi_vector_right(vm, m0);
   if(vm->ert) return NULL;
-  m = wabi_vector_pop_right_generic(vm, m, wabi_vector_size((wabi_vector) r));
+  m = wabi_vector_pop_right_generic(vm, m0, wabi_vector_size((wabi_vector) r));
   if(vm->ert) return NULL;
 
   return (wabi_vector) wabi_vector_deep_new(vm, l0, m, r);
@@ -733,7 +733,7 @@ wabi_vector_vec_concat(const wabi_vm vm)
     r = wabi_vector_concat(vm, r, (wabi_vector) d);
     if(vm->ert) return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -759,7 +759,7 @@ wabi_vector_vec(const wabi_vm vm)
     res = wabi_vector_push_right(vm, res, a);
     if(vm->ert) return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -781,7 +781,7 @@ wabi_vector_vec_len(const wabi_vm vm)
   }
   d = (wabi_vector) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -815,7 +815,7 @@ wabi_vector_vec_p(const wabi_vm vm)
       return;
     }
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -850,7 +850,7 @@ wabi_vector_vec_push_right(const wabi_vm vm)
     res = wabi_vector_push_right(vm, res, a);
     if(vm->ert) return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -883,7 +883,7 @@ wabi_vector_vec_push_left(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -909,7 +909,7 @@ wabi_vector_vec_left(const wabi_vm vm)
   d = (wabi_vector) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_nil(ctrl)){
+  if(! wabi_is_empty(ctrl)){
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -937,7 +937,7 @@ wabi_vector_vec_right(const wabi_vm vm)
   d = (wabi_vector) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -967,7 +967,7 @@ wabi_vector_vec_pop_left(const wabi_vm vm)
   d = (wabi_vector) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -997,7 +997,7 @@ wabi_vector_vec_pop_right(const wabi_vm vm)
   d = (wabi_vector) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -1043,7 +1043,7 @@ wabi_vector_vec_ref(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -1069,7 +1069,7 @@ static void
 wabi_vector_vec_set(const wabi_vm vm)
 {
   wabi_val v, ctrl;
-  wabi_vector d, res;
+  wabi_vector d;
   wabi_fixnum n;
   wabi_size s, x;
 
@@ -1112,7 +1112,7 @@ wabi_vector_vec_set(const wabi_vm vm)
     d = wabi_vector_set(vm, d, x, v);
     if(vm->ert) return;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -1191,7 +1191,7 @@ void
 wabi_vector_iter_init(const wabi_vector_iter iter,
                       const wabi_vector v)
 {
-  wabi_vector_iter_frame f, f0;
+  wabi_vector_iter_frame f0;
 
   f0= iter->stack;
   iter->top = f0;
@@ -1274,7 +1274,7 @@ wabi_vector_hash(const wabi_hash_state state,
 void
 wabi_vector_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_defn(vm, env,  "vec", &wabi_vector_vec);
+  wabi_defn(vm, env, "vec", &wabi_vector_vec);
   if(vm->ert) return;
   wabi_defn(vm, env, "vec-len", &wabi_vector_vec_len);
   if(vm->ert) return;

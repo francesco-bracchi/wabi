@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "wabi_value.h"
 #include "wabi_binary.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_map.h"
 #include "wabi_number.h"
 #include "wabi_symbol.h"
@@ -161,7 +161,7 @@ wabi_cmp_eq(const wabi_vm vm)
       return;
     }
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -199,7 +199,7 @@ wabi_cmp_gt(const wabi_vm vm)
     }
     a = b;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -237,7 +237,7 @@ wabi_cmp_gt_eq(const wabi_vm vm)
     }
     a = b;
   }
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -274,7 +274,7 @@ wabi_cmp_lt(const wabi_vm vm)
     }
     a = b;
   }
-  if (!wabi_is_nil(ctrl)) {
+  if (!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -311,7 +311,7 @@ wabi_cmp_lt_eq(const wabi_vm vm)
     }
     a = b;
   }
-  if (!wabi_is_nil(ctrl)) {
+  if (!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

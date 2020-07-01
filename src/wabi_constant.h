@@ -18,14 +18,24 @@ wabi_is_nil(const wabi_val v) {
   return *v == wabi_val_nil;
 }
 
-static int
+static inline int
 wabi_is_ignore(const wabi_val v) {
   return *v == wabi_val_ignore;
 }
 
-static int
+static inline int
 wabi_is_boolean(const wabi_val v) {
   return *v == wabi_val_true || *v == wabi_val_false;
+}
+
+static inline int
+wabi_is_empty(const wabi_val v) {
+  return *v == wabi_val_empty;
+}
+
+static inline int
+wabi_is_falsey(const wabi_val v) {
+  return *v == wabi_val_false || *v == wabi_val_nil;
 }
 
 #endif

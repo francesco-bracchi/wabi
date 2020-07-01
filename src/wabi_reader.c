@@ -13,7 +13,7 @@
 #include "wabi_vm.h"
 #include "wabi_number.h"
 #include "wabi_binary.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_symbol.h"
 #include "wabi_constant.h"
 #include "wabi_reader.h"
@@ -79,12 +79,16 @@ wabi_reader_read_list(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
+  if(**c == ')') {
+    (*c)++;
+    return vm->emp;
+  }
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
   if(**c == ')') {
     (*c)++;
-    d = vm->nil;
+    d = vm->emp;
   }
   else if(**c == '.') {
     (*c)++;
@@ -114,7 +118,7 @@ wabi_reader_read_map(const wabi_vm vm, char** c)
   wabi_reader_ws(c);
   if(**c == '}') {
     (*c)++;
-    return vm->nil;
+    return vm->emp;
   }
   else {
     a = wabi_reader_read_val(vm, c);
@@ -134,7 +138,7 @@ wabi_reader_read_vector(const wabi_vm vm, char** c)
   wabi_reader_ws(c);
   if(**c == ']') {
     (*c)++;
-    return vm->nil;
+    return vm->emp;
   }
   else {
     a = wabi_reader_read_val(vm, c);
@@ -155,7 +159,7 @@ wabi_reader_read_quote(const wabi_vm vm, char** c)
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
-  x = (wabi_val) wabi_cons(vm, a, vm->nil);
+  x = (wabi_val) wabi_cons(vm, a, vm->emp);
   if(vm->ert) return NULL;
 
   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "q");
@@ -175,7 +179,7 @@ wabi_reader_read_afn(wabi_vm vm, char** c)
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
-  x = (wabi_val) wabi_cons(vm, a, vm->nil);
+  x = (wabi_val) wabi_cons(vm, a, vm->emp);
   if(vm->ert) return NULL;
   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "afn");
   if(vm->ert) return NULL;
@@ -327,13 +331,13 @@ wabi_reader_reverse(const wabi_vm vm, wabi_val es)
 {
   wabi_val xs;
 
-  xs = vm->nil;
+  xs = vm->emp;
   while(wabi_is_pair(es)) {
     xs = (wabi_val) wabi_cons(vm, wabi_car((wabi_pair) es), xs);
     if(vm->ert) return NULL;
     es = wabi_cdr((wabi_pair) es);
   }
-  if(! wabi_is_nil(es)) {
+  if(! wabi_is_empty(es)) {
     vm->ert = wabi_error_read;
   }
   return xs;
@@ -343,7 +347,7 @@ wabi_val
 wabi_reader_read_all(const wabi_vm vm, char* c)
 {
   wabi_val ex, exs;
-  exs = vm->nil;
+  exs = vm->emp;
 
   for(;;) {
     ex = wabi_reader_read_val(vm, &c);

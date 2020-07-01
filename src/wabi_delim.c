@@ -57,7 +57,6 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
   wabi_cont_prompt prompt;
   wabi_cont cont;
   wabi_combiner kval;
-  wabi_error_type err;
 
   ctrl = vm->ctrl;
   if (!wabi_is_pair(ctrl)) {
@@ -139,8 +138,7 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
 }
 
 void wabi_delim_builtins(const wabi_vm vm, const wabi_env env) {
-  WABI_DEFX(vm, env, "prompt", "prompt", wabi_cont_prompt_bt);
-  if (vm->ert)
-    return;
-  WABI_DEFX(vm, env, "control", "control", wabi_cont_control_bt);
+  wabi_defx(vm, env, "prompt", &wabi_cont_prompt_bt);
+  if (vm->ert)return;
+  wabi_defx(vm, env, "control", &wabi_cont_control_bt);
 }

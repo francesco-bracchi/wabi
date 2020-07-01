@@ -5,54 +5,13 @@
 #include "wabi_combiner.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_binary.h"
 #include "wabi_error.h"
 #include "wabi_symbol.h"
 
 
 typedef int (*wabi_builtin_test_fn)(wabi_val);
-
-
-#define SYM(vm, str)                                                    \
-  wabi_symbol_new(vm,                                                   \
-                  (wabi_val) wabi_binary_leaf_new_from_cstring(vm, str))
-
-
-#define BTOPER(vm, str, fun)                                            \
-  wabi_operator_builtin_new(vm,                                         \
-                            (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, str), \
-                            fun)                                        \
-
-
-#define BTAPP(vm, str, fun)                                             \
-  wabi_application_builtin_new(vm,                                      \
-                               (wabi_binary) wabi_binary_leaf_new_from_cstring(vm, str), \
-                               fun)                                     \
-
-
-#define WABI_DEFX(vm, env, name, btname, fun)                           \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               (wabi_val) SYM(vm, name),                                \
-               (wabi_val) BTOPER(vm, btname, fun)                       \
-               )
-
-
-#define WABI_DEFN(vm, env, name, btname, fun)                           \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               (wabi_val) SYM(vm, name),                                \
-               (wabi_val) BTAPP(vm, btname, fun)                        \
-               )
-
-
-#define WABI_DEF(vm, env, name, val)                                    \
-  wabi_env_set(vm,                                                      \
-               env,                                                     \
-               (wabi_val) SYM(vm, name),                                \
-               (wabi_val) val                                           \
-               )
 
 
 #define WABI_BIND_START(vm)                     \
@@ -72,7 +31,7 @@ typedef int (*wabi_builtin_test_fn)(wabi_val);
   }
 
 #define WABI_BIND_END(vm)                          \
-  if (!wabi_is_nil((ctrl))) {                      \
+  if (!wabi_is_empty((ctrl))) {                    \
     (vm)->ert = wabi_error_bindings;               \
     return;                                        \
   }

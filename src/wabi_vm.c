@@ -46,7 +46,7 @@
 #include "wabi_system.h"
 #include "wabi_collect.h"
 #include "wabi_cont.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
 #include "wabi_binary.h"
@@ -72,7 +72,7 @@ wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
 {
   wabi_binary_leaf bin;
   wabi_val sym;
-  int j = 0;
+
   bin = wabi_binary_leaf_new_from_cstring(vm, cstr);
   if(vm->ert) return NULL;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
@@ -96,7 +96,7 @@ wabi_vm_others(wabi_vm vm, wabi_val res)
 void
 wabi_vm_init(const wabi_vm vm, const wabi_size size)
 {
-  wabi_val stbl, nil, oth;
+  wabi_val stbl, nil, emp, oth;
 
   if(wabi_store_init(&(vm->stor), size)) {
     vm->ert = wabi_error_nomem;
@@ -110,6 +110,9 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
   nil = wabi_vm_const(vm, wabi_val_nil);
   if(vm->ert) return;
 
+  emp = wabi_vm_const(vm, wabi_val_empty);
+  if(vm->ert) return;
+
   vm->stbl  = stbl;
 
   oth = wabi_vm_others(vm, nil);
@@ -120,6 +123,7 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
   vm->cont = (wabi_val) wabi_cont_done;
   vm->prmt = (wabi_val) wabi_cont_done;
   vm->nil = nil;
+  vm->emp = emp;
   vm->oth = oth;
   vm->fuel = 0;
   vm->erv = nil;
@@ -133,7 +137,7 @@ wabi_vm_collect(const wabi_vm vm)
 {
   vm->ert = wabi_error_none;
   wabi_store_prepare(&vm->stor);
-
+  // todo: allocate before collecting
   vm->stbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
   vm->stor.scan+=WABI_MAP_SIZE;
@@ -148,6 +152,8 @@ wabi_vm_collect(const wabi_vm vm)
   if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
   if(vm->ert) return;
   if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
+  if(vm->ert) return;
+  if(vm->emp) vm->emp = wabi_copy_val(vm, vm->emp);
   if(vm->ert) return;
   if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);
   if(vm->ert) return;
@@ -212,8 +218,8 @@ wabi_vm_bind(const wabi_vm vm,
         params = wabi_cdr((wabi_pair) params);
         continue;
       }
-      if(wabi_is_nil(args)) {
-        wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
+      if(wabi_is_empty(args)) {
+        wabi_vm_bind(vm, env, vm->emp, wabi_car((wabi_pair) params));
         if(vm->ert) return;
         params = wabi_cdr((wabi_pair) params);
         continue;
@@ -326,11 +332,11 @@ wabi_vm_reduce(const wabi_vm vm)
       /* ctrl: nil */
       /* envr: nil */
       /* cont: ((call nil c) . s) */
-      if(wabi_is_nil((wabi_val) (((wabi_cont_apply) cont)->args))) {
+      if(wabi_is_empty((wabi_val) (((wabi_cont_apply) cont)->args))) {
         cont0 = wabi_cont_next(cont);
         cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
         if(vm->ert) return;
-        vm->ctrl = vm->nil;
+        vm->ctrl = vm->emp;
         vm->env = vm->nil;
         vm->cont = (wabi_val) cont0;
         return;
@@ -346,7 +352,7 @@ wabi_vm_reduce(const wabi_vm vm)
       cont0 = wabi_cont_next(cont);
       cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
       if(vm->ert) return;
-      cont0 = wabi_cont_push_args(vm, (wabi_env) ((wabi_cont_apply) cont)->env, wabi_cdr(pair), vm->nil, cont0);
+      cont0 = wabi_cont_push_args(vm, (wabi_env) ((wabi_cont_apply) cont)->env, wabi_cdr(pair), vm->emp, cont0);
       if(vm->ert) return;
       cont0 = wabi_cont_push_eval(vm, cont0);
       if(vm->ert) return;
@@ -390,7 +396,7 @@ wabi_vm_reduce(const wabi_vm vm)
     /* ctrl: (reverse (cons x xs)) */
     /* envr: nil */
     /* cont: s */
-    ctrl0 = (wabi_val) wabi_cons(vm, ctrl, vm->nil);
+    ctrl0 = (wabi_val) wabi_cons(vm, ctrl, vm->emp);
     if(vm->ert) return;
     ctrl0 = wabi_vm_reverse(vm,(wabi_val) ((wabi_cont_args) cont)->done, ctrl0);
     if(vm->ert) return;
@@ -501,7 +507,7 @@ wabi_vm_reduce(const wabi_vm vm)
     /* ctrl: x0 */
     /* envr: nil */
     /* cont: s */
-    if(*((wabi_val) ((wabi_cont_prog) cont)->expressions) == wabi_val_nil) {
+    if(wabi_is_empty((wabi_val)((wabi_cont_prog) cont)->expressions)) {
       vm->cont = (wabi_val) wabi_cont_next(cont);
       vm->env = vm->nil;
       return;

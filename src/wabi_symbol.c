@@ -24,7 +24,6 @@ wabi_symbol_new(const wabi_vm vm,
                 const wabi_val binref)
 {
   wabi_symbol res;
-  wabi_val new_table;
   res = (wabi_symbol) wabi_map_get((wabi_map) vm->stbl, binref);
   if(res) return res;
 
@@ -41,7 +40,7 @@ wabi_symbol_new(const wabi_vm vm,
 void
 wabi_symbol_collect_val(const wabi_vm vm, const wabi_val sym)
 {
-  wabi_val binref, sym0;
+  wabi_val binref;
   binref = wabi_symbol_to_binary(sym);
   binref = wabi_copy_val(vm, binref);
   *sym = (wabi_word) binref;
@@ -62,19 +61,50 @@ wabi_symbol_sym_p(const wabi_vm vm)
 }
 
 
-void
+static void
 wabi_symbol_symbol_table(const wabi_vm vm)
 {
   vm->ctrl = vm->stbl;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
+static void
+wabi_symbol_sym(const wabi_vm vm)
+{
+  wabi_val ctrl, bin, res;
+
+  ctrl = vm->ctrl;
+
+  if(wabi_is_empty(ctrl)) {
+    vm->ctrl = vm->nil;
+    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    return;
+  }
+  bin = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(wabi_is_nil(bin)) {
+    vm->ctrl = vm->nil;
+    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    return;
+  }
+  if (!wabi_is_binary(bin)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  res = wabi_symbol_new(vm, bin);
+  if (vm->ert)
+    return;
+  vm->ctrl = res;
+  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+}
 
 void
 wabi_symbol_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_error_type res;
-  WABI_DEFN(vm, env, "sym?", "sym?", wabi_symbol_sym_p);
+  wabi_defn(vm, env, "sym?", &wabi_symbol_sym_p);
   if(vm->ert) return;
-  WABI_DEFN(vm, env, "symbol-table", "symbol-table", wabi_symbol_symbol_table);
+  wabi_defn(vm, env, "symbol-table", &wabi_symbol_symbol_table);
+  if(vm->ert) return;
+  wabi_defn(vm, env, "sym", &wabi_symbol_sym);
 }

@@ -4,12 +4,11 @@
 
 #include "wabi_value.h"
 #include "wabi_pr.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_binary.h"
 #include "wabi_map.h"
 #include "wabi_number.h"
 #include "wabi_symbol.h"
-#include "wabi_pair.h"
 #include "wabi_combiner.h"
 #include "wabi_place.h"
 #include "wabi_vector.h"
@@ -57,14 +56,14 @@ void wabi_pr_pair(wabi_pair val) {
     car = wabi_car(val);
     cdr = wabi_cdr(val);
 
-    if(WABI_IS(wabi_tag_pair, cdr)) {
+    if(wabi_is_pair(cdr)) {
       wabi_pr(car);
       putchar(' ');
       val = (wabi_pair) cdr;
       continue;
     }
 
-    if(*cdr == wabi_val_nil) {
+    if(wabi_is_empty(cdr)) {
       wabi_pr(car);
       return;
     }
@@ -298,11 +297,10 @@ wabi_pr_vector(wabi_vector d, wabi_size lvl);
 static inline void
 wabi_pr_vector_digit(wabi_vector_digit d, wabi_size lvl)
 {
-  wabi_size n, s, j;
+  wabi_size n, j;
   wabi_val t;
 
   n = wabi_vector_digit_node_size(d);
-  s = wabi_vector_size((wabi_vector) d);
   t = wabi_vector_digit_table(d);
 
   if(lvl == 0) {
@@ -356,8 +354,11 @@ void
 wabi_pr(wabi_val val) {
   switch(WABI_TAG(val)) {
   case wabi_tag_constant:
-    if(*val == wabi_val_nil) {
+    if(*val == wabi_val_empty) {
       printf("()");
+    }
+    if(*val == wabi_val_nil) {
+      printf("nil");
     }
     if(*val == wabi_val_false) {
       printf("false");

@@ -27,6 +27,9 @@ typedef struct wabi_vm_struct {
   wabi_val        stbl;
 
   /** Since is used everywere it's worth to have here **/
+  wabi_val        emp;
+
+  /** Since is used everywere it's worth to have here **/
   wabi_val        nil;
 
   /** Values (i.e. symbols) we want in any case **/
@@ -48,22 +51,22 @@ typedef struct wabi_vm_struct {
 typedef wabi_vm_t* wabi_vm;
 
 void
-wabi_vm_run(wabi_vm vm, wabi_word fuel);
+wabi_vm_run(const wabi_vm vm, const wabi_word fuel);
 
 void
 wabi_vm_init(const wabi_vm vm, const wabi_size size);
 
 void
-wabi_vm_destroy(wabi_vm vm);
+wabi_vm_destroy(const wabi_vm vm);
 
 int
-wabi_vm_prepare(wabi_vm vm, wabi_size size);
+wabi_vm_prepare(const wabi_vm vm, const wabi_size size);
 
 void
 wabi_vm_collect(const wabi_vm vm);
 
 static inline wabi_word*
-wabi_vm_alloc(wabi_vm vm, wabi_size size)
+wabi_vm_alloc(const wabi_vm vm, const wabi_size size)
 {
   wabi_word* res;
 

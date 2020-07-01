@@ -12,8 +12,8 @@ libwabi_la_SOURCES = \
 	wabi_number.c \
 	wabi_symbol.h \
 	wabi_symbol.c \
-	wabi_pair.h \
-	wabi_pair.c \
+	wabi_list.h \
+	wabi_list.c \
 	wabi_hash.h \
 	wabi_hash.c \
 	wabi_cmp.h \

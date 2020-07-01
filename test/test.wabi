@@ -404,9 +404,9 @@
   (plc-swap p (always v)))
 
 
-(defn vec-update
-    (d j f . as)
-  (vec-set d j (apply f (cons (vec-ref d j) as))))
+;; (defn vec-update
+;;     (d j f . as)
+;;   (vec-set d j (apply f (cons (vec-ref d j) as))))
 
 
 ;; generics

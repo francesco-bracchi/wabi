@@ -5,7 +5,7 @@
 #include "wabi_place.h"
 #include "wabi_error.h"
 #include "wabi_env.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_constant.h"
 #include "wabi_error.h"
 #include "wabi_cont.h"
@@ -39,15 +39,15 @@ wabi_place_plc(const wabi_vm vm)
 {
   wabi_val ctrl, init;
   wabi_place res;
+
   ctrl = vm->ctrl;
-  if(wabi_is_nil(ctrl)) {
-    init = vm->nil;
-  }
+  init = vm->nil;
+
   if(wabi_is_pair(ctrl)) {
     init = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -79,7 +79,7 @@ wabi_place_plc_val(const wabi_vm vm)
   plc = (wabi_place) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -95,7 +95,7 @@ wabi_place_plc_val(const wabi_vm vm)
 static void
 wabi_place_plc_cas(const wabi_vm vm)
 {
-  wabi_val ctrl, val, res;
+  wabi_val ctrl, res;
   wabi_word old, new;
   wabi_place plc;
 
@@ -124,7 +124,7 @@ wabi_place_plc_cas(const wabi_vm vm)
   new = (wabi_word) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!wabi_is_nil(ctrl)){
+  if(!wabi_is_empty(ctrl)){
     vm->ert = wabi_error_bindings;
     return;
   }

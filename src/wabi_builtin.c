@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "wabi_value.h"
-#include "wabi_pair.h"
+#include "wabi_list.h"
 #include "wabi_env.h"
 #include "wabi_combiner.h"
 #include "wabi_cont.h"
@@ -85,8 +85,9 @@ wabi_def(const wabi_vm vm,
 
 
 // todo: move in wabi_builtin.h
-void wabi_builtin_predicate
-(const wabi_vm vm, const wabi_builtin_test_fn test_fn)
+void
+wabi_builtin_predicate(const wabi_vm vm,
+                       const wabi_builtin_test_fn test_fn)
 {
   wabi_val ctrl, res, val;
   res = wabi_vm_alloc(vm, 1);
@@ -103,7 +104,7 @@ void wabi_builtin_predicate
       return;
     }
   }
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -112,10 +113,10 @@ void wabi_builtin_predicate
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-static void wabi_builtin_def
-(const wabi_vm vm)
+static void
+wabi_builtin_def(const wabi_vm vm)
 {
-  wabi_val ctrl, lft, rgt, rst, def, es;
+  wabi_val ctrl, lft, rgt, def, es;
   wabi_env env;
   wabi_cont cont;
 
@@ -125,7 +126,7 @@ static void wabi_builtin_def
   cont = wabi_cont_next(cont);
 
   // (def)
-  if(wabi_is_nil(ctrl)) {
+  if(wabi_is_empty(ctrl)) {
     vm->cont = (wabi_val) cont;
     return;
   }
@@ -138,7 +139,7 @@ static void wabi_builtin_def
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (def lft)
-  if (wabi_is_nil(ctrl)) {
+  if (wabi_is_empty(ctrl)) {
     cont = wabi_cont_push_def(vm, env, lft, cont);
     if (vm->ert) return;
     vm->ctrl = vm->nil;
@@ -156,11 +157,11 @@ static void wabi_builtin_def
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (def lft rgt . ctrl)
-  if(!wabi_is_nil(ctrl)) {
+  if(!wabi_is_empty(ctrl)) {
     def = (wabi_val) ((wabi_cont_call) vm->cont)->combiner;
     es = (wabi_val) wabi_cons(vm, def, ctrl);
     if(vm->ert) return;
-    es = (wabi_val) wabi_cons(vm, es, vm->nil);
+    es = (wabi_val) wabi_cons(vm, es, vm->emp);
     if(vm->ert) return;
     cont = wabi_cont_push_prog(vm, env, es, cont);
     if(vm->ert) return;
@@ -188,7 +189,8 @@ static void wabi_builtin_if
   cont = wabi_cont_next(cont);
 
   // (if)
-  if(wabi_is_nil(ctrl)) {
+  if(wabi_is_empty(ctrl)) {
+    vm->ctrl = vm->nil;
     vm->cont = (wabi_val) cont;
     return;
   }
@@ -201,7 +203,7 @@ static void wabi_builtin_if
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (if tst)
-  if (wabi_is_nil(ctrl)) {
+  if (wabi_is_empty(ctrl)) {
     cont = wabi_cont_push_eval(vm, cont);
     if (vm->ert) return;
     vm->ctrl = tst;
@@ -236,7 +238,7 @@ wabi_builtin_load_cstring(const wabi_vm vm, const wabi_env env, char* str)
 {
   wabi_pair exs;
   wabi_cont cont;
-  int x = 0;
+
   exs = (wabi_pair) wabi_reader_read_all(vm, str);
   if(vm->ert) return;
   if(! wabi_is_pair((wabi_val) exs)) {
@@ -257,180 +259,6 @@ wabi_builtin_load_cstring(const wabi_vm vm, const wabi_env env, char* str)
 
 
 static void
-wabi_builtin_eq(const wabi_vm vm)
-{
-  wabi_val ctrl, res, v0, v;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  ctrl = vm->ctrl;
-  if(! wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  v0 = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  while(wabi_is_pair(ctrl)) {
-    v0 = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(v, v0)) {
-      *res = wabi_val_false;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-    }
-  }
-  if(!wabi_is_nil(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
-wabi_builtin_gt(const wabi_vm vm)
-{
-  wabi_val ctrl, res, v0, v;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  ctrl = vm->ctrl;
-  if(! wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  v0 = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  while(wabi_is_pair(ctrl)) {
-    v0 = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(v, v0) < 0) {
-      *res = wabi_val_false;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-    }
-    v = v0;
-  }
-  if(!wabi_is_nil(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
-wabi_builtin_lt(const wabi_vm vm)
-{
-  wabi_val ctrl, res, v0, v;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  ctrl = vm->ctrl;
-  if(! wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  v0 = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  while(wabi_is_pair(ctrl)) {
-    v0 = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(v, v0) > 0) {
-      *res = wabi_val_false;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-    }
-    v = v0;
-  }
-  if(!wabi_is_nil(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
-wabi_builtin_gt_eq(const wabi_vm vm)
-{
-  wabi_val ctrl, res, v0, v;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  ctrl = vm->ctrl;
-  if(! wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  v0 = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  while(wabi_is_pair(ctrl)) {
-    v0 = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(v, v0) <= 0) {
-      *res = wabi_val_false;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-    }
-    v = v0;
-  }
-  if(!wabi_is_nil(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
-wabi_builtin_lt_eq(const wabi_vm vm)
-{
-  wabi_val ctrl, res, v0, v;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  ctrl = vm->ctrl;
-  if(! wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  v0 = wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  while(wabi_is_pair(ctrl)) {
-    v0 = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(wabi_cmp(v, v0) >= 0) {
-      *res = wabi_val_false;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-      vm->ctrl = res;
-    }
-    v = v0;
-  }
-  if(!wabi_is_nil(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  *res = wabi_val_true;
-  vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
 wabi_builtin_pr(const wabi_vm vm)
 {
   wabi_val ctrl, v;
@@ -442,7 +270,7 @@ wabi_builtin_pr(const wabi_vm vm)
     wabi_pr(v);
     if(WABI_IS(wabi_tag_pair, ctrl)) printf(" ");
   }
-  if (!wabi_is_nil(ctrl)) {
+  if (!wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -479,7 +307,7 @@ wabi_builtin_eval(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   cont = wabi_cont_next(cont);
 
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if(vm->ert) return;
   }
@@ -503,7 +331,7 @@ wabi_builtin_do(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   cont = wabi_cont_next(cont);
 
-  if(wabi_is_nil(ctrl)) {
+  if(wabi_is_empty(ctrl)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val) cont;
     return;
@@ -519,7 +347,7 @@ wabi_builtin_do(const wabi_vm vm)
     env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if(vm->ert) return;
-  } else if (! wabi_is_nil(ctrl)) {
+  } else if (! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -536,7 +364,7 @@ wabi_builtin_clock(wabi_vm vm)
   wabi_val ctrl, res;
 
   ctrl = vm->ctrl;
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -563,7 +391,7 @@ wabi_builtin_not(const wabi_vm vm)
   r = wabi_vm_alloc(vm, 1);
   if(vm->ert) return;
 
-  *r = (*v == wabi_val_false || *v == wabi_val_nil) ? wabi_val_true : wabi_val_false;
+  *r = wabi_is_falsey(v) ? wabi_val_true : wabi_val_false;
   vm->ctrl = r;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
@@ -583,7 +411,7 @@ wabi_builtin_hash(const wabi_vm vm)
   v = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -599,13 +427,43 @@ wabi_builtin_hash(const wabi_vm vm)
 }
 
 
+
+static void
+wabi_builtin_collect(const wabi_vm vm)
+{
+  wabi_size _free, total;
+  double perc;
+  time_t t, t0;
+
+  if(!wabi_is_empty(vm->ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  _free = wabi_store_free_words(&vm->stor);
+  total = wabi_store_size(&vm->stor);
+  perc = 100.0 * _free / total;
+  printf("BEFORE: %2.2f%% of free space\n", perc);
+  t0 = clock();
+  wabi_vm_collect(vm);
+  t = clock();
+  _free = wabi_store_free_words(&vm->stor);
+  total = wabi_store_size(&vm->stor);
+  perc = 100.0 * _free / total;
+  printf("AFTER:  %2.2f%% of free space in %f ms \n", perc, 1000.0 * (t - t0) / CLOCKS_PER_SEC);
+  if(vm->ert) return;
+
+  vm->ctrl = vm->nil;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+
 void
 wabi_builtin_language0(wabi_vm vm)
 {
   wabi_val ctrl, r;
 
   ctrl = vm->ctrl;
-  if(! wabi_is_nil(ctrl)) {
+  if(! wabi_is_empty(ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -613,21 +471,6 @@ wabi_builtin_language0(wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = r;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
-}
-
-
-static void
-wabi_builtin_collect(const wabi_vm vm)
-{
-  if(!wabi_is_nil(vm->ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  wabi_vm_collect(vm);
-  if(vm->ert) return;
-
-  vm->ctrl = vm->nil;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
@@ -672,14 +515,13 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defn(vm, env, "collect", wabi_builtin_collect);
   if(vm->ert) return NULL;
 
-
   wabi_constant_builtins(vm, env);
   if(vm->ert) return NULL;
 
   wabi_combiner_builtins(vm, env);
   if(vm->ert) return NULL;
 
-  wabi_pair_builtins(vm, env);
+  wabi_list_builtins(vm, env);
   if(vm->ert) return NULL;
 
   wabi_number_builtins(vm, env);

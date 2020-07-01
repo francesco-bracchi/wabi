@@ -61,11 +61,10 @@ wabi_queue_destroy(wabi_queue queue)
 static inline void
 wabi_queue_enq(wabi_queue queue, wabi_vm vm)
 {
-  wabi_queue_elem elem, tail;
+  wabi_queue_elem tail;
   pthread_mutex_lock(&queue->lock);
   if(queue->size) {
     queue->size++;
-    elem = queue->tail;
     tail = (wabi_queue_elem) malloc(sizeof(wabi_queue_elem_t));
     tail->vm = vm;
     tail->next = NULL;
