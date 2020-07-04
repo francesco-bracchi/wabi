@@ -57,13 +57,26 @@ wabi_env_copy_val(const wabi_vm vm, const wabi_env env)
   vm->stor.heap += WABI_ENV_SIZE + size;
 }
 
-
 void
 wabi_env_collect_val(const wabi_vm vm, const wabi_env env);
 
 
-void
-wabi_env_hash(const wabi_hash_state state, const wabi_env env);
+
+static inline void
+wabi_env_hash(wabi_hash_state state, wabi_env env)
+{
+  wabi_hash_step(state, "E", 1);
+  wabi_hash_step(state, (char*) env->uid, WABI_WORD_SIZE);
+}
+
+
+static inline int
+wabi_env_cmp(wabi_env left, wabi_env right)
+{
+  if(left->uid == right->uid) return 0;
+  if(left->uid > right->uid) return 1;
+  return -1;
+}
 
 
 int

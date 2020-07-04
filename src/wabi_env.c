@@ -88,31 +88,6 @@ wabi_env_collect_val(wabi_vm vm, wabi_env env)
 }
 
 /**
- * Hashing
- * since an environment can be extended, structural hashing is not possible.
- * we use an uid instead.
- */
-
-void
-wabi_env_hash(wabi_hash_state state, wabi_env env)
-{
-  wabi_hash_step(state, "E", 1);
-  wabi_hash_step(state, (char*) &(env->uid), WABI_WORD_SIZE);
-}
-
-/**
- * Compare
- */
-
-int
-wabi_env_cmp(wabi_env left, wabi_env right)
-{
-  if(left->uid == right->uid) return 0;
-  if(left->uid > right->uid) return 1;
-  return -1;
-}
-
-/**
  * Builtins
  */
 static void

@@ -254,10 +254,10 @@ wabi_combiner_hash(const wabi_hash_state state, const wabi_combiner c)
     wabi_hash_step(state, "C", 1);
   case wabi_tag_oper:
     wabi_hash_step(state, "D", 1);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->static_env);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->caller_env_name);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->parameters);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_derived) c)->body);
+    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_static_env((wabi_combiner_derived) c));
+    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_caller_env_name((wabi_combiner_derived) c));
+    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_parameters((wabi_combiner_derived) c));
+    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_body((wabi_combiner_derived) c));
     return;
   case wabi_tag_ct_app:
     wabi_hash_step(state, "C", 1);

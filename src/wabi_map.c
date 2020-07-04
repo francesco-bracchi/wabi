@@ -238,7 +238,6 @@ wabi_map_assoc_rec(const wabi_vm vm,
 {
   wabi_word tag;
   tag = WABI_TAG((wabi_val) map);
-
   if(tag == wabi_tag_map_hash) {
     return (wabi_map) wabi_map_hash_assoc_rec(vm, (wabi_map_hash) map, entry, hash, hash_offset);
   }
@@ -916,7 +915,43 @@ wabi_map_builtin_len(const wabi_vm vm)
 
   vm->ctrl = len;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
 
+static void
+wabi_map_builtin_get
+(const wabi_vm vm)
+{
+  wabi_val ctrl, m, k;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair((ctrl))) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  m = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  while(wabi_is_pair(ctrl)) {
+    if(wabi_is_nil(m)) {
+      vm->ctrl = vm->nil;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return;
+    }
+    if(! wabi_is_map((wabi_val) m)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
+    k = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    m = wabi_map_get((wabi_map) m, k);
+    if(!m) m = vm->nil;
+  }
+  if (!wabi_is_empty(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  vm->ctrl = m;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 
@@ -1008,6 +1043,9 @@ wabi_map_builtins(const wabi_vm vm, const wabi_env env)
   if(vm->ert) return;
 
   wabi_defn(vm, env, "map?", &wabi_map_builtin_map_p);
+  if(vm->ert) return;
+
+  wabi_defn(vm, env, "map-get", &wabi_map_builtin_get);
   if(vm->ert) return;
 
   /* wabi_defn(vm, env, "map-merge?", wabi_map_builtin_map_merge); */

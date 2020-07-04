@@ -22,15 +22,16 @@ wabi_constant_boolean_p(const wabi_vm vm)
   wabi_builtin_predicate(vm, &wabi_is_boolean);
 }
 
-void
+static void
 wabi_constant_nil_p(const wabi_vm vm) {
   wabi_builtin_predicate(vm, &wabi_is_nil);
 }
 
-void
+static void
 wabi_constant_empty_p(const wabi_vm vm) {
   wabi_builtin_predicate(vm, &wabi_is_empty);
 }
+
 
 void
 wabi_constant_builtins(const wabi_vm vm, wabi_env env)
