@@ -36,7 +36,6 @@ static void wabi_cont_prompt_bt(const wabi_vm vm) {
       wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt)vm->prmt, cont);
   if (vm->ert)
     return;
-
   if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if (vm->ert)

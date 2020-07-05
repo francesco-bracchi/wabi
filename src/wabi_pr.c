@@ -211,7 +211,7 @@ wabi_pr_cont0(wabi_cont val)
       break;
     case wabi_tag_cont_prompt:
       printf("(PROMPT ");
-      wabi_pr((wabi_val) ((wabi_cont_prompt) val)->tag);
+      wabi_pr((wabi_val) wabi_cont_prompt_tag((wabi_cont_prompt) val));
       printf(")");
       break;
     case wabi_tag_cont_apply:

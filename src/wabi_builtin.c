@@ -439,17 +439,17 @@ wabi_builtin_collect(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  _free = wabi_store_free_words(&vm->stor);
-  total = wabi_store_size(&vm->stor);
-  perc = 100.0 * _free / total;
-  printf("BEFORE: %2.2f%% of free space\n", perc);
-  t0 = clock();
+  /* _free = wabi_store_free_words(&vm->stor); */
+  /* total = wabi_store_size(&vm->stor); */
+  /* perc = 100.0 * _free / total; */
+  /* printf("BEFORE: %2.2f%% of free space\n", perc); */
+  /* t0 = clock(); */
   wabi_vm_collect(vm);
-  t = clock();
-  _free = wabi_store_free_words(&vm->stor);
-  total = wabi_store_size(&vm->stor);
-  perc = 100.0 * _free / total;
-  printf("AFTER:  %2.2f%% of free space in %f ms \n", perc, 1000.0 * (t - t0) / CLOCKS_PER_SEC);
+  /* t = clock(); */
+  /* _free = wabi_store_free_words(&vm->stor); */
+  /* total = wabi_store_size(&vm->stor); */
+  /* perc = 100.0 * _free / total; */
+  /* printf("AFTER:  %2.2f%% of free space in %f ms \n", perc, 1000.0 * (t - t0) / CLOCKS_PER_SEC); */
   if(vm->ert) return;
 
   vm->ctrl = vm->nil;

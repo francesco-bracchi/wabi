@@ -163,7 +163,6 @@ static void
 wabi_combiner_unwrap(const wabi_vm vm)
 {
   wabi_val ctrl, fn, res;
-
   ctrl = vm->ctrl;
   if(!wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_bindings;
@@ -195,7 +194,7 @@ wabi_combiner_unwrap(const wabi_vm vm)
     if(vm->ert) return;
     wordcopy(res, fn, WABI_COMBINER_CONTINUATION_SIZE);
     *res = WABI_WORD_VAL(*res);
-    WABI_SET_TAG(res, wabi_tag_bt_oper);
+    WABI_SET_TAG(res, wabi_tag_ct_oper);
     break;
 
   case wabi_tag_oper:

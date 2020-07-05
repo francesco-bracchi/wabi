@@ -288,6 +288,7 @@ static inline void
 wabi_cont_prompt_copy_val(const wabi_vm vm, const wabi_cont_prompt cont)
 {
   wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
+
 }
 
 static inline void
@@ -335,7 +336,15 @@ wabi_cont_args_collect_val(const wabi_vm vm, const wabi_cont_args cont)
 static inline void
 wabi_cont_prompt_collect_val(const wabi_vm vm, const wabi_cont_prompt cont)
 {
-  wabi_collect_val_size(vm, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
+  cont->tag = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->tag));
+  if(cont->next != (wabi_word) wabi_cont_done) {
+    cont->next = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next));
+  }
+  if(cont->next_prompt != (wabi_word) wabi_cont_done) {
+    cont->next_prompt = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next_prompt));
+  }
+  WABI_SET_TAG(cont, wabi_tag_cont_prompt);
+  vm->stor.scan+=WABI_CONT_PROMPT_SIZE;
 }
 
 static inline void

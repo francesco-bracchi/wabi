@@ -128,7 +128,7 @@ wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont0)
   ctrl = vm->ctrl;
   cont = cont0;
 
-  if(!WABI_IS(wabi_tag_pair, ctrl)) {
+  if(! wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }
@@ -162,6 +162,7 @@ wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont0)
       if(! res_prompt) res_prompt = new_prompt;
     }
   }
+  right_cont = wabi_cont_next((wabi_cont) vm->cont);
   right_cont = wabi_cont_next((wabi_cont) vm->cont);
   right_prompt = (wabi_cont_prompt) vm->prmt;
 

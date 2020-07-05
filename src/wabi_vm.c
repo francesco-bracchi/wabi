@@ -1,3 +1,4 @@
+
 /**
  * Here we have a `CESK` like VM where CESK is an acronym for
  * `Control` `Environment` `Store` `Kontinuation` VM.
@@ -522,8 +523,10 @@ wabi_vm_reduce(const wabi_vm vm)
     cont0 = wabi_cont_next(cont);
     pair = (wabi_pair) ((wabi_cont_prog) cont)->expressions;
     env = (wabi_env) ((wabi_cont_prog) cont)->env;
-    cont0 = wabi_cont_push_prog(vm, env, wabi_cdr(pair), cont0);
-    if(vm->ert) return;
+    if(wabi_is_pair(wabi_cdr(pair))) {
+      cont0 = wabi_cont_push_prog(vm, env, wabi_cdr(pair), cont0);
+      if(vm->ert) return;
+    }
     cont0 = wabi_cont_push_eval(vm, cont0);
     if(vm->ert) return;
     vm->ctrl = (wabi_val) wabi_car(pair);
