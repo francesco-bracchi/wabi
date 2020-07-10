@@ -37,7 +37,6 @@
     (n g)
   (fn (v)
     (rec take (j 0 k (init g))
-      (pr k)
       (when-let (k . xs) (and (< j n) (next k))
         (apply v xs)
         (take (inc j) k)))))

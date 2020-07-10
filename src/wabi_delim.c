@@ -130,10 +130,7 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
   vm->cont = (wabi_val)cont;
   vm->prmt = (wabi_val)wabi_cont_prompt_next_prompt(prompt);
 
-  prompt->tag = (wabi_word)vm->nil;
-  prompt->next_prompt = (wabi_word)wabi_cont_done;
-  prompt->next = (wabi_word)wabi_cont_done;
-  WABI_SET_TAG(prompt, wabi_tag_cont_prompt);
+  *((wabi_val) prompt) = 0L;
 }
 
 void wabi_delim_builtins(const wabi_vm vm, const wabi_env env) {

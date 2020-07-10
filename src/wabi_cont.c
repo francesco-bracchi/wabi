@@ -147,7 +147,7 @@ wabi_cont_concat_cont(const wabi_vm vm,
   new_prompt = (wabi_cont_prompt) wabi_cont_done;
 
   for(;;) {
-    if(WABI_IS(wabi_tag_cont_prompt, cont) && !wabi_cont_next((wabi_cont) cont))
+    if(*((wabi_val) wabi_cont_next(cont)) == 0)
       break;
     prev_cont = cont;
     new_prev_cont = new_cont;
@@ -164,9 +164,7 @@ wabi_cont_concat_cont(const wabi_vm vm,
     }
   }
   right_cont = wabi_cont_next((wabi_cont) vm->cont);
-  right_cont = wabi_cont_next((wabi_cont) vm->cont);
   right_prompt = (wabi_cont_prompt) vm->prmt;
-
   new_cont->next = (wabi_word) right_cont | WABI_TAG(new_cont);
 
   vm->ctrl = fst;
