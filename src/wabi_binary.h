@@ -105,4 +105,9 @@ wabi_binary_cmp(const wabi_binary left, const wabi_binary right);
 void
 wabi_binary_builtins(const wabi_vm vm, const wabi_env env);
 
+
+char*
+wabi_binary_to_cstring(const wabi_vm vm,
+                       const wabi_binary bin);
+
 #endif

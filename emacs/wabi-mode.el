@@ -16,6 +16,10 @@
      ("\\(;.*\n\\)"
       (1 font-lock-comment-face))
 
+     ("(\\(def\\)[ \r\n\t]+(\\([/[:alpha:]*!_-][^(){}[:space:]]*\\))[ \r\n\t]"
+      (1 font-lock-keyword-face)
+      (2 font-lock-variable-name-face))
+
      ("(\\(def\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
@@ -60,6 +64,7 @@
      ("(\\(prmt\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(ctrl\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(when\\)[ \r\n\t()]" 1 font-lock-keyword-face)
+     ("(\\(when-let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(unless\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(if\\)[ \r\n\t()]" 1 font-lock-keyword-face)
      ("(\\(eval\\)[ \r\n\t()]" 1 font-lock-keyword-face)
@@ -130,7 +135,8 @@
   (put 'defm 'lisp-indent-function 3)
   (put 'shift 'lisp-indent-function 1)
   (put 'when 'lisp-indent-function 1)
-  (put 'when-not 'lisp-indent-function 1)
+  (put 'unless 'lisp-indent-function 1)
+  (put 'when-let 'lisp-indent-function 2)
   (put 'fn 'lisp-indent-function 1)
   (put 'fx 'lisp-indent-function 2)
   (put 'eval 'lisp-indent-function 1)

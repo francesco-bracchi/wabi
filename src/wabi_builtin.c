@@ -475,6 +475,68 @@ wabi_builtin_language0(wabi_vm vm)
 }
 
 
+static void
+wabi_builtin_load(const wabi_vm vm)
+{
+  wabi_val ctrl, exs;
+  wabi_binary fn;
+  char *cfn;
+  FILE *f;
+  long length;
+  char *buffer;
+  wabi_cont cont;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  fn = (wabi_binary) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(! wabi_is_binary((wabi_val) fn)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  if(! wabi_is_empty(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  cfn = wabi_binary_to_cstring(vm, fn);
+  if(vm->ert) return;
+
+  f = fopen(cfn, "rb");
+  printf("loading %s\n", cfn);
+  if(! f)  {
+    printf("error reading %s\n", cfn);
+    vm->ert = wabi_error_file_not_found;
+    return;
+  }
+  fseek(f, 0, SEEK_END);
+  length = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  buffer = malloc(length + 1);
+  fread(buffer, 1, length, f);
+  buffer[length] = '\0';
+  fclose (f);
+  exs = (wabi_val) wabi_reader_read_all(vm, buffer);
+  free(buffer);
+  if(vm->ert) return;
+  cont = (wabi_cont) vm->cont;
+  if(wabi_is_pair((wabi_val) exs)) {
+    cont = wabi_cont_next(cont);
+    cont = wabi_cont_push_prog(vm, (wabi_env) vm->env, wabi_cdr((wabi_pair) exs), cont);
+    if(vm->ert) return;
+    cont = wabi_cont_push_eval(vm, cont);
+    if(vm->ert) return;
+    vm->ctrl = wabi_car((wabi_pair) exs);
+    vm->cont = (wabi_val) cont;
+    return;
+  }
+
+  vm->ctrl = exs;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
 wabi_env
 wabi_builtin_stdenv(const wabi_vm vm)
 {
@@ -512,6 +574,9 @@ wabi_builtin_stdenv(const wabi_vm vm)
   if(vm->ert) return NULL;
 
   wabi_defn(vm, env, "collect", wabi_builtin_collect);
+  if(vm->ert) return NULL;
+
+  wabi_defx(vm, env, "load", &wabi_builtin_load);
   if(vm->ert) return NULL;
 
   wabi_constant_builtins(vm, env);

@@ -118,7 +118,8 @@ wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont0)
 
 
 void
-wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont0)
+wabi_cont_concat_cont(const wabi_vm vm,
+                      const wabi_cont cont0)
 {
   wabi_cont cont, res_cont, prev_cont, new_prev_cont, new_cont, right_cont;
   wabi_cont_prompt res_prompt, new_prompt, prev_new_prompt, right_prompt;

@@ -1,0 +1,231 @@
+;;; visit.wabi
+
+(def list-map map)
+
+(defn next
+    (k)
+  (prompt visit (k nil)))
+
+
+(defn yield
+    xs
+  (control visit k (cons k xs)))
+
+
+(defn init
+    (gen)
+  (fn _ (prompt visit (gen yield))))
+
+
+(defn zero
+    (g)
+  (fn (v) (g v)))
+
+
+(defn each
+    (fun v)
+  (v fun))
+
+
+(defn map
+    (f g)
+  (fn (v)
+    (g (fn xs (v (apply f xs))))))
+
+
+(defn take
+    (n g)
+  (fn (v)
+    (rec take (j 0 k (init g))
+      (pr k)
+      (when-let (k . xs) (and (< j n) (next k))
+        (apply v xs)
+        (take (inc j) k)))))
+
+
+(defn drop
+    (n g)
+  (fn (v)
+    (rec drop (j 0 k (init g))
+      (when-let (k . xs) (next k)
+        (if (< j n)
+            (drop (inc j) k)
+            (do (apply v xs) (drop j k)))))))
+
+
+(defn dedup-by
+    (tr g)
+  (fn (v)
+    (rec dedup (p nil k (init g))
+      (when-let (k . xs) (next k)
+        (let (y (apply tr xs))
+          (if
+           (= p y) (dedup p k)
+           (do (apply v xs) (dedup y k))))))))
+
+
+(def dedup
+  (part dedup-by list))
+
+
+(defn uniq-by
+    (tr g)
+  (fn (v)
+    (rec uniq (t {} k (init g))
+      (when-let (k . xs) (next k)
+        (let (y (apply tr xs))
+          (if
+           (map-get t y) (uniq t k)
+           (do (apply v xs) (uniq (assoc t y true) k))))))))
+
+
+(def uniq (uniq-by list))
+
+
+(defn filter
+    (t? g)
+  (fn (v)
+    (rec filter (k (init g))
+      (when-let (k . xs) (next k)
+        (if
+         (apply t? xs) (do (apply v xs) (filter k))
+         (filter k))))))
+
+
+(defn reject
+    (t? g)
+  (fn (v)
+    (rec reject (k (init g))
+      (when-let (k . xs) (next k)
+        (if
+         (apply t? xs) (reject k)
+         (do (apply v xs) (reject k)))))))
+
+
+(defn take-while
+    (t? g)
+  (fn (v)
+    (rec take-while (k (init g))
+      (when-let (k . xs) (next k)
+        (when (apply t? xs)
+          (apply v xs)
+          (take-while k))))))
+
+
+(defn drop-while
+    (t? g)
+  (fn (v)
+    (rec drop-while (active? true k (init g))
+      (when-let (k . xs) (next k)
+        (if
+         (and active? (apply t? xs)) (drop-while active? k)
+         (do (apply v xs) (drop-while false k)))))))
+
+
+(defn concat
+    (g h)
+  (fn (v)
+    (g v)
+    (h v)))
+
+
+(defn cycle
+    (g)
+  (fn (v)
+    (rec cycle ()
+      (g v)
+      (cycle))))
+
+
+(defn reduce
+    (f i g)
+  (rec reduce (i i k (init g))
+    (let (r (next k))
+      (if
+       r (do (def (k . xs) r)
+             (reduce (apply f (cons i xs)) k))
+       i))))
+
+
+(defn iter
+    (f i g)
+  (fn (v)
+    (rec iter (i i k (init g))
+      (when-let (k . xs) (next k)
+        (let (i (apply f (cons i xs)))
+          (v i)
+          (iter i k))))))
+
+
+(defn every
+    (n g)
+  (fn (v)
+    (rec every (j 1 a [] k (init g))
+      (when-let (k x) (next k)
+        (let (a (push-right a x))
+          (if
+           (>= j n) (do (v a) (every 1 [] k))
+           (every (inc j) a k)))))))
+
+
+
+(def sum
+  (part reduce + 0))
+
+
+(defn fib
+    (v)
+  (rec fib (i 0 j 1)
+    (v j)
+    (fib j (+ i j))))
+
+
+(defn nat
+    (v)
+  (rec nat (j 0)
+    (v j)
+    (nat (inc j))))
+
+
+(defn even?
+    (x)
+  (let (d (/ x 2))
+    (= (* 2 d) x)))
+
+
+;; (pr (time (-> fib (filter even?) (take 100) sum)))
+
+;; (let (a (-> fib (take 10)) b (-> nat (take 10)))
+;;   (-> a (call pr))
+;;   (-> b (call pr))
+;;   (pr (-> (concat a b) sum)))
+
+
+(defn zip
+    gs
+  (fn (v)
+    (rec zip (ks (list-map init gs))
+      (let (rs (list-map next ks))
+        (when (all? id rs)
+          (apply v (list-map snd rs))
+          (zip (list-map car rs)))))))
+
+
+;; (time (-> (zip nat (map inc nat)) (map +) (take 100) (each pr)))
+
+
+(defn xxx
+    (f)
+  (rec xxx (i 1 j 0)
+    (when (< j 10000)
+      (f (+ i j))
+      (xxx (inc i) (inc j)))))
+
+(time (xxx (always nil)))
+
+(time (-> nat
+          (map inc)
+          (zip nat)
+          (map +)
+          (take 10000)
+          (each (always nil))))

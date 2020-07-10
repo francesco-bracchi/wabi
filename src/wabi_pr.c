@@ -253,7 +253,10 @@ wabi_pr_cont0(wabi_cont val)
         wabi_pr_cont0((wabi_cont) WABI_DEREF((wabi_val) val));
         break;
       }
-      printf("(NAC");
+      if(wabi_is_nil((wabi_val) val)) {
+        break;
+      }
+      printf("(NAC ");
       wabi_pr((wabi_val) val);
       printf(")");
       break;

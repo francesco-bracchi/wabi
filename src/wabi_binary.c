@@ -496,6 +496,25 @@ wabi_binary_bin_p(const wabi_vm vm)
 }
 
 
+char*
+wabi_binary_to_cstring(const wabi_vm vm,
+                       const wabi_binary bin)
+{
+  char* blob;
+  wabi_size len;
+
+  len = wabi_binary_length(bin);
+  blob = (char*) wabi_vm_alloc(vm, len + 2);
+  if(vm->ert) return NULL;
+
+  WABI_SET_TAG(blob, wabi_tag_bin_blob);
+
+  wabi_binary_memcopy(blob + 1, bin);
+  *(blob + len + 1) = '\0';
+  return blob + 1;
+}
+
+
 void
 wabi_binary_builtins(const wabi_vm vm, const wabi_env env)
 {
