@@ -75,7 +75,7 @@ wabi_symbol_sym(const wabi_vm vm)
 
   ctrl = vm->ctrl;
 
-  if(wabi_is_empty(ctrl)) {
+  if(wabi_atom_is_empty(vm, ctrl)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
@@ -83,7 +83,7 @@ wabi_symbol_sym(const wabi_vm vm)
   bin = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(wabi_is_nil(bin)) {
+  if(wabi_atom_is_nil(vm, bin)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;

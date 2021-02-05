@@ -26,9 +26,11 @@ void
 wabi_hash_val(wabi_hash_state state, wabi_val val)
 {
   switch(WABI_TAG(val)) {
-  case wabi_tag_constant:
   case wabi_tag_fixnum:
     wabi_hash_step(state, (char *) val, 8);
+    return;
+  case wabi_tag_atom:
+    wabi_atom_hash(state, (wabi_atom) val);
     return;
   case wabi_tag_symbol:
     wabi_symbol_hash(state, (wabi_symbol) val);

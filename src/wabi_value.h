@@ -8,7 +8,7 @@ typedef int wabi_error_code;
 
 typedef enum wabi_tag_enum {
   wabi_tag_fixnum         = 0x0000000000000000,
-  wabi_tag_constant       = 0x0100000000000000,
+  wabi_tag_atom           = 0x0100000000000000,
   wabi_tag_symbol         = 0x0200000000000000,
   wabi_tag_forward        = 0x0300000000000000,
   wabi_tag_pair           = 0x0400000000000000,
@@ -64,11 +64,11 @@ typedef wabi_val wabi_expr;
 
 #define WABI_IS(tag, val) (WABI_TAG((wabi_word *) val) == tag)
 
-static const wabi_word wabi_val_nil    = wabi_tag_constant | 0x0000000000000000;
-static const wabi_word wabi_val_false  = wabi_tag_constant | 0x0000000000000001;
-static const wabi_word wabi_val_true   = wabi_tag_constant | 0x0000000000000002;
-static const wabi_word wabi_val_ignore = wabi_tag_constant | 0x0000000000000003;
-static const wabi_word wabi_val_empty  = wabi_tag_constant | 0x0000000000000004;
+static const wabi_word wabi_val_nil    = wabi_tag_atom | 0x0000000000000000;
+static const wabi_word wabi_val_false  = wabi_tag_atom | 0x0000000000000001;
+static const wabi_word wabi_val_true   = wabi_tag_atom | 0x0000000000000002;
+static const wabi_word wabi_val_ignore = wabi_tag_atom | 0x0000000000000003;
+static const wabi_word wabi_val_empty  = wabi_tag_atom | 0x0000000000000004;
 static const wabi_word wabi_val_zero   = wabi_tag_fixnum;
 
 #define WABI_IS_VAL(k, v) ((k)==(*(v)))
@@ -84,8 +84,8 @@ static inline char*
 wabi_tag_to_string(wabi_word* w)
 {
   switch(WABI_TAG(w)) {
-  case wabi_tag_constant:
-    return "constant";
+  case wabi_tag_atom:
+    return "atom";
   case wabi_tag_fixnum:
     return "fixnum";
   case wabi_tag_symbol:

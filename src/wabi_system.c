@@ -20,8 +20,8 @@ static inline void
 wabi_system_error_signal(const wabi_vm vm)
 {
   printf("ERROR IN A VM: %s\n", wabi_error_name(vm->ert));
-  wabi_prn(vm->ctrl);
-  wabi_prn(vm->cont);
+  wabi_prn(vm, vm->ctrl);
+  wabi_prn(vm, vm->cont);
 }
 
 

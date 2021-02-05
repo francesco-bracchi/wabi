@@ -16,7 +16,7 @@
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 #include "wabi_list.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_map.h"
 #include "wabi_store.h"
 #include "wabi_builtin.h"
@@ -803,7 +803,7 @@ wabi_map_builtin_hmap(const wabi_vm vm)
     res = wabi_map_assoc(vm, res, k, v);
     if(vm->ert) return;
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -840,7 +840,7 @@ wabi_map_builtin_assoc(const wabi_vm vm)
     res = wabi_map_assoc(vm, res, k, v);
     if(vm->ert) return;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -871,7 +871,7 @@ wabi_map_builtin_dissoc(const wabi_vm vm)
     res = (wabi_val) wabi_map_dissoc(vm, (wabi_map) res, k);
     if(vm->ert) return;
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -906,7 +906,7 @@ wabi_map_builtin_len(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -932,7 +932,7 @@ wabi_map_builtin_get
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   while(wabi_is_pair(ctrl)) {
-    if(wabi_is_nil(m)) {
+    if(wabi_atom_is_nil(vm, m)) {
       vm->ctrl = vm->nil;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return;
@@ -946,7 +946,7 @@ wabi_map_builtin_get
     m = wabi_map_get((wabi_map) m, k);
     if(!m) m = vm->nil;
   }
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

@@ -3,7 +3,7 @@
 #define wabi_list_h
 
 #include "wabi_value.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_vm.h"
 #include "wabi_collect.h"
 #include "wabi_env.h"
@@ -91,14 +91,14 @@ wabi_is_pair(const wabi_val v)
 
 
 static inline wabi_size
-wabi_list_length(const wabi_val v0)
+wabi_list_length(const wabi_vm vm, const wabi_val v0)
 {
   wabi_val v;
   wabi_size l;
   v = v0;
   l = 0;
   for (;;) {
-    if(wabi_is_empty(v)) {
+    if(wabi_atom_is_empty(vm, v)) {
       return l;
     }
     if(!wabi_is_pair(v)) {
@@ -110,13 +110,13 @@ wabi_list_length(const wabi_val v0)
 }
 
 static inline int
-wabi_is_list(const wabi_val v0)
+wabi_is_list(const wabi_vm vm, const wabi_val v0)
 {
   wabi_val v;
 
   v = v0;
   for (;;) {
-    if(wabi_is_empty(v)) {
+    if(wabi_atom_is_empty(vm, v)) {
       return 1;
     }
     if(!wabi_is_pair(v)) {

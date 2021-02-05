@@ -6,10 +6,10 @@
 #include "wabi_value.h"
 
 wabi_val
-wabi_reader_read(wabi_vm vm, char* c);
+wabi_reader_read(const wabi_vm vm, char* c);
 
 wabi_val
-wabi_reader_read_val(wabi_vm vm, char** c);
+wabi_reader_read_val(const wabi_vm vm, char** c);
 
 wabi_val
 wabi_reader_read_all(const wabi_vm vm, char* c);

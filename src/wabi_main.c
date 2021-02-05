@@ -44,6 +44,7 @@ main(int argc,
     return 3;
   }
 
+  printf("AXXX\n");
   fseek(f, 0, SEEK_END);
   length = ftell(f);
   fseek(f, 0, SEEK_SET);

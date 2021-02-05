@@ -25,7 +25,7 @@ wabi-*.tar.gz
 
 src/*.o
 src/*.lo
-src/wabi
+src/wabivm
 src/*.la
 src/.libs
 

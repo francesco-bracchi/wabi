@@ -15,7 +15,7 @@
 #include "wabi_binary.h"
 #include "wabi_list.h"
 #include "wabi_symbol.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_reader.h"
 
 #define IS_WS(c) ((c) == ' ' || (c) == '\n' || (c) == '\t')
@@ -225,13 +225,33 @@ wabi_reader_read_string(wabi_vm vm, char** c)
 
 
 static inline wabi_val
+wabi_reader_read_atom(wabi_vm vm, char** c)
+{
+  char *buff, *bptr;
+  wabi_val res;
+  buff = malloc(1024);
+  bptr = buff;
+  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '}') && (**c != '(') && (**c != '"') && (**c != ';') && (**c != ':')) {
+    if(**c == '\\') (*c)++;
+    *bptr = **c;
+    bptr++;
+    (*c)++;
+  }
+  *bptr = '\0';
+  res = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, buff);
+  free(buff);
+  if(! res) return NULL;
+  return (wabi_val) wabi_atom_new(vm, res);
+}
+
+static inline wabi_val
 wabi_reader_read_symbol(wabi_vm vm, char** c)
 {
   char *buff, *bptr;
   wabi_val res;
   buff = malloc(1024);
   bptr = buff;
-  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '}') && (**c != '(') && (**c != '"') && (**c != ';')) {
+  while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '}') && (**c != '(') && (**c != '"') && (**c != ';') && (**c != ':')) {
     if(**c == '\\') (*c)++;
     *bptr = **c;
     bptr++;
@@ -242,15 +262,6 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   free(buff);
   if(! res) return NULL;
   return (wabi_val) wabi_symbol_new(vm, res);
-}
-
-static inline wabi_val
-wabi_reader_read_ignore(wabi_vm vm) {
-  wabi_val res;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return NULL;
-  *res = wabi_val_ignore;
-  return res;
 }
 
 wabi_val
@@ -265,7 +276,7 @@ wabi_reader_neg(wabi_val num)
 }
 
 wabi_val
-wabi_reader_read_val(wabi_vm vm, char** c)
+wabi_reader_read_val(const wabi_vm vm, char** c)
 {
   wabi_val bin, sym;
   wabi_reader_ws(c);
@@ -332,7 +343,11 @@ wabi_reader_read_val(wabi_vm vm, char** c)
 
   case '_':
     (*c)++;
-    return wabi_reader_read_ignore(vm);
+    return vm->ign;
+
+  case ':':
+    (*c)++;
+    return wabi_reader_read_atom(vm, c);
 
   case '\0':
     return NULL;
@@ -342,7 +357,7 @@ wabi_reader_read_val(wabi_vm vm, char** c)
 }
 
 wabi_val
-wabi_reader_read(wabi_vm vm, char* c) {
+wabi_reader_read(const wabi_vm vm, char* c) {
   return wabi_reader_read_val(vm, &c);
 }
 
@@ -358,7 +373,7 @@ wabi_reader_reverse(const wabi_vm vm, wabi_val es)
     if(vm->ert) return NULL;
     es = wabi_cdr((wabi_pair) es);
   }
-  if(! wabi_is_empty(es)) {
+  if(! wabi_atom_is_empty(vm, es)) {
     vm->ert = wabi_error_read;
   }
   return xs;

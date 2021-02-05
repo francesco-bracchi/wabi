@@ -27,7 +27,6 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   case wabi_tag_forward:
     return WABI_DEREF(src);
 
-  case wabi_tag_constant:
   case wabi_tag_fixnum:
     *res = *src;
     vm->stor.heap++;
@@ -35,6 +34,10 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
 
   case wabi_tag_symbol:
     wabi_symbol_copy_val(vm, (wabi_symbol) src);
+    break;
+
+  case wabi_tag_atom:
+    wabi_atom_copy_val(vm, (wabi_atom) src);
     break;
 
   case wabi_tag_bin_leaf:
@@ -138,13 +141,16 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
     vm->stor.scan += WABI_WORD_VAL(*val);
     break;
 
-  case wabi_tag_constant:
   case wabi_tag_fixnum:
     vm->stor.scan++;
     break;
 
   case wabi_tag_symbol:
     wabi_symbol_collect_val(vm, (wabi_symbol) val);
+    break;
+
+  case wabi_tag_atom:
+    wabi_atom_collect_val(vm, (wabi_atom) val);
     break;
 
   case wabi_tag_bin_leaf:

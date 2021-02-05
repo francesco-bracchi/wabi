@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "wabi_value.h"
 #include "wabi_vm.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_number.h"
 #include "wabi_combiner.h"
 #include "wabi_builtin.h"
@@ -46,7 +46,7 @@ wabi_number_builtin_sum(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac += WABI_CAST_INT64(a);
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -73,7 +73,7 @@ wabi_number_builtin_mul(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac *= WABI_CAST_INT64(a);
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -105,7 +105,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair) ctrl);
   ac = WABI_CAST_INT64(a);
 
-  if(wabi_is_empty(ctrl)) {
+  if(wabi_atom_is_empty(vm, ctrl)) {
     // unary op
     *res = (- ac) & wabi_word_value_mask;
     WABI_SET_TAG(res, wabi_tag_fixnum);
@@ -119,7 +119,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     ac -= WABI_CAST_INT64(a);
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
   }
   *res = ac & wabi_word_value_mask;
@@ -158,7 +158,7 @@ wabi_number_builtin_div(const wabi_vm vm)
     }
     ac /= x;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

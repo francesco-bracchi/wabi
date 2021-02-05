@@ -9,7 +9,7 @@
 #include "wabi_vm.h"
 #include "wabi_builtin.h"
 #include "wabi_symbol.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_error.h"
 
 
@@ -75,7 +75,7 @@ wabi_combiner_fx(const wabi_vm vm)
   }
   e = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_symbol(e) && !wabi_is_ignore(e)) {
+  if(! wabi_is_symbol(e) && !wabi_atom_is_ignore(vm, e)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }
@@ -115,7 +115,7 @@ wabi_combiner_wrap(const wabi_vm vm)
   }
   fx = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -170,7 +170,7 @@ wabi_combiner_unwrap(const wabi_vm vm)
   }
   fn = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -225,7 +225,7 @@ wabi_combiner_combiner_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -261,7 +261,7 @@ wabi_combiner_applicative_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -294,7 +294,7 @@ wabi_combiner_operative_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -328,7 +328,7 @@ wabi_combiner_builtin_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -361,7 +361,7 @@ wabi_combiner_derived_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -393,7 +393,7 @@ wabi_combiner_cont_p(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -425,7 +425,7 @@ wabi_combiner_derived_combiner_body(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -450,7 +450,7 @@ wabi_combiner_derived_combiner_static_env(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -475,7 +475,7 @@ wabi_combiner_derived_combiner_parameters(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -499,7 +499,7 @@ wabi_combiner_derived_combiner_caller_env_name(const wabi_vm vm)
   }
   val = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

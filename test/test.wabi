@@ -21,7 +21,6 @@
   (wrap
    (fx _ (o as)
      (eval (env) (cons (unwrap o) as)))))
-
 (def list*
   (wrap
    (fx _ (a . as)

@@ -14,7 +14,7 @@
 #include "wabi_builtin.h"
 #include "wabi_place.h"
 #include "wabi_vector.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_cmp.h"
 
 
@@ -31,10 +31,6 @@ wabi_cmp(const wabi_val a, const wabi_val b)
   diff = tag - WABI_TAG(b);
 
   switch(tag) {
-  case wabi_tag_constant:
-    if(WABI_IS(wabi_tag_constant, b)) {
-      return (*a - *b);
-    }
     return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_fixnum:
     if(wabi_is_fixnum(b)) {
@@ -45,6 +41,12 @@ wabi_cmp(const wabi_val a, const wabi_val b)
     if (wabi_is_symbol(b)) {
       return wabi_cmp(wabi_symbol_to_binary((wabi_symbol)a),
                       wabi_symbol_to_binary((wabi_symbol)b));
+    }
+    return (int)(diff >> wabi_word_tag_offset);
+  case wabi_tag_atom:
+    if (wabi_is_atom(b)) {
+      return wabi_cmp(wabi_atom_to_binary((wabi_symbol)a),
+                      wabi_atom_to_binary((wabi_symbol)b));
     }
     return (int)(diff >> wabi_word_tag_offset);
   case wabi_tag_bin_leaf:
@@ -124,7 +126,6 @@ wabi_eq(const wabi_val left, const wabi_val right)
   if(diff) return 0;
 
   switch(tag) {
-  case wabi_tag_constant:
   case wabi_tag_fixnum:
     return (*left == *right);
   default:
@@ -161,7 +162,7 @@ wabi_cmp_eq(const wabi_vm vm)
       return;
     }
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -199,7 +200,7 @@ wabi_cmp_neq(const wabi_vm vm)
       return;
     }
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -237,7 +238,7 @@ wabi_cmp_gt(const wabi_vm vm)
     }
     a = b;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -275,7 +276,7 @@ wabi_cmp_gt_eq(const wabi_vm vm)
     }
     a = b;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -312,7 +313,7 @@ wabi_cmp_lt(const wabi_vm vm)
     }
     a = b;
   }
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -349,7 +350,7 @@ wabi_cmp_lt_eq(const wabi_vm vm)
     }
     a = b;
   }
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

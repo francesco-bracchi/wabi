@@ -52,84 +52,66 @@
 #include "wabi_combiner.h"
 #include "wabi_binary.h"
 #include "wabi_symbol.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_error.h"
+#include "wabi_pr.h"
 
-
-static inline wabi_val
-wabi_vm_const(wabi_vm vm, wabi_word val)
-{
-
-  wabi_val v = wabi_vm_alloc(vm, WABI_CONSTANT_SIZE);
+wabi_val
+wabi_vm_atom_from_cstring(const wabi_vm vm, const char *cstring) {
+  wabi_val bin;
+  bin = (wabi_val)wabi_binary_leaf_new_from_cstring(vm, cstring);
   if(vm->ert) return NULL;
 
-  *v = val;
-  return v;
+  return (wabi_val) wabi_atom_new(vm, bin);
 }
-
-
-static inline wabi_val
-wabi_vm_declare_other_sym(wabi_vm vm, char* cstr, wabi_val res)
-{
-  wabi_binary_leaf bin;
-  wabi_val sym;
-
-  bin = wabi_binary_leaf_new_from_cstring(vm, cstr);
-  if(vm->ert) return NULL;
-  sym = wabi_symbol_new(vm, (wabi_val) bin);
-  if(vm->ert) return NULL;
-  res = (wabi_val) wabi_cons(vm, sym, res);
-  if(vm->ert) return NULL;
-  return res;
-}
-
-
-static inline wabi_val
-wabi_vm_others(wabi_vm vm, wabi_val res)
-{
-  res = wabi_vm_declare_other_sym(vm, "q", res);
-  if(! vm->ert) return NULL;
-  res = wabi_vm_declare_other_sym(vm, "hmap", res);
-  return res;
-}
-
 
 void
 wabi_vm_init(const wabi_vm vm, const wabi_size size)
 {
-  wabi_val stbl, nil, emp, oth;
+  wabi_val atbl, stbl, emp, nil, ign, fls, trh;
 
   if(wabi_store_init(&(vm->stor), size)) {
     vm->ert = wabi_error_nomem;
     return;
   }
-  vm->ert = wabi_error_none;
 
   stbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
 
-  nil = wabi_vm_const(vm, wabi_val_nil);
+  atbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
 
-  emp = wabi_vm_const(vm, wabi_val_empty);
-  if(vm->ert) return;
-
+  vm->ert = wabi_error_none;
   vm->stbl  = stbl;
+  vm->atbl  = atbl;
 
-  oth = wabi_vm_others(vm, nil);
+  emp = wabi_vm_atom_from_cstring(vm, "()");
+  if(vm->ert) return;
+
+  nil = wabi_vm_atom_from_cstring(vm, "nil");
+  if(vm->ert) return;
+
+  ign = wabi_vm_atom_from_cstring(vm, "_");
+  if(vm->ert) return;
+
+  fls = wabi_vm_atom_from_cstring(vm, "false");
+  if(vm->ert) return;
+
+  trh = wabi_vm_atom_from_cstring(vm, "true");
   if(vm->ert) return;
 
   vm->ctrl = NULL;
   vm->env = NULL;
   vm->cont = (wabi_val) wabi_cont_done;
   vm->prmt = (wabi_val) wabi_cont_done;
-  vm->nil = nil;
   vm->emp = emp;
-  vm->oth = oth;
+  vm->nil = nil;
+  vm->ign = ign;
+  vm->fls = fls;
+  vm->trh = trh;
   vm->fuel = 0;
   vm->erv = nil;
   vm->ert = wabi_error_none;
-
 }
 
 
@@ -140,8 +122,10 @@ wabi_vm_collect(const wabi_vm vm)
   wabi_store_prepare(&vm->stor);
   // todo: allocate before collecting
   vm->stbl = (wabi_val) wabi_map_empty(vm);
+  vm->atbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
-  vm->stor.scan+=WABI_MAP_SIZE;
+  vm->stor.scan += 2 * WABI_MAP_SIZE;
+
   if(vm->ctrl) vm->ctrl = wabi_copy_val(vm, vm->ctrl);
   if(vm->ert) return;
   if(vm->env) vm->env = wabi_copy_val(vm, vm->env);
@@ -152,12 +136,17 @@ wabi_vm_collect(const wabi_vm vm)
   if(vm->ert) return;
   if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
   if(vm->ert) return;
-  if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
-  if(vm->ert) return;
   if(vm->emp) vm->emp = wabi_copy_val(vm, vm->emp);
   if(vm->ert) return;
-  if(vm->oth) vm->oth = wabi_copy_val(vm, vm->oth);
+  if(vm->nil) vm->nil = wabi_copy_val(vm, vm->nil);
   if(vm->ert) return;
+  if(vm->nil) vm->ign = wabi_copy_val(vm, vm->ign);
+  if(vm->ert) return;
+  if(vm->fls) vm->fls = wabi_copy_val(vm, vm->fls);
+  if(vm->ert) return;
+  if(vm->trh) vm->trh = wabi_copy_val(vm, vm->trh);
+  if(vm->ert) return;
+
   wabi_collect(vm);
 }
 
@@ -208,7 +197,7 @@ wabi_vm_bind(const wabi_vm vm,
       wabi_env_set(vm, env, (wabi_symbol) params, args);
       return;
     }
-    if(wabi_is_ignore(params)) {
+    if(wabi_atom_is_ignore(vm, params)) {
       return;
     }
     if(wabi_is_pair(params)) {
@@ -219,7 +208,7 @@ wabi_vm_bind(const wabi_vm vm,
         params = wabi_cdr((wabi_pair) params);
         continue;
       }
-      if(wabi_is_empty(args) || wabi_is_nil(args)) {
+      if(wabi_atom_is_empty(vm, args) || wabi_atom_is_nil(vm, args)) {
         wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
         if(vm->ert) return;
         params = wabi_cdr((wabi_pair) params);
@@ -333,7 +322,7 @@ wabi_vm_reduce(const wabi_vm vm)
       /* ctrl: nil */
       /* envr: nil */
       /* cont: ((call nil c) . s) */
-      if(wabi_is_empty((wabi_val) (((wabi_cont_apply) cont)->args))) {
+      if(wabi_atom_is_empty(vm, (wabi_val) (((wabi_cont_apply) cont)->args))) {
         cont0 = wabi_cont_next(cont);
         cont0 = wabi_cont_push_call(vm, (wabi_env) vm->nil, ctrl, cont0);
         if(vm->ert) return;
@@ -508,7 +497,7 @@ wabi_vm_reduce(const wabi_vm vm)
     /* ctrl: x0 */
     /* envr: nil */
     /* cont: s */
-    if(wabi_is_empty((wabi_val)((wabi_cont_prog) cont)->expressions)) {
+    if(wabi_atom_is_empty(vm, (wabi_val)((wabi_cont_prog) cont)->expressions)) {
       vm->cont = (wabi_val) wabi_cont_next(cont);
       vm->env = vm->nil;
       return;
@@ -561,8 +550,8 @@ wabi_vm_run(const wabi_vm vm,
 
   for(;;) {
     /* printf("- %lu ---------------------\n", vm->fuel); */
-    /* wabi_prn(vm->ctrl); */
-    /* wabi_prn(vm->cont); */
+    /* wabi_prn(vm, vm->ctrl); */
+    /* wabi_prn(vm, vm->cont); */
     wabi_vm_reduce(vm);
     if((wabi_cont) vm->cont == wabi_cont_done) {
       return;

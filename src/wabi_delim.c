@@ -3,7 +3,7 @@
 #include "wabi_delim.h"
 #include "wabi_builtin.h"
 #include "wabi_cmp.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
 
@@ -75,7 +75,7 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
   kname = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  if (!wabi_is_symbol(kname) && !wabi_is_ignore(kname)) {
+  if (!wabi_is_symbol(kname) && !wabi_atom_is_ignore(vm, kname)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }

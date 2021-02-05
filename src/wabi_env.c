@@ -36,7 +36,7 @@
 #include "wabi_map.h"
 #include "wabi_error.h"
 #include "wabi_builtin.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_hash.h"
 
 
@@ -110,7 +110,7 @@ wabi_env_extend_bt(const wabi_vm vm)
   }
   e0 = (wabi_env) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

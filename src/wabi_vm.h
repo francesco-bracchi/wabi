@@ -26,14 +26,23 @@ typedef struct wabi_vm_struct {
   /** Symbol table: used to avoid repetitions in symbols **/
   wabi_val        stbl;
 
+  /** Atom table: used to avoid repetitions in atoms **/
+  wabi_val        atbl;
+
   /** Since is used everywere it's worth to have here **/
   wabi_val        emp;
 
   /** Since is used everywere it's worth to have here **/
   wabi_val        nil;
 
-  /** Values (i.e. symbols) we want in any case **/
-  wabi_val        oth;
+  /** Since is used everywere it's worth to have here **/
+  wabi_val        ign;
+
+  /** Since is used everywere it's worth to have here **/
+  wabi_val        fls;
+
+  /** Since is used everywere it's worth to have here **/
+  wabi_val        trh;
 
   /** Store is the heap where VM values lie **/
   wabi_store_t    stor;

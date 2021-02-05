@@ -6,7 +6,7 @@
 #include "wabi_error.h"
 #include "wabi_env.h"
 #include "wabi_list.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_error.h"
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
@@ -47,7 +47,7 @@ wabi_place_plc(const wabi_vm vm)
     init = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -79,7 +79,7 @@ wabi_place_plc_val(const wabi_vm vm)
   plc = (wabi_place) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -124,7 +124,7 @@ wabi_place_plc_cas(const wabi_vm vm)
   new = (wabi_word) wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(!wabi_is_empty(ctrl)){
+  if(!wabi_atom_is_empty(vm, ctrl)){
     vm->ert = wabi_error_bindings;
     return;
   }

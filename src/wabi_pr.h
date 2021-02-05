@@ -6,10 +6,10 @@
 #include "wabi_map.h"
 
 void
-wabi_pr(wabi_val val);
+wabi_pr(wabi_vm vm, wabi_val val);
 
 
 void
-wabi_prn(wabi_val val);
+wabi_prn(wabi_vm vm, wabi_val val);
 
 #endif

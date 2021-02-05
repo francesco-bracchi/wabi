@@ -3,7 +3,7 @@
 #include "wabi_cmp.h"
 #include "wabi_vm.h"
 #include "wabi_combiner.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 
 #include "wabi_pr.h"
 #include <stdio.h>
@@ -135,7 +135,7 @@ wabi_cont_concat_cont(const wabi_vm vm,
   }
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }

@@ -23,7 +23,7 @@
 #include "wabi_builtin.h"
 #include "wabi_error.h"
 #include "wabi_env.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 
 
 wabi_binary_leaf
@@ -359,7 +359,7 @@ wabi_binary_bin_concat(const wabi_vm vm)
     }
     if(vm->ert) return;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }
@@ -410,7 +410,7 @@ wabi_binary_bin_sub(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -453,7 +453,7 @@ wabi_binary_bin_length(const wabi_vm vm)
 
     sum += wabi_binary_length(bin);
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }
@@ -486,7 +486,7 @@ wabi_binary_bin_p(const wabi_vm vm)
       return;
     }
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }

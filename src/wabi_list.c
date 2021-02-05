@@ -3,7 +3,7 @@
 #include "wabi_list.h"
 #include "wabi_number.h"
 #include "wabi_builtin.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_env.h"
 #include "wabi_error.h"
 #include "wabi_value.h"
@@ -21,7 +21,7 @@ wabi_list_car(const wabi_vm vm) {
   }
   pair = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -30,7 +30,7 @@ wabi_list_car(const wabi_vm vm) {
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
   }
-  if (wabi_is_nil(pair)) {
+  if (wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
@@ -50,7 +50,7 @@ wabi_list_cdr(const wabi_vm vm) {
   }
   pair = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -59,7 +59,7 @@ wabi_list_cdr(const wabi_vm vm) {
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
   }
-  if (wabi_is_nil(pair)) {
+  if (wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
@@ -82,11 +82,11 @@ wabi_list_len(const wabi_vm vm) {
   }
   list = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
-  l = wabi_list_length(list);
+  l = wabi_list_length(vm, list);
   if(l < 0) {
     vm->ert = wabi_error_type_mismatch;
     return;
@@ -114,7 +114,7 @@ static void wabi_list_cons(const wabi_vm vm) {
   }
   d = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -134,7 +134,29 @@ static void wabi_list_pair_p(const wabi_vm vm)
 
 static void wabi_list_list_p(const wabi_vm vm)
 {
-  wabi_builtin_predicate(vm, &wabi_is_list);
+
+  wabi_val ctrl, res, val;
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  ctrl = vm->ctrl;
+  while(wabi_is_pair(ctrl)) {
+    val = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(! wabi_is_list(vm, val)) {
+      *res = wabi_val_false;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return;
+    }
+  }
+  if(!wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  *res = wabi_val_true;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
 

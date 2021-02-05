@@ -16,7 +16,7 @@
 #include "wabi_cmp.h"
 #include "wabi_vm.h"
 #include "wabi_error.h"
-#include "wabi_constant.h"
+#include "wabi_atom.h"
 #include "wabi_builtin.h"
 #include "wabi_delim.h"
 #include "wabi_error.h"
@@ -104,7 +104,7 @@ wabi_builtin_predicate(const wabi_vm vm,
       return;
     }
   }
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -126,7 +126,7 @@ wabi_builtin_def(const wabi_vm vm)
   cont = wabi_cont_next(cont);
 
   // (def)
-  if(wabi_is_empty(ctrl)) {
+  if(wabi_atom_is_empty(vm, ctrl)) {
     vm->cont = (wabi_val) cont;
     return;
   }
@@ -139,7 +139,7 @@ wabi_builtin_def(const wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (def lft)
-  if (wabi_is_empty(ctrl)) {
+  if (wabi_atom_is_empty(vm, ctrl)) {
     cont = wabi_cont_push_def(vm, env, lft, cont);
     if (vm->ert) return;
     vm->ctrl = vm->nil;
@@ -157,7 +157,7 @@ wabi_builtin_def(const wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (def lft rgt . ctrl)
-  if(!wabi_is_empty(ctrl)) {
+  if(!wabi_atom_is_empty(vm, ctrl)) {
     def = (wabi_val) ((wabi_cont_call) vm->cont)->combiner;
     es = (wabi_val) wabi_cons(vm, def, ctrl);
     if(vm->ert) return;
@@ -189,7 +189,7 @@ static void wabi_builtin_if
   cont = wabi_cont_next(cont);
 
   // (if)
-  if(wabi_is_empty(ctrl)) {
+  if(wabi_atom_is_empty(vm, ctrl)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val) cont;
     return;
@@ -203,7 +203,7 @@ static void wabi_builtin_if
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
   // (if tst)
-  if (wabi_is_empty(ctrl)) {
+  if (wabi_atom_is_empty(vm, ctrl)) {
     cont = wabi_cont_push_eval(vm, cont);
     if (vm->ert) return;
     vm->ctrl = tst;
@@ -267,10 +267,10 @@ wabi_builtin_pr(const wabi_vm vm)
   while(wabi_is_pair(ctrl)) {
     v = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
-    wabi_pr(v);
+    wabi_pr(vm, v);
     if(WABI_IS(wabi_tag_pair, ctrl)) printf(" ");
   }
-  if (!wabi_is_empty(ctrl)) {
+  if (!wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -307,7 +307,7 @@ wabi_builtin_eval(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   cont = wabi_cont_next(cont);
 
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if(vm->ert) return;
   }
@@ -331,7 +331,7 @@ wabi_builtin_do(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   cont = wabi_cont_next(cont);
 
-  if(wabi_is_empty(ctrl)) {
+  if(wabi_atom_is_empty(vm, ctrl)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val) cont;
     return;
@@ -347,7 +347,7 @@ wabi_builtin_do(const wabi_vm vm)
     env = (wabi_env) ((wabi_cont_call) vm->cont)->env;
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
     if(vm->ert) return;
-  } else if (! wabi_is_empty(ctrl)) {
+  } else if (! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -364,7 +364,7 @@ wabi_builtin_clock(wabi_vm vm)
   wabi_val ctrl, res;
 
   ctrl = vm->ctrl;
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -391,8 +391,7 @@ wabi_builtin_not(const wabi_vm vm)
   r = wabi_vm_alloc(vm, 1);
   if(vm->ert) return;
 
-  *r = wabi_is_falsey(v) ? wabi_val_true : wabi_val_false;
-  vm->ctrl = r;
+  vm->ctrl = wabi_is_falsey(vm, v) ? vm->fls : vm->trh;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
@@ -411,7 +410,7 @@ wabi_builtin_hash(const wabi_vm vm)
   v = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
 
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -435,7 +434,7 @@ wabi_builtin_collect(const wabi_vm vm)
   double perc;
   time_t t, t0;
 
-  if(!wabi_is_empty(vm->ctrl)) {
+  if(!wabi_atom_is_empty(vm, vm->ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -463,7 +462,7 @@ wabi_builtin_language0(wabi_vm vm)
   wabi_val ctrl, r;
 
   ctrl = vm->ctrl;
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -497,7 +496,7 @@ wabi_builtin_load(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-  if(! wabi_is_empty(ctrl)) {
+  if(! wabi_atom_is_empty(vm, ctrl)) {
     vm->ert = wabi_error_bindings;
     return;
   }
@@ -577,9 +576,6 @@ wabi_builtin_stdenv(const wabi_vm vm)
   if(vm->ert) return NULL;
 
   wabi_defx(vm, env, "load", &wabi_builtin_load);
-  if(vm->ert) return NULL;
-
-  wabi_constant_builtins(vm, env);
   if(vm->ert) return NULL;
 
   wabi_combiner_builtins(vm, env);
