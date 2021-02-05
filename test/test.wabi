@@ -1,4 +1,3 @@
-;; start
 
 (def q
   (fx _ (p) p))
@@ -13,7 +12,7 @@
   (wrap qs))
 
 (def cmt
-  (fx _ p nil))
+  (fx _ p :nil))
 
 (def env
   (fx e _ e))
@@ -44,7 +43,7 @@
     (eval e
       (list def n (list* fn as bs)))))
 
-(defx prmt
+;(defx prmt
     e (t . bs)
   (eval e
     (list* prompt (eval e t) bs)))

@@ -52,7 +52,7 @@ libwabi_la_SOURCES = \
 
 libwabi_la_LIBADD=$(LIBEV) -lm -lpthread
 
-bin_PROGRAMS = wabi
-wabi_SOURCES = wabi_main.c
-wabi_LDADD = libwabi.la
-wabi_LTLIBADD = libwabi.la
+bin_PROGRAMS = wabivm
+wabivm_SOURCES = wabi_main.c
+wabivm_LDADD = libwabi.la
+wabivm_LTLIBADD = libwabi.la

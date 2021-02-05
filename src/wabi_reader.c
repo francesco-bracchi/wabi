@@ -45,7 +45,16 @@ typedef wabi_reader_t* wabi_reader;
 static inline int
 wabi_reader_is_ws(char c)
 {
-  return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f';
+  switch (c) {
+  case ' ':
+  case '\t':
+  case '\n':
+  case '\r':
+  case '\f':
+    return 1;
+  default:
+    return 0;
+  }
 }
 
 static inline int
@@ -57,17 +66,8 @@ wabi_reader_is_num(char c)
 static inline void
 wabi_reader_ws(char** c)
 {
-  for(;;) {
-    while(wabi_reader_is_ws(**c))
-      (*c)++;
-
-    if(**c == ';')
-      do {
-        (*c)++;
-      } while(**c != '\n' && **c != '\0');
-    else
-      return;
-  }
+  while(wabi_reader_is_ws(**c))
+    (*c)++;
 }
 
 wabi_val
@@ -269,11 +269,12 @@ wabi_reader_read_val(wabi_vm vm, char** c)
 {
   wabi_val bin, sym;
   wabi_reader_ws(c);
+
   switch(**c) {
   case '\'':
-
     (*c)++;
     return wabi_reader_read_quote(vm, c);
+
   case '#':
     (*c)++;
     return wabi_reader_read_afn(vm, c);
@@ -289,6 +290,7 @@ wabi_reader_read_val(wabi_vm vm, char** c)
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_map(vm, c));
+
   case  '[':
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "vec");
@@ -296,6 +298,15 @@ wabi_reader_read_val(wabi_vm vm, char** c)
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
+
+  case  ';':
+    (*c)++;
+    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt");
+    if(vm->ert) return NULL;
+    sym = (wabi_val) wabi_symbol_new(vm, bin);
+    if(vm->ert) return NULL;
+    return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_val(vm, c));
+
   case '0':
   case '1':
   case '2':
@@ -307,18 +318,22 @@ wabi_reader_read_val(wabi_vm vm, char** c)
   case '8':
   case '9':
     return wabi_reader_read_num(vm, c);
+
   case '-':
     if (wabi_reader_is_num(*(*c + 1))) {
       (*c)++;
       return wabi_reader_neg(wabi_reader_read_num(vm, c));
     }
     return wabi_reader_read_symbol(vm, c);
+
   case '"':
     (*c)++;
     return wabi_reader_read_string(vm, c);
+
   case '_':
     (*c)++;
     return wabi_reader_read_ignore(vm);
+
   case '\0':
     return NULL;
   default:
