@@ -172,6 +172,44 @@ wabi_cmp_eq(const wabi_vm vm)
 
 
 static void
+wabi_cmp_neq(const wabi_vm vm)
+{
+  wabi_val a, b, ctrl, res;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return;
+
+  a = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  while(wabi_is_pair(ctrl)) {
+    b = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if(wabi_cmp(a, b)) {
+
+      *res = wabi_val_true;
+      vm->ctrl = res;
+      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      return;
+    }
+  }
+  if(!wabi_is_empty(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  *res = wabi_val_false;
+  vm->ctrl = res;
+  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+}
+
+
+static void
 wabi_cmp_gt(const wabi_vm vm)
 {
   wabi_val a, b, ctrl, res;
@@ -326,6 +364,8 @@ void
 wabi_cmp_builtins(const wabi_vm vm, const wabi_env env)
 {
   wabi_defn(vm, env, "=", &wabi_cmp_eq);
+  if(vm->ert) return;
+  wabi_defn(vm, env, "/=", &wabi_cmp_eq);
   if(vm->ert) return;
   wabi_defn(vm, env, ">", &wabi_cmp_gt);
   if(vm->ert) return;

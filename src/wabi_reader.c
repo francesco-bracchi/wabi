@@ -198,6 +198,7 @@ wabi_reader_read_num(wabi_vm vm, char** c)
   do {
     num = 10 * num + (**c - '0');
     (*c)++;
+    while(**c == '_') (*c)++;
   } while(wabi_reader_is_num(**c));
 
   return wabi_fixnum_new(vm, num);
@@ -268,56 +269,61 @@ wabi_reader_read_val(wabi_vm vm, char** c)
 {
   wabi_val bin, sym;
   wabi_reader_ws(c);
-  if(**c == '!') {
+  switch(**c) {
+  case '\'':
+
     (*c)++;
     return wabi_reader_read_quote(vm, c);
-  }
-  if(**c == '#') {
+  case '#':
     (*c)++;
     return wabi_reader_read_afn(vm, c);
-  }
-  if(**c == '(') {
+
+  case '(':
     (*c)++;
     return wabi_reader_read_list(vm, c);
-  }
-  if(**c == '{') {
+
+  case  '{':
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap");
     if(vm->ert) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_map(vm, c));
-  }
-  if(**c == '[') {
+  case  '[':
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "vec");
     if(vm->ert) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
-  }
-  if(wabi_reader_is_num(**c)) {
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
     return wabi_reader_read_num(vm, c);
-  }
-  if(**c == '-') {
-    if(wabi_reader_is_num(*(*c + 1))) {
+  case '-':
+    if (wabi_reader_is_num(*(*c + 1))) {
       (*c)++;
       return wabi_reader_neg(wabi_reader_read_num(vm, c));
     }
     return wabi_reader_read_symbol(vm, c);
-  }
-  if(**c == '"') {
+  case '"':
     (*c)++;
     return wabi_reader_read_string(vm, c);
-  }
-  if(**c == '_') {
+  case '_':
     (*c)++;
     return wabi_reader_read_ignore(vm);
-  }
-  if(**c == '\0') {
+  case '\0':
     return NULL;
+  default:
+    return wabi_reader_read_symbol(vm, c);
   }
-  return wabi_reader_read_symbol(vm, c);
 }
 
 wabi_val

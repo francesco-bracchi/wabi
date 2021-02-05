@@ -219,8 +219,8 @@ wabi_vm_bind(const wabi_vm vm,
         params = wabi_cdr((wabi_pair) params);
         continue;
       }
-      if(wabi_is_empty(args)) {
-        wabi_vm_bind(vm, env, vm->emp, wabi_car((wabi_pair) params));
+      if(wabi_is_empty(args) || wabi_is_nil(args)) {
+        wabi_vm_bind(vm, env, vm->nil, wabi_car((wabi_pair) params));
         if(vm->ert) return;
         params = wabi_cdr((wabi_pair) params);
         continue;
