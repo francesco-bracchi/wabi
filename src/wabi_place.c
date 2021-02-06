@@ -128,10 +128,7 @@ wabi_place_plc_cas(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
-  *res = __sync_bool_compare_and_swap (&plc->val, old, new) ? wabi_val_true : wabi_val_false;
+  res = __sync_bool_compare_and_swap (&plc->val, old, new) ? vm->trh : vm->fls;
 
   vm->ctrl = res;
   vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);

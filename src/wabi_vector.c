@@ -800,17 +800,14 @@ wabi_vector_vec_len(const wabi_vm vm)
 static void
 wabi_vector_vec_p(const wabi_vm vm)
 {
-  wabi_val res, ctrl, vec;
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
+  wabi_val ctrl, vec;
 
   ctrl = vm->ctrl;
   while(wabi_is_pair(ctrl)) {
     vec = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(! wabi_is_vector(vec)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
+      vm->ctrl = vm->fls;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return;
     }
@@ -819,8 +816,7 @@ wabi_vector_vec_p(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  *res = wabi_val_true;
-  vm->ctrl = res;
+  vm->ctrl = vm->trh;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 

@@ -168,6 +168,7 @@ wabi_cont_concat_cont(const wabi_vm vm,
   new_cont->next = (wabi_word) right_cont | WABI_TAG(new_cont);
 
   vm->ctrl = fst;
+  vm->env = vm->nil;
   vm->cont = (wabi_val) res_cont;
   if(new_prompt) {
     new_prompt->next_prompt = (wabi_word) right_prompt;

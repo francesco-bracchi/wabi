@@ -471,17 +471,13 @@ wabi_binary_bin_p(const wabi_vm vm)
   wabi_binary bin;
   wabi_val res, ctrl;
 
-  res = (wabi_val) wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
-
   ctrl = vm->ctrl;
   while(WABI_IS(wabi_tag_pair, ctrl)) {
     bin = (wabi_binary) wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
 
     if(! wabi_is_binary((wabi_val) bin)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
+      vm->ctrl = vm->fls;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return;
     }
@@ -490,8 +486,7 @@ wabi_binary_bin_p(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  *res = wabi_val_true;
-  vm->ctrl = res;
+  vm->ctrl = vm->trh;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 

@@ -188,6 +188,25 @@ wabi_reader_read_afn(wabi_vm vm, char** c)
   return (wabi_val) wabi_cons(vm, afn, x);
 }
 
+static inline wabi_val
+wabi_reader_read_comment(const wabi_vm vm, char** c)
+{
+  wabi_val a, x, bin, sym;
+  wabi_reader_ws(c);
+  a = wabi_reader_read_val(vm, c);
+  if(vm->ert) return NULL;
+  wabi_reader_ws(c);
+  x = (wabi_val) wabi_cons(vm, a, vm->emp);
+  if(vm->ert) return NULL;
+
+  bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt");
+  if(vm->ert) return NULL;
+  sym = (wabi_val) wabi_symbol_new(vm, bin);
+  if(vm->ert) return NULL;
+
+  return (wabi_val) wabi_cons(vm, sym, x);
+}
+
 
 
 static inline wabi_val
@@ -294,6 +313,10 @@ wabi_reader_read_val(const wabi_vm vm, char** c)
     (*c)++;
     return wabi_reader_read_list(vm, c);
 
+  case ';':
+    (*c)++;
+    return wabi_reader_read_comment(vm, c);
+
   case  '{':
     (*c)++;
     bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap");
@@ -310,13 +333,13 @@ wabi_reader_read_val(const wabi_vm vm, char** c)
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
 
-  case  ';':
-    (*c)++;
-    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt");
-    if(vm->ert) return NULL;
-    sym = (wabi_val) wabi_symbol_new(vm, bin);
-    if(vm->ert) return NULL;
-    return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_val(vm, c));
+  /* case  ';': */
+  /*   (*c)++; */
+  /*   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt"); */
+  /*   if(vm->ert) return NULL; */
+  /*   sym = (wabi_val) wabi_symbol_new(vm, bin); */
+  /*   if(vm->ert) return NULL; */
+  /*   return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_val(vm, c)); */
 
   case '0':
   case '1':

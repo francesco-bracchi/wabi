@@ -136,16 +136,13 @@ static void wabi_list_list_p(const wabi_vm vm)
 {
 
   wabi_val ctrl, res, val;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
 
   ctrl = vm->ctrl;
   while(wabi_is_pair(ctrl)) {
     val = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(! wabi_is_list(vm, val)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
+      vm->ctrl = vm->fls;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return;
     }
@@ -154,8 +151,7 @@ static void wabi_list_list_p(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  *res = wabi_val_true;
-  vm->ctrl = res;
+  vm->ctrl = vm->trh;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 

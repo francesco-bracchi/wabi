@@ -131,5 +131,5 @@ wabi_env_builtins(const wabi_vm vm, const wabi_env env)
 {
   wabi_defn(vm, env, "env?", &wabi_env_p_bt);
   if(vm->ert) return;
-  wabi_defn(vm, env, "ext!", &wabi_env_extend_bt);
+  wabi_defn(vm, env, "ext", &wabi_env_extend_bt);
 }

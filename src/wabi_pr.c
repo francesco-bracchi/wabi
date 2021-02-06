@@ -156,7 +156,7 @@ wabi_pr_applicative(wabi_vm vm, wabi_combiner_derived val)
   while(WABI_IS(wabi_tag_pair, body)) {
     wabi_pr(vm, wabi_car((wabi_pair) body));
     body = wabi_cdr((wabi_pair) body);
-    if(! wabi_atom_is_nil(vm, body)) {
+    if(! wabi_atom_is_empty(vm, body)) {
       printf(" ");
     }
   }
@@ -178,7 +178,7 @@ wabi_pr_operative(const wabi_vm vm, wabi_combiner_derived val)
   while(wabi_is_pair(body)) {
     wabi_pr(vm, wabi_car((wabi_pair) body));
     body = wabi_cdr((wabi_pair) body);
-    if(!wabi_atom_is_nil(vm, body)) {
+    if(!wabi_atom_is_empty(vm, body)) {
       printf(" ");
     }
   }

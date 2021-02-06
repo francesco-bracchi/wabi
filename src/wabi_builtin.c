@@ -89,17 +89,14 @@ void
 wabi_builtin_predicate(const wabi_vm vm,
                        const wabi_builtin_test_fn test_fn)
 {
-  wabi_val ctrl, res, val;
-  res = wabi_vm_alloc(vm, 1);
-  if(vm->ert) return;
+  wabi_val ctrl, val;
 
   ctrl = vm->ctrl;
   while(wabi_is_pair(ctrl)) {
     val = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(! test_fn(val)) {
-      *res = wabi_val_false;
-      vm->ctrl = res;
+      vm->ctrl = vm->fls;
       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
       return;
     }
@@ -108,8 +105,7 @@ wabi_builtin_predicate(const wabi_vm vm,
     vm->ert = wabi_error_bindings;
     return;
   }
-  *res = wabi_val_true;
-  vm->ctrl = res;
+  vm->ctrl = vm->trh;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
