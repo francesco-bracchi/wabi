@@ -204,11 +204,13 @@ wabi_vm_bind(const wabi_vm vm,
         if(vm->ert) return;
         continue;
       }
-      if(wabi_atom_is_empty(vm, args)) {
-        wabi_vm_bind(vm, env, vm->emp, p0);
-        if(vm->ert) return;
-        continue;
-      }
+      vm->ert = wabi_error_bindings;
+      return;
+      /* if(wabi_atom_is_empty(vm, args)) { */
+      /*   wabi_vm_bind(vm, env, vm->emp, p0); */
+      /*   if(vm->ert) return; */
+      /*   continue; */
+      /* } */
     }
     if(wabi_is_symbol(params)) {
       wabi_env_set(vm, env, (wabi_symbol) params, args);
@@ -837,6 +839,8 @@ wabi_vm_run(const wabi_vm vm,
   vm->ert = wabi_error_none;
 
   while(vm->cont) {
+    // printf("ctrl: "); wabi_prn(vm, vm->ctrl);
+    // printf("cont: "); wabi_prn(vm, vm->cont);
     wabi_vm_reduce(vm);
     if (vm->ert == wabi_error_nomem) {
       wabi_vm_collect(vm);

@@ -42,7 +42,7 @@
     (eval e
       (list def n (list* fn as bs)))))
 
-;(defx prmt
+(defx prmt
     e (t . bs)
   (eval e
     (list* prompt (eval e t) bs)))

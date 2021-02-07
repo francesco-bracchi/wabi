@@ -385,8 +385,7 @@ wabi_builtin_not(const wabi_vm vm)
   v = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   if(vm->ert) return;
-
-  vm->ctrl = wabi_is_falsey(vm, v) ? vm->fls : vm->trh;
+  vm->ctrl = wabi_is_falsey(vm, v) ? vm->trh : vm->fls;
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
