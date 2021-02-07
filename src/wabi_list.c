@@ -135,7 +135,7 @@ static void wabi_list_pair_p(const wabi_vm vm)
 static void wabi_list_list_p(const wabi_vm vm)
 {
 
-  wabi_val ctrl, res, val;
+  wabi_val ctrl, val;
 
   ctrl = vm->ctrl;
   while(wabi_is_pair(ctrl)) {

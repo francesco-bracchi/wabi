@@ -375,7 +375,7 @@ wabi_builtin_clock(wabi_vm vm)
 static void
 wabi_builtin_not(const wabi_vm vm)
 {
-  wabi_val r, v, ctrl;
+  wabi_val v, ctrl;
 
   ctrl = vm->ctrl;
   if(! wabi_is_pair(ctrl)) {
@@ -384,7 +384,6 @@ wabi_builtin_not(const wabi_vm vm)
   }
   v = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
-  r = wabi_vm_alloc(vm, 1);
   if(vm->ert) return;
 
   vm->ctrl = wabi_is_falsey(vm, v) ? vm->fls : vm->trh;
@@ -426,9 +425,9 @@ wabi_builtin_hash(const wabi_vm vm)
 static void
 wabi_builtin_collect(const wabi_vm vm)
 {
-  wabi_size _free, total;
-  double perc;
-  time_t t, t0;
+  /* wabi_size _free, total; */
+  /* double perc; */
+  /* time_t t, t0; */
 
   if(!wabi_atom_is_empty(vm, vm->ctrl)) {
     vm->ert = wabi_error_bindings;

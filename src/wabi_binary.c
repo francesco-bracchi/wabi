@@ -469,7 +469,7 @@ static void
 wabi_binary_bin_p(const wabi_vm vm)
 {
   wabi_binary bin;
-  wabi_val res, ctrl;
+  wabi_val ctrl;
 
   ctrl = vm->ctrl;
   while(WABI_IS(wabi_tag_pair, ctrl)) {
