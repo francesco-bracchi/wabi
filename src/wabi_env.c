@@ -39,6 +39,7 @@
 #include "wabi_atom.h"
 #include "wabi_hash.h"
 
+static wabi_size rnd = 0;
 
 
 static inline wabi_word
@@ -85,6 +86,110 @@ wabi_env_collect_val(wabi_vm vm, wabi_env env)
   }
   WABI_SET_TAG(env, wabi_tag_env);
   vm->stor.scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
+}
+
+
+void
+wabi_env_set_expand(const wabi_vm vm,
+                    const wabi_env env)
+{
+  uint32_t new_size;
+  wabi_word *new_data;
+
+  new_size = env->numE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
+  new_data = (wabi_word*) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
+  if(vm->ert) return;
+
+  wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);
+  env->data = (wabi_word) new_data;
+  env->maxE = new_size;
+}
+
+static inline void
+wabi_env_actually_set(const wabi_env env,
+                      const wabi_val k,
+                      const wabi_val v)
+{
+  *(((wabi_val) env->data) + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) k;
+  *(((wabi_val) env->data) + 1 + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) v;
+  env->numE++;
+}
+
+static inline wabi_val
+wabi_env_lookup_local(const wabi_env env, const wabi_val k)
+{
+  wabi_size j, l;
+  wabi_val k0, res;
+  wabi_word sk, sv;
+
+  for(j = 0; j < env->numE; j++) {
+    k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
+    if(k0 != k) continue;
+    res = (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
+    if(j >= WABI_ENV_LOW_LIMIT) {
+      // this stuff moves the most recent visited symbols at the first part of the list
+      // can a better algorithm be devised?
+      rnd = l = (rnd+1) % WABI_ENV_LOW_LIMIT;
+      sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
+      sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
+      *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE);
+      *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE);
+      *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE) = sk;
+      *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE) = sv;
+    }
+    return res;
+  }
+  return NULL;
+}
+
+wabi_val
+wabi_env_lookup(const
+                wabi_env env0,
+                const wabi_val k)
+{
+  wabi_env env;
+  wabi_val res;
+
+  env = env0;
+  do {
+    res = wabi_env_lookup_local(env, k);
+    if(res) return res;
+    env = (wabi_env) WABI_WORD_VAL(env->prev);
+  } while(env);
+  return NULL;
+}
+
+
+void
+wabi_env_set(const wabi_vm vm,
+             const wabi_env env,
+             const wabi_val k,
+             const wabi_val v)
+{
+  if(wabi_env_lookup_local(env, k)) {
+    vm->ert = wabi_error_already_defined;
+    return;
+  }
+  if(env->numE >= env->maxE) {
+    wabi_env_set_expand(vm, env);
+    if(vm->ert) return;
+  }
+  wabi_env_actually_set(env, k, v);
+}
+
+void
+wabi_env_copy_val(const wabi_vm vm,
+                  const wabi_env env)
+{
+  wabi_size size;
+  wabi_word *res;
+
+  res = vm->stor.heap;
+  size = env->numE * WABI_ENV_PAIR_SIZE;
+  wordcopy(res, (wabi_word*) env, WABI_ENV_SIZE);
+  wordcopy(res + WABI_ENV_SIZE, (wabi_word*) env->data, size);
+  ((wabi_env)res)->data = (wabi_word) (res + WABI_ENV_SIZE);
+  vm->stor.heap += WABI_ENV_SIZE + size;
 }
 
 /**

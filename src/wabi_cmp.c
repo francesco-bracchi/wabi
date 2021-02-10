@@ -29,7 +29,6 @@ wabi_cmp(const wabi_val a, const wabi_val b)
   tag = WABI_TAG(a);
 
   diff = tag - WABI_TAG(b);
-
   switch(tag) {
   case wabi_tag_fixnum:
     if(wabi_is_fixnum(b)) {

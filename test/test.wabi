@@ -1,4 +1,3 @@
-
 (def q
   (fx _ (p) p))
 
@@ -21,11 +20,12 @@
   (wrap
    (fx _ (o as)
      (eval (env) (cons (unwrap o) as)))))
+
 (def list*
   (wrap
    (fx _ (a . as)
      (if
-       (nil? as) a
+       (= () as) a
        (cons a (apply list* as))))))
 
 (def fn
@@ -55,12 +55,12 @@
 (defn fold
     (f i as)
   (if
-   (nil? as) i
+   (= () as) i
    (fold f (f i (car as)) (cdr as))))
 
 (defn conc
     as
-  (rec conc (rs nil a nil as as)
+  (rec conc (rs () a () as as)
     (if
      (pair? a) (conc (cons (car a) rs) (cdr a) as)
      (pair? as) (conc rs (car as) (cdr as))
@@ -77,12 +77,12 @@
 (defn foldr
     (f as i)
   (if
-   (nil? as) i
+   (= () as) i
    (f (car as) (foldr f (cdr as) i))))
 
 (defn rev
     (as)
-  (fold (flip cons) nil as))
+  (fold (flip cons) () as))
 
 (defn always
     (v)
@@ -91,46 +91,38 @@
 (defn all?
     (t? as)
   (if
-   (nil? as) true
+   (= as ()) :true
    (t? (car as)) (all? t? (cdr as))
-   false))
+   :false))
 
 (defn some?
     (t? as)
   (if
-   (nil? as) false
-   (t? (car as)) true
+   (= () as) :false
+   (t? (car as)) :true
    (some? t? (cdr as))))
 
 (defn last
     (as)
   (if
-    (nil? as) nil
-    (nil? (cdr as)) (car as)
+    (= () as) :nil
+    (= () (cdr as)) (car as)
     (last (cdr as))))
 
 (defn but-last
     (as)
   (if
-    (nil? as) nil
-    (nil? (cdr as)) (car as)
-    (but-last (cdr as))))
-
-(defn snoc
-    (as a)
-  (if
-   (nil? as) (list a)
-   (cons (car as) (snoc (cdr as) a))))
-
-(defn pipe
-    (a b)
-  (if
-   (pair? b) (snoc b a)
-   (list b a)))
+    (= () as) :nil
+    (= () (cdr as)) ()
+    (cons (car as) (but-last (cdr as)))))
 
 (defx ->
     e (a . as)
-  (eval e (fold pipe a as)))
+  (pr (fold (fn (v ex)
+              (pr (list 'conc ex (list v)))
+              (conc ex (list v)))
+            a as))
+  (eval e (fold (fn (v ex) (conc ex (list v))) a as)))
 
 (defx and
     e bs
@@ -143,88 +135,66 @@
 (defn odds
     (cs)
   (if
-   (nil? cs) nil
+   (= () cs) ()
    (cons (car cs) (evens (cdr cs)))))
 
 (defn evens
     (cs)
   (if
-   (nil? cs) nil
+   (= () cs) ()
    (odds (cdr cs))))
 
 (defn map1
     (f as)
   (if
-   (nil? as) nil
+   (= () as) ()
    (cons (f (car as)) (map1 f (cdr as)))))
 
 (defn each1
     (f as)
   (if
-   (nil? as) nil
+   (= () as) ()
    (do (f (car as)) (each1 f (cdr as)))))
 
 (defn map
     (f . as)
   (if
-   (nil? as) nil
-   (some? nil? as) nil
+   (= as ()) ()
+   (some? (part = ()) as) ()
    (cons (apply f (map1 car as))
          (apply map (cons f (map1 cdr as))))))
 
 (defn each
     (f . as)
   (if
-   (nil? as) nil
-   (some? nil? as) nil
+   (= () as) :nil
+   (some? (part = ()) as) :nil
    (do (apply f (map1 car as))
        (apply each (cons f (map1 cdr as))))))
 
 (defx rec
     e (n bs . xs)
-  (def e1 (ext! e))
-  (eval e1 (list* defn n (odds bs) xs))
-  (eval e1 (list* n (evens bs))))
+  (eval (ext e)
+    (list* defn n (odds bs) xs)
+    (list* n (evens bs))))
 
 (defx let
     e (bs . xs)
-  "evaluates the even parts of bs, and **then** creates a new environment
-   and binds the results to the odd parts of bs. Then evaluates xs in the
-   context of the newly created environment.
-
-   The order is important in the continuation game, if we create
-   the environmnet first, we can call a continuation only once, every
-   subsequent call will try to define a symbol in an environment, that
-   is a runtime error."
   (eval e (list* (list* fn (odds bs) xs) (evens bs))))
 
 (defx letr
     e (bs . xs)
-  "`letr` is like `let` except it first creates the new enviornment then
-   evaluates the even parts in the context of the newly created environment.
-
-   The order is important in the continuation game, if using letr and
-   continuation, you can only continue once, since redefining a word is
-   a rutime error. On the other hand letr allow local values to see all
-   newly interoduced values "
-  (def e1 (ext! e))
+  (def e1 (ext e))
   (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
   (eval e1 (list* do xs)))
 
-
-;; (defn comp
-;;     fs
-;;   (if
-;;    (nil? fs) id
-;;    (nil? (cdr fs)) (car fs)
-;;    (nil? (cdr (cdr fs))) (do (def f (car fs))
-;;                              (def g (car (cdr fs)))
-;;                              (fn (a) (f (g a))))
-;;    (fold comp (car fs) (cdr fs))))
+(defn comp2
+    (f g)
+  (fn (x) (f (g x))))
 
 (defn comp
     fs
-  (fold (fn (f g) (fn (x) (f (g x)))) id fs))
+  (fold comp2 id fs))
 
 (def inc
   (part + 1))
@@ -244,32 +214,41 @@
 (def neg?
   (part > 0))
 
-(defn len
+(def emp?
+  (part = ()))
+
+(def nil?
+  (part = :nil))
+
+(def ign?
+  (part = _))
+
+;(defn len
     (as)
   (rec len (as as t 0)
     (if
-     (nil? as) t
+     (= () as) t
      (len (cdr as) (inc t)))))
 
 (defn take
     (n as)
   (if
-   (zero? n) nil
-   (nil? as) nil
+   (= 0 n) ()
+   (= () as) ()
    (cons (car as) (take (dec n) (cdr as)))))
 
 (defn drop
     (n as)
   (if
-   (zero? n) as
-   (nil? as) nil
+   (= 0 n) as
+   (= () as) ()
    (drop (dec n) (cdr as))))
 
 (defn filter
     (t? as)
-  (rec filter (as as rs nil)
+  (rec filter (as as rs ())
     (if
-     (nil? as) (rev rs)
+     (= () as) (rev rs)
      (t? (car as)) (filter (cdr as) (cons (car as) rs))
      (filter (cdr as) rs))))
 
@@ -280,35 +259,35 @@
 (defn find
     (t? as)
   (if
-   (nil? as) nil
+   (= () as) :nil
    (t? (car as)) (car as)
    (find t? (cdr as))))
 
 (defn in?
     (a as)
   (if
-    (nil? as) false
-    (= a (car as)) true
+    (= () as) :false
+    (= a (car as)) :true
     (in? a (cdr as))))
 
 (defn take?
     (t? as)
-  (rec take? (as as rs nil)
+  (rec take? (as as rs ())
     (if
-     (nil? as) (rev rs)
+     (= () as) (rev rs)
      (t? (car as)) (take? (cdr as) (cons (car as) rs))
      (rev rs))))
 
 (defn drop?
     (t? as)
   (if
-   (nil? as) nil
+   (= () as) ()
    (t? (car as)) (drop? t? (cdr as))
    as))
 
 (defn iter
     (i f n)
-  (rec iter (i i n n rs nil)
+  (rec iter (i i n n rs ())
     (if
      (< n 1) (rev rs)
      (iter (f i) (dec n) (cons i rs)))))
@@ -317,8 +296,12 @@
     (n)
   (iter 0 inc n))
 
+(defn cdr*
+    (p)
+  (let (c (cdr p)) (if c c ())))
+
 (def (fst snd trd fth)
-  (iter car (fn (f) (comp f cdr)) 4))
+  (iter car (fn (f) (comp2 f cdr*)) 4))
 
 (defn nth (n l)
   (if
@@ -326,21 +309,13 @@
    (= 1 n) (snd l)
    (= 2 n) (trd l)
    (= 3 n) (fth l)
-   (nth (- n 3) (cdr (cdr (cdr l))))))
+   (nth (- n 3) (cdr* (cdr* (cdr* l))))))
 
 (def tl
   cdr)
 
 (def hd
   car)
-
-(defn flat
-    (a)
-  (if
-   (nil? a) nil
-   (not (pair? a)) (list a)
-   (conc (-> a car flat)
-         (-> a cdr flat))))
 
 (defx when
     e (t? . bs)
@@ -352,116 +327,17 @@
   (eval e
     (list* when (list not t?) bs)))
 
-(defx afx
-    e bs
-  "this is an anamorhic fexpr, some pronouns are introduced!
-  their-env -> the calling environmnet
-  me -> the function itself
-  them -> the arguments
-  it (or @1) -> the first argument
-  @2 @3 @4 @5 -> the arguments other than it"
-  (eval (ext! e)
-    (list* defx !me
-           !their-env !them
-           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
-
-
 (defx afn
     e bs
-  "this is an anamorhic function, some pronouns are introduced!
-  me -> the function itself
-  them -> the arguments
-  it (or @1) -> the first argument
-  @2 @3 @4 @5 -> the arguments other than it"
-  (eval (ext! e)
-    (list* defn !me
-           !them
-           (list (list* let !((@1 @2 @3 @4 @5 @6 . _) them (it . _) them) bs)))))
+  (eval (ext e)
+    (list* defn 'me
+           'them
+           (list (list* let (list 'it (list car 'them)) bs)))))
 
 
-(defx defp
-    e (n i)
-  "binds a variable to a place `(defp x 10)"
-  (eval e
-    (list def n (list plc i))))
-
-
-(defn plc-swap
-    (p f . as)
-  "run the function f against the place content p until it succeeds.
-   extra arguments are placed in as"
-  (rec plc-swap (old (plc-val p))
-    (let (new (apply f (list* old as)))
-      (if
-       (plc-cas p old new) new
-       (plc-swap (plc-val plc))))))
-
-
-(defn plc-reset
-    (p v)
-  (plc-swap p (always v)))
-
-
-;; (defn vec-update
-;;     (d j f . as)
-;;   (vec-set d j (apply f (cons (vec-ref d j) as))))
-
-
-;; generics
-
-(def gen-table (plc {}))
-
-(defn gen
-    (dfn)
-  (def dmap (plc {}))
-  (defn res as (apply ((plc-val dmap) (apply dfn as)) as))
-  (plc-swap gen-table assoc res dmap)
-  res)
-
-
-(defx defg
-    e (n dfn)
-  (eval e
-    (list def n (gen (eval e dfn)))))
-
-
-(defn addm
-    (g d f)
-  (plc-swap ((plc-val gen-table) g) assoc d f))
-
-
-(defx defm
-    e (n d as . b)
-  (addm (eval e n) (eval e d) (eval e (list* fn as b))))
-
-;; generics end
-
-(defn type
-    (e)
-  (if
-   (plc? e) !plc
-   (pair? e) !pair))
-
-(pr (type 10))
-;; (def deref (gen type))
-
-;; (defm deref !plc
-;;     (a)
-;;   (plc-val a))
-
-;; (defm deref nil
-;;     (a)
-;;   nil)
-
-
-(defn insp
-    as
-  (pr as)
-  (if
-   (nil? as) nil
-   (nil? (cdr as)) (car as)
-   as))
-
+(defn vec-update
+    (v p fn . rs)
+  (vec-set v p (apply fn (list* (vec-ref v p) rs))))
 
 ;; TESTS
 
@@ -475,23 +351,26 @@
 (defx time
     e as
   (let ((d as r) (eval e (list* bench as)))
-    (pr !benchmarks !for)
+    (apply pr '(benchmarks for))
     (each pr as)
-    (pr !-------)
-    (pr !time d !ms)
+    (pr '-------)
+    (pr 'time d 'ms)
     (pr)
     r))
 
 (defx test
     e (a b)
   (let ((ax bx) (map (part eval e) (list a b)))
-    (pr !test
-        (list != a b)
+    (pr 'test
+        (list '= a b)
         (if
-         (= ax bx) !ok
-         (list !error ax bx)))))
+         (= ax bx) 'ok
+         (list 'error ax bx)))))
 
-;; fib
+
+;"ACTUAL TESTS"
+(def foo (plc {}))
+
 (defn fib
     (n)
   (if
@@ -508,10 +387,10 @@
 (test (bin-len "") 0)
 (test (bin-len "ciao") 4)
 (test (bin-sub "ciao" 1 2) "ia")
-(test (> "ciao" "ao") false)
-(test (> "ao" "ciao") true)
-(test (> "a" "") true)
-(test (< "" "a") true)
+(test (> "ciao" "ao") :false)
+(test (> "ao" "ciao") :true)
+(test (> "a" "") :true)
+(test (< "" "a") :true)
 
 (test (bin-sub "ciao" 0 0) "")
 
@@ -525,14 +404,15 @@
 
 (test (id (+ 2 3)) 5)
 (test (list* 1 2 (list 3 4)) (list 1 2 3 4))
-(test (fold + 0 nil) 0)
+(test (fold + 0 ()) 0)
 (test (fold + 0 (list 1 2 3)) 6)
 (test (fold + 10 (list 1 2 3)) 16)
 (test (apply + (list 1 2 3)) 6)
 
-(test (conc) nil)
-(test (conc nil) nil)
-(test (conc nil nil) nil)
+;"empty list is the zero for conc."
+(test (conc) ())
+(test (conc ()) ())
+(test (conc () ()) ())
 (test (conc (ran 3) (map (part + 3) (ran 3))) (ran 6))
 (test (conc(ran 3)
            (map (part + 3) (ran 3))
@@ -540,74 +420,69 @@
       (ran 9))
 
 
-;; if
-;; zero terms -> nil
-;; one term evaluates to that term
-;; two more terms -> if the first term is truish the second term, otherwise apply to the rest
-(test (if) nil)
+;"if zero terms -> nil"
+;"one term evaluates to that term"
+;"two more terms -> if the first term is truish the second term, otherwise apply to the rest"
+(test (if) :nil)
 
-;; if just one term evaluates to term
-;; (forall (e gen-term) (= e (if e)))
-(test (if true) true)
+;"if just one term evaluates to term"
+;"(forall (e gen-term) (= e (if e)))"
+(test (if :true) :true)
 (test (if 10) 10)
-(test (if false) false)
-(test (if nil) nil)
+(test (if :false) :false)
+(test (if :nil) :nil)
 
-(test (if nil "true") nil)
-(test (if false "true") nil)
-(test (if true "true") "true")
+(test (if :nil "true") :nil)
+(test (if :false "true") :nil)
+(test (if :true "true") "true")
 (test (if 10 "true") "true")
 
 
-(test (odds nil) nil)
-(test (evens nil) nil)
+(test (odds ()) ())
+(test (evens ()) ())
 (test (odds (qs 1)) (qs 1))
-(test (evens (qs 1)) nil)
+(test (evens (qs 1)) ())
 (test (odds (list 1 2 3 4 5 6 8)) (list 1 3 5 8))
 (test (evens (list 1 2 3 4 5 6 8)) (list 2 4 6))
 
 
-(test (when true 20 10) 10)
-(test (when false 20 10) nil)
-(test (unless true 20 10) nil)
-(test (unless false 20 10) 10)
-
-(test (flat nil) nil)
-(test (flat !(a . d)) !(a d))
-(test (flat !(((a)))) !(a))
-(test (flat !((a b) (c d))) !(a b c d))
+(test (when :true 20 10) 10)
+(test (when :false 20 10) :nil)
+(test (unless :true 20 10) :nil)
+(test (unless :false 20 10) 10)
 
 (test (prompt x 10) 10)
 (test (prompt x 10 20) 20)
 (test (+ 1 (prompt x (control x k 20))) 21)
 ;; (test (+ 1 (prompt x (control x1 k 20))) 21)
 (test (+ 1 (prompt x (control x k 20 10))) 11)
-(test (prompt x (control x k (cont? k))) true)
-(test (prompt x (control x k (app? k))) true)
-(test (prompt x (control x k (oper? k))) false)
+(test (prompt x (control x k (cont? k))) :true)
+(test (prompt x (control x k (app? k))) :true)
+(test (prompt x (control x k (oper? k))) :false)
 (test (* 2 (prompt x (+ 1 (control x k (k 3))))) 8)
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
 (test
- (rec recur (a (list 0 1) r nil)
+ (rec recur (a (list 0 1) r ())
    (if
-    (nil? a) (rev r)
+    (= a ()) (rev r)
     (recur (cdr a) (cons (inc (car a)) r))))
  (list 1 2))
 
-(test (fst nil) nil)
+(test (fst ()) :nil)
 (test (fst (list 1 2 3 4 5)) 1)
 (test (snd (list 1 2 3 4 5)) 2)
 (test (trd (list 1 2 3 4 5)) 3)
 (test (fth (list 1 2 3 4 5)) 4)
 (test (nth 4 (list 1 2 3 4 5)) 5)
-(test (nth 5 (list 1 2 3 4 5)) nil)
+(test (nth 5 (list 1 2 3 4 5)) :nil)
+(test (nth 100 (list 1 2 3 4 5)) :nil)
 
-(test (ran 0) nil)
+(test (ran 0) ())
 (test (ran 1) (list 0))
 (test (ran 2) (list 0 1))
-(test (ran (- 1)) nil)
+(test (ran -1) ())
 
 (test (+) 0)
 (test (+ 2) 2)
@@ -624,81 +499,81 @@
 (test (/ 4 2) 2)
 (test (/ 4 3) 1)
 
-(test (= 10) true)
-(test (= 10 (+ 1 9)) true)
-(test (= 10 (+ 1 9) (* 2 5)) true)
-(test (= 10 (+ 1 9) (* 4 4)) false)
+(test (= 10) :true)
+(test (= 10 (+ 1 9)) :true)
+(test (= 10 (+ 1 9) (* 2 5)) :true)
+(test (= 10 (+ 1 9) (* 4 4)) :false)
 
-(test (> 10) true)
-(test (> 20 10) true)
-(test (> 30 20 10) true)
-(test (> 30 20 21) false)
+(test (> 10) :true)
+(test (> 20 10) :true)
+(test (> 30 20 10) :true)
+(test (> 30 20 21) :false)
 
-(test (< 10) true)
-(test (< 10 20) true)
-(test (< 10 20 30) true)
-(test (< 10 20 19) false)
+(test (< 10) :true)
+(test (< 10 20) :true)
+(test (< 10 20 30) :true)
+(test (< 10 20 19) :false)
 
-(test (all? (part < 0) nil) true)
-(test (all? (part < 0) (list 1 2 3)) true)
-(test (all? (part < 0) (list 1 0 3)) false)
+(test (all? (part < 0) ()) :true)
+(test (all? (part < 0) (list 1 2 3)) :true)
+(test (all? (part < 0) (list 1 0 3)) :false)
 
-(test (some? (part < 0) nil) false)
-(test (some? (part < 0) (list 1 2 3)) true)
-(test (some? (part < 0) (list 1 0 -1)) true)
+(test (some? (part < 0) ()) :false)
+(test (some? (part < 0) (list 1 2 3)) :true)
+(test (some? (part < 0) (list 1 0 -1)) :true)
 
-(test (and (> 1 0) (> 0 1)) false)
-(test (or (> 1 0) (> 0 1)) true)
+(test (and (> 1 0) (> 0 1)) :false)
+(test (or (> 1 0) (> 0 1)) :true)
 
 (test (let (a 1 b 2) (+ a b)) 3)
 (test (let (a 1 b 2) (+ a b) 10) 10)
 
-(test (take 0 (ran 2)) nil)
+(test (take 0 (ran 2)) ())
 (test (take 1 (ran 2)) (list 0))
 (test (take 2 (ran 2)) (list 0 1))
 (test (take 3 (ran 2)) (list 0 1))
 
 (test (drop 0 (ran 2)) (list 0 1))
 (test (drop 1 (ran 2)) (list 1))
-(test (drop 2 (ran 2)) nil)
-(test (drop 3 (ran 2)) nil)
+(test (drop 2 (ran 2)) ())
+(test (drop 3 (ran 2)) ())
 
-(test (map inc) nil)
+(test (map inc) ())
 
 (test (map inc (ran 3)) (list 1 2 3))
 (test (map + (ran 3) (ran 4)) (list 0 2 4))
 (test (map + (ran 4) (ran 3)) (list 0 2 4))
 
 (test (find (part < 3) (ran 10)) 4)
-(test (find (part < 3) (ran 3)) nil)
-(test (in? 3 (ran 3)) false)
-(test (in? 3 (ran 10)) true)
-(test (drop? (part > 4) (ran 2)) nil)
+(test (find (part < 3) (ran 3)) :nil)
+(test (in? 3 (ran 3)) :false)
+(test (in? 3 (ran 10)) :true)
+(test (drop? (part > 4) (ran 2)) ())
 (test (drop? (part > 4) (ran 6)) (list 4 5))
 (test (take? (part > 4) (ran 6)) (list 0 1 2 3))
 (test (take? (part > 4) (ran 2)) (list 0 1))
-(test (len nil) 0)
+(test (len ()) 0)
 (test (len (ran 20)) 20)
 
 (test (len (ran 2)) 2)
 
-(test (-> 3) 3)
-(test (-> 3 ran) (ran 3))
-(test (-> 3 ran (apply +) (* 3)) (* 3 (apply + (ran 3))))
+;(test (-> 3) 3)
+(test (-> 3 (ran)) (ran 3))
+(test (-> 3 (ran) (apply +) (* 3)) (* 3 (apply + (ran 3))))
 
 (test (fst (ran 3)) 0)
 (test (snd (ran 3)) 1)
 (test (trd (ran 3)) 2)
-(test (fth (ran 3)) nil)
+(test (fth (ran 3)) :nil)
 
 (test (hd (ran 10)) (car (ran 10)))
 (test (fst (ran 10)) (car (ran 10)))
-(test (hd nil) (car nil))
-(test (fst nil) (car nil))
+(test (hd ()) (car ()))
+(test (fst ()) (car ()))
 
-;; (fib 20)
+;(fib 20)
 
-;; (pr (kont 100))
+;(pr (kont 100))
 
 (test (map #(+ it 1) (ran 5)) (map inc (ran 5)))
 
@@ -706,63 +581,29 @@
 
 (test (apply #(fold + 0 them) (ran 10)) (apply + (ran 10)))
 
-(test (fold #(+ @1 @2) 0 (ran 10)) (fold + 0 (ran 10)))
-
-(test (#(id @3) 10) nil)
-
-(test (assoc {} 10 !ten) {10 !ten})
-(test (map? 10) false)
-(test (map? {}) true)
-(test (map? {!a 10}) true)
-(test (map? {!a 10} !b) false)
-(test (map? {!a 10} {!b 30}) true)
-(test (dissoc {!a 10 !b 20} !a !c) {!b 20})
+(test (assoc {} 10 :ten) {10 :ten})
+(test (map? 10) :false)
+(test (map? {}) :true)
+(test (map? {:a 10}) :true)
+(test (map? {:a 10} :b) :false)
+(test (map? {:a 10} {:b 30}) :true)
+(test (dissoc {:a 10 :b 20} :a :c) {:b 20})
 (test (map-len (apply hmap (ran 100))) 50)
 (test (map-len (apply hmap (ran 8))) 4)
-
-;; (time (each (fn (_) (fib 25)) (ran 40)))
 
 (test (hash "ciao") (hash (bin-cat "ci" "ao")))
 
 (test {(env) 10} {(env) 10})
 
-(test (> (list 2) (list 1)) true)
-(test (> (list 1) (list 2)) false)
+(test (> (list 2) (list 1)) :true)
+(test (> (list 1) (list 2)) :false)
 
 (test (kont 100) 103)
 
-;; (time (each #(fib 24) (ran 100)))
-
-;; (time (fib 35))
-
-(test
- 110
- (let ()
-   (defp x 10)
-   (plc-swap x + 100)
-   (plc-val x)))
-
-(test (plc-reset (plc 10) 20) 20)
-
-
-(test (pair? (list)) false)
-(test (pair? (list 1)) true)
-(test (pair? (list 1) (list 2)) true)
-(test (pair? (list 1) (list)) false)
-
-
-;; (defn vec-to-list
-;;     (d)
-;;   (rec vec-to-list (d d r nil)
-;;     (if
-;;      (vec-emp? d) r
-;;      (vec-to-list (pop-right d) (cons (right d) r)))))
-
-
-;; (pr (vec-to-list [0 1 2 3 4 5 6 7 8 9 10]))
-
-
-;; ;; (time (fib 37))
+(test (pair? (list)) :false)
+(test (pair? (list 1)) :true)
+(test (pair? (list 1) (list 2)) :true)
+(test (pair? (list 1) (list)) :false)
 
 
 (test (vec-len []) 0)
@@ -770,16 +611,16 @@
 (test (vec-len [1 2]) 2)
 (test (vec-len (apply vec (ran 33))) 33)
 
-(test (vec? []) true)
-(test (vec? [] []) true)
-(test (vec? [] nil) false)
+(test (vec? []) :true)
+(test (vec? [] []) :true)
+(test (vec? [] :nil) :false)
 
-;; (test (vec-emp?) true)
-;; (test (vec-emp? []) true)
-;; (test (vec-emp? [1]) false)
-;; (test (vec-emp? 10) false)
-;; (test (vec-emp? [] []) true)
-;; (test (vec-emp? [] [1]) false)
+;(test (vec-emp?) true)
+;(test (vec-emp? []) true)
+;(test (vec-emp? [1]) false)
+;(test (vec-emp? 10) false)
+;(test (vec-emp? [] []) true)
+; (test (vec-emp? [] [1]) false)
 
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
@@ -791,27 +632,29 @@
 (test (push-left 0 (apply vec (map inc (ran 32))))
       (apply vec (ran 33)))
 
-(test (left []) nil)
+; (test (left :nil) :nil)
+(test (left []) :nil)
 (test (left [0 1 2]) 0)
 (test (left (apply vec (ran 100))) 0)
 
-(test (right []) nil)
+; (test (right :nil) :nil)
+(test (right []) :nil)
 (test (right [0 1 2]) 2)
 (test (right (apply vec (ran 100))) 99)
 
-(test (pop-left []) nil)
+(test (pop-left []) :nil)
 (test (pop-left [1]) [])
 (test (pop-left [1 2 3]) [2 3])
 
-(test (pop-right []) nil)
+(test (pop-right []) :nil)
 (test (pop-right [1]) [])
 (test (pop-right [1 2 3]) [1 2])
 
-(test (vec-ref [] 0) nil)
-(test (vec-ref [1 2 3] -1) nil)
+(test (vec-ref [] 0) :nil)
+(test (vec-ref [1 2 3] -1) :nil)
 (test (vec-ref [1 2 3] 0) 1)
 (test (vec-ref [1 2 3] 2) 3)
-(test (vec-ref [1 2 3] 3) nil)
+(test (vec-ref [1 2 3] 3) :nil)
 (test (vec-ref (apply vec (ran 1000)) 500) 500)
 
 
@@ -819,14 +662,14 @@
   (test (map #(vec-ref q it) r) r))
 
 
-(test (vec-set [] 0 10) nil)
+(test (vec-set [] 0 10) :nil)
 (test (vec-ref (vec-set [1] 0 100) 0) 100)
-(test (vec-ref (vec-set [0 1] 0 !zero 1 !one) 0) !zero)
+(test (vec-ref (vec-set [0 1] 0 :zero 1 :one) 0) :zero)
 
 (letr (rx (ran 1000) qx (apply vec rx))
     (test
-     (map #(vec-ref (vec-set qx it !other) it) rx)
-     (map (always !other) rx)))
+     (map #(vec-ref (vec-set qx it :other) it) rx)
+     (map (always :other) rx)))
 
 (test (vec-ref (vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
 
@@ -837,21 +680,3 @@
 
 (test (hash (push-right (apply vec (ran 32)) 32))
       (hash (push-left 0 (apply vec (map inc (ran 32))))))
-
-
-
-(defn xran
-    (n cb)
-  (rec xran (j 0)
-    (when (< j n)
-      (cb j)
-      (xran (inc j)))))
-
-
-(xran 10 pr)
-
-(prompt x
-  (rec for (r (xran (fn (j) (control x k (list j (fn () (prompt x (k !x))))))))
-    (def (v k1) r)
-    (pr v)
-    (for (k1))))
