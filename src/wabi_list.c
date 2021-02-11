@@ -30,8 +30,8 @@ wabi_list_car(const wabi_vm vm) {
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
   }
-  //todo: think about it, must be nil only in case of empty list or even for nil?
-  if (wabi_atom_is_empty(vm, pair)) {
+
+  if (wabi_atom_is_empty(vm, pair) || wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
@@ -60,9 +60,8 @@ wabi_list_cdr(const wabi_vm vm) {
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
   }
-  //todo: think about it, must be nil only in case of empty list or even for nil?
-  if (wabi_atom_is_empty(vm, pair)) {
-    vm->ctrl = vm->nil;x
+  if (wabi_atom_is_empty(vm, pair) || wabi_atom_is_nil(vm, pair)) {
+    vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
     return;
   }

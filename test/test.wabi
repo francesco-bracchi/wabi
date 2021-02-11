@@ -32,6 +32,7 @@
   (fx e (as . bs)
     (wrap (eval e (list* fx _ as bs)))))
 
+
 (def defx
   (fx e (n e1 as . bs)
     (eval e
@@ -91,7 +92,7 @@
 (defn all?
     (t? as)
   (if
-   (= as ()) :true
+   (= () as) :true
    (t? (car as)) (all? t? (cdr as))
    :false))
 
@@ -114,15 +115,23 @@
   (if
     (= () as) :nil
     (= () (cdr as)) ()
-    (cons (car as) (but-last (cdr as)))))
+    (const (car as) (but-last (cdr as)))))
+
+(defn snoc
+    (as a)
+  (if
+   (= () as) (list a)
+   (cons (car as) (snoc (cdr as) a))))
+
+(defn pipe
+    (a b)
+  (if
+   (pair? b) (snoc b a)
+   (list b a)))
 
 (defx ->
     e (a . as)
-  (pr (fold (fn (v ex)
-              (pr (list 'conc ex (list v)))
-              (conc ex (list v)))
-            a as))
-  (eval e (fold (fn (v ex) (conc ex (list v))) a as)))
+  (eval e (fold pipe a as)))
 
 (defx and
     e bs
@@ -153,14 +162,14 @@
 (defn each1
     (f as)
   (if
-   (= () as) ()
+   (= () as) nil
    (do (f (car as)) (each1 f (cdr as)))))
 
 (defn map
     (f . as)
   (if
-   (= as ()) ()
-   (some? (part = ()) as) ()
+   (= () as) ()
+   (some? = () as) ()
    (cons (apply f (map1 car as))
          (apply map (cons f (map1 cdr as))))))
 
@@ -168,15 +177,15 @@
     (f . as)
   (if
    (= () as) :nil
-   (some? (part = ()) as) :nil
+   (some? = () as) :nil
    (do (apply f (map1 car as))
        (apply each (cons f (map1 cdr as))))))
 
 (defx rec
     e (n bs . xs)
-  (eval (ext e)
-    (list* defn n (odds bs) xs)
-    (list* n (evens bs))))
+  (def e1 (ext e))
+  (eval e1 (list* defn n (odds bs) xs))
+  (eval e1 (list* n (evens bs))))
 
 (defx let
     e (bs . xs)
@@ -188,13 +197,9 @@
   (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
   (eval e1 (list* do xs)))
 
-(defn comp2
-    (f g)
-  (fn (x) (f (g x))))
-
 (defn comp
     fs
-  (fold comp2 id fs))
+  (fold (fn (f g) (fn (x) (f (g x)))) id fs))
 
 (def inc
   (part + 1))
@@ -214,33 +219,23 @@
 (def neg?
   (part > 0))
 
-(def emp?
-  (part = ()))
-
 (def nil?
   (part = :nil))
 
 (def ign?
   (part = _))
 
-;(defn len
-    (as)
-  (rec len (as as t 0)
-    (if
-     (= () as) t
-     (len (cdr as) (inc t)))))
-
 (defn take
     (n as)
   (if
-   (= 0 n) ()
+   (zero? n) ()
    (= () as) ()
    (cons (car as) (take (dec n) (cdr as)))))
 
 (defn drop
     (n as)
   (if
-   (= 0 n) as
+   (zero? n) as
    (= () as) ()
    (drop (dec n) (cdr as))))
 
@@ -281,7 +276,7 @@
 (defn drop?
     (t? as)
   (if
-   (= () as) ()
+   (= () as) ()e
    (t? (car as)) (drop? t? (cdr as))
    as))
 
@@ -296,12 +291,8 @@
     (n)
   (iter 0 inc n))
 
-(defn cdr*
-    (p)
-  (let (c (cdr p)) (if c c ())))
-
 (def (fst snd trd fth)
-  (iter car (fn (f) (comp2 f cdr*)) 4))
+  (iter car (fn (f) (comp f cdr)) 4))
 
 (defn nth (n l)
   (if
@@ -309,13 +300,21 @@
    (= 1 n) (snd l)
    (= 2 n) (trd l)
    (= 3 n) (fth l)
-   (nth (- n 3) (cdr* (cdr* (cdr* l))))))
+   (nth (- n 3) (cdr (cdr (cdr l))))))
 
 (def tl
   cdr)
 
 (def hd
   car)
+
+(defn flat
+    (a)
+  (if
+   (= () a) ()
+   (not (pair? a)) (list a)
+   (conc (-> a car flat)
+         (-> a cdr flat))))
 
 (defx when
     e (t? . bs)
@@ -327,19 +326,20 @@
   (eval e
     (list* when (list not t?) bs)))
 
+(defx afx
+    e bs
+  (eval (ext e)
+    (list* defx 'me
+           'env 'them
+           (list (list* let '((it . _) them) bs)))))
+
 (defx afn
     e bs
   (eval (ext e)
     (list* defn 'me
            'them
-           (list (list* let (list 'it (list car 'them)) bs)))))
+           (list (list* let '((it . _) them) bs)))))
 
-
-(defn vec-update
-    (v p fn . rs)
-  (vec-set v p (apply fn (list* (vec-ref v p) rs))))
-
-;; TESTS
 
 (defx bench
     e as
@@ -351,7 +351,7 @@
 (defx time
     e as
   (let ((d as r) (eval e (list* bench as)))
-    (apply pr '(benchmarks for))
+    (pr 'benchmarks 'for)
     (each pr as)
     (pr '-------)
     (pr 'time d 'ms)
@@ -361,28 +361,7 @@
 (defx test
     e (a b)
   (let ((ax bx) (map (part eval e) (list a b)))
-    (pr 'test
-        (list '= a b)
-        (if
-         (= ax bx) 'ok
-         (list 'error ax bx)))))
-
-
-;"ACTUAL TESTS"
-(def foo (plc {}))
-
-(defn fib
-    (n)
-  (if
-   (< n 2) n
-   (+ (fib (- n 1)) (fib (- n 2)))))
-
-(def kont
-  (prmt (+ 10 20)
-    (let (u (ctrl (* 2 15) k k))
-      (+ u 3))))
-
-(test (kont 10) 13)
+    (pr (= ax bx))))
 
 (test (bin-len "") 0)
 (test (bin-len "ciao") 4)
@@ -409,7 +388,6 @@
 (test (fold + 10 (list 1 2 3)) 16)
 (test (apply + (list 1 2 3)) 6)
 
-;"empty list is the zero for conc."
 (test (conc) ())
 (test (conc ()) ())
 (test (conc () ()) ())
@@ -420,13 +398,8 @@
       (ran 9))
 
 
-;"if zero terms -> nil"
-;"one term evaluates to that term"
-;"two more terms -> if the first term is truish the second term, otherwise apply to the rest"
-(test (if) :nil)
+(test (if) nil)
 
-;"if just one term evaluates to term"
-;"(forall (e gen-term) (= e (if e)))"
 (test (if :true) :true)
 (test (if 10) 10)
 (test (if :false) :false)
@@ -437,11 +410,10 @@
 (test (if :true "true") "true")
 (test (if 10 "true") "true")
 
-
 (test (odds ()) ())
 (test (evens ()) ())
 (test (odds (qs 1)) (qs 1))
-(test (evens (qs 1)) ())
+(test (evens (qs 1)) :nil)
 (test (odds (list 1 2 3 4 5 6 8)) (list 1 3 5 8))
 (test (evens (list 1 2 3 4 5 6 8)) (list 2 4 6))
 
@@ -454,7 +426,6 @@
 (test (prompt x 10) 10)
 (test (prompt x 10 20) 20)
 (test (+ 1 (prompt x (control x k 20))) 21)
-;; (test (+ 1 (prompt x (control x1 k 20))) 21)
 (test (+ 1 (prompt x (control x k 20 10))) 11)
 (test (prompt x (control x k (cont? k))) :true)
 (test (prompt x (control x k (app? k))) :true)
@@ -464,25 +435,24 @@
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
 (test
- (rec recur (a (list 0 1) r ())
+ (rec recur (a (list 0 1) r nil)
    (if
-    (= a ()) (rev r)
+    (= () a) (rev r)
     (recur (cdr a) (cons (inc (car a)) r))))
  (list 1 2))
 
-(test (fst ()) :nil)
+(test (fst :nil) :nil)
 (test (fst (list 1 2 3 4 5)) 1)
 (test (snd (list 1 2 3 4 5)) 2)
 (test (trd (list 1 2 3 4 5)) 3)
 (test (fth (list 1 2 3 4 5)) 4)
 (test (nth 4 (list 1 2 3 4 5)) 5)
 (test (nth 5 (list 1 2 3 4 5)) :nil)
-(test (nth 100 (list 1 2 3 4 5)) :nil)
 
 (test (ran 0) ())
 (test (ran 1) (list 0))
 (test (ran 2) (list 0 1))
-(test (ran -1) ())
+(test (ran (- 1)) ())
 
 (test (+) 0)
 (test (+ 2) 2)
@@ -514,11 +484,11 @@
 (test (< 10 20 30) :true)
 (test (< 10 20 19) :false)
 
-(test (all? (part < 0) ()) :true)
+(test (all? (part < 0) nil) :true)
 (test (all? (part < 0) (list 1 2 3)) :true)
 (test (all? (part < 0) (list 1 0 3)) :false)
 
-(test (some? (part < 0) ()) :false)
+(test (some? (part < 0) nil) :false)
 (test (some? (part < 0) (list 1 2 3)) :true)
 (test (some? (part < 0) (list 1 0 -1)) :true)
 
@@ -557,9 +527,9 @@
 
 (test (len (ran 2)) 2)
 
-;(test (-> 3) 3)
-(test (-> 3 (ran)) (ran 3))
-(test (-> 3 (ran) (apply +) (* 3)) (* 3 (apply + (ran 3))))
+(test (-> 3) 3)
+(test (-> 3 ran) (ran 3))
+(test (-> 3 ran (apply +) (* 3)) (* 3 (apply + (ran 3))))
 
 (test (fst (ran 3)) 0)
 (test (snd (ran 3)) 1)
@@ -568,12 +538,8 @@
 
 (test (hd (ran 10)) (car (ran 10)))
 (test (fst (ran 10)) (car (ran 10)))
-(test (hd ()) (car ()))
-(test (fst ()) (car ()))
-
-;(fib 20)
-
-;(pr (kont 100))
+(test (hd nil) (car nil))
+(test (fst nil) (car nil))
 
 (test (map #(+ it 1) (ran 5)) (map inc (ran 5)))
 
@@ -600,11 +566,12 @@
 
 (test (kont 100) 103)
 
+(test (plc-reset (plc 10) 20) 20)
+
 (test (pair? (list)) :false)
 (test (pair? (list 1)) :true)
 (test (pair? (list 1) (list 2)) :true)
 (test (pair? (list 1) (list)) :false)
-
 
 (test (vec-len []) 0)
 (test (vec-len [1]) 1)
@@ -613,14 +580,7 @@
 
 (test (vec? []) :true)
 (test (vec? [] []) :true)
-(test (vec? [] :nil) :false)
-
-;(test (vec-emp?) true)
-;(test (vec-emp? []) true)
-;(test (vec-emp? [1]) false)
-;(test (vec-emp? 10) false)
-;(test (vec-emp? [] []) true)
-; (test (vec-emp? [] [1]) false)
+(test (vec? [] nil) :false)
 
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
@@ -632,12 +592,10 @@
 (test (push-left 0 (apply vec (map inc (ran 32))))
       (apply vec (ran 33)))
 
-; (test (left :nil) :nil)
 (test (left []) :nil)
 (test (left [0 1 2]) 0)
 (test (left (apply vec (ran 100))) 0)
 
-; (test (right :nil) :nil)
 (test (right []) :nil)
 (test (right [0 1 2]) 2)
 (test (right (apply vec (ran 100))) 99)
@@ -662,7 +620,7 @@
   (test (map #(vec-ref q it) r) r))
 
 
-(test (vec-set [] 0 10) :nil)
+(test (vec-set [] 0 10) nil)
 (test (vec-ref (vec-set [1] 0 100) 0) 100)
 (test (vec-ref (vec-set [0 1] 0 :zero 1 :one) 0) :zero)
 
@@ -680,3 +638,6 @@
 
 (test (hash (push-right (apply vec (ran 32)) 32))
       (hash (push-left 0 (apply vec (map inc (ran 32))))))
+
+;"TODO: all data accessors accepts :nil as argument and returns :nil"
+;"todo: replace :true and :false with :t and :f?
