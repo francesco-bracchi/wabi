@@ -55,6 +55,7 @@
 #include "wabi_atom.h"
 #include "wabi_error.h"
 #include "wabi_pr.h"
+#include "wabi_builtin.h"
 
 
 wabi_val
@@ -594,13 +595,23 @@ wabi_vm_reduce_call_builtin(const wabi_vm vm)
 {
   wabi_cont_call call;
   wabi_combiner_builtin comb;
-  wabi_builtin_fun func;
+  wabi_word func;
 
   call = (wabi_cont_call) vm->cont;
   comb = (wabi_combiner_builtin) call->combiner;
-  func = (wabi_builtin_fun) WABI_WORD_VAL(comb->c_ptr);
+  func = WABI_WORD_VAL(comb->c_ptr);
 
-  func(vm);
+  switch (func) {
+  case WABI_BT_DEF:
+    wabi_builtin_def(vm);
+    break;
+  case WABI_BT_IF:
+    wabi_builtin_if(vm);
+    break;
+  default:
+    ((wabi_builtin_fun)func)(vm);
+    break;
+  }
 }
 
 

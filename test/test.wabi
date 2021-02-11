@@ -650,4 +650,3 @@
       (hash (push-left 0 (apply vec (map inc (ran 32))))))
 
 ;"TODO: all data accessors accepts :nil as argument and returns :nil"
-;"todo: replace :t and :f with :t and :f?

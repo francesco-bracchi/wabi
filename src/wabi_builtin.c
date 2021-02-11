@@ -109,7 +109,7 @@ wabi_builtin_predicate(const wabi_vm vm,
   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
 }
 
-static void
+void
 wabi_builtin_def(const wabi_vm vm)
 {
   wabi_val ctrl, lft, rgt, def, es;
@@ -172,8 +172,7 @@ wabi_builtin_def(const wabi_vm vm)
 }
 
 
-static void wabi_builtin_if
-(const wabi_vm vm)
+void wabi_builtin_if (const wabi_vm vm)
 {
   wabi_val ctrl, tst, lft, rgt, slf;
   wabi_env env;
@@ -539,10 +538,10 @@ wabi_builtin_stdenv(const wabi_vm vm)
 
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "def", &wabi_builtin_def);
+  wabi_defx(vm, env, "def", (wabi_builtin_fun) WABI_BT_DEF);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "if", wabi_builtin_if);
+  wabi_defx(vm, env, "if", (wabi_builtin_fun) WABI_BT_IF);
   if(vm->ert) return NULL;
 
   wabi_defx(vm, env, "do", wabi_builtin_do);

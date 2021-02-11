@@ -68,4 +68,14 @@ wabi_defx(const wabi_vm vm,
           char* name,
           const wabi_builtin_fun fun);
 
+
+void
+wabi_builtin_def(const wabi_vm vm);
+
+void
+wabi_builtin_if(const wabi_vm vm);
+
+#define WABI_BT_DEF 0
+#define WABI_BT_IF 1
+
 #endif
