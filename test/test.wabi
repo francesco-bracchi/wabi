@@ -92,15 +92,15 @@
 (defn all?
     (t? as)
   (if
-   (= () as) :true
+   (= () as) :t
    (t? (car as)) (all? t? (cdr as))
-   :false))
+   :f))
 
 (defn some?
     (t? as)
   (if
-   (= () as) :false
-   (t? (car as)) :true
+   (= () as) :f
+   (t? (car as)) :t
    (some? t? (cdr as))))
 
 (defn last
@@ -263,8 +263,8 @@
 (defn in?
     (a as)
   (if
-    (= () as) :false
-    (= a (car as)) :true
+    (= () as) :f
+    (= a (car as)) :t
     (in? a (cdr as))))
 
 (defn take?
@@ -368,19 +368,17 @@
 (defx test
     e as
   (let (asx (map (part eval e) as))
-    (pr (list* '= as)
-        (if (apply = asx) :ok :error))))
+    (pr (list '= as)
+        (if (apply = asx) :ok :err))))
 
-
-(test (bin-len "") 0)
 
 (test (bin-len "") 0)
 (test (bin-len "ciao") 4)
 (test (bin-sub "ciao" 1 2) "ia")
-(test (> "ciao" "ao") :false)
-(test (> "ao" "ciao") :true)
-(test (> "a" "") :true)
-(test (< "" "a") :true)
+(test (> "ciao" "ao") :f)
+(test (> "ao" "ciao") :t)
+(test (> "a" "") :t)
+(test (< "" "a") :t)
 
 (test (bin-sub "ciao" 0 0) "")
 
@@ -411,14 +409,14 @@
 
 (test (if) :nil)
 
-(test (if :true) :true)
+(test (if :t) :t)
 (test (if 10) 10)
-(test (if :false) :false)
+(test (if :f) :f)
 (test (if :nil) :nil)
 
 (test (if :nil "true") :nil)
-(test (if :false "true") :nil)
-(test (if :true "true") "true")
+(test (if :f "true") :nil)
+(test (if :t "true") "true")
 (test (if 10 "true") "true")
 
 (test (odds ()) ())
@@ -429,18 +427,18 @@
 (test (evens (list 1 2 3 4 5 6 8)) (list 2 4 6))
 
 
-(test (when :true 20 10) 10)
-(test (when :false 20 10) :nil)
-(test (unless :true 20 10) :nil)
-(test (unless :false 20 10) 10)
+(test (when :t 20 10) 10)
+(test (when :f 20 10) :nil)
+(test (unless :t 20 10) :nil)
+(test (unless :f 20 10) 10)
 
 (test (prompt x 10) 10)
 (test (prompt x 10 20) 20)
 (test (+ 1 (prompt x (control x k 20))) 21)
 (test (+ 1 (prompt x (control x k 20 10))) 11)
-(test (prompt x (control x k (cont? k))) :true)
-(test (prompt x (control x k (app? k))) :true)
-(test (prompt x (control x k (oper? k))) :false)
+(test (prompt x (control x k (cont? k))) :t)
+(test (prompt x (control x k (app? k))) :t)
+(test (prompt x (control x k (oper? k))) :f)
 (test (* 2 (prompt x (+ 1 (control x k (k 3))))) 8)
 (test (* 2 (prompt x (+ 1 (control x k (k (k 3)))))) 10)
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
@@ -480,31 +478,31 @@
 (test (/ 4 2) 2)
 (test (/ 4 3) 1)
 
-(test (= 10) :true)
-(test (= 10 (+ 1 9)) :true)
-(test (= 10 (+ 1 9) (* 2 5)) :true)
-(test (= 10 (+ 1 9) (* 4 4)) :false)
+(test (= 10) :t)
+(test (= 10 (+ 1 9)) :t)
+(test (= 10 (+ 1 9) (* 2 5)) :t)
+(test (= 10 (+ 1 9) (* 4 4)) :f)
 
-(test (> 10) :true)
-(test (> 20 10) :true)
-(test (> 30 20 10) :true)
-(test (> 30 20 21) :false)
+(test (> 10) :t)
+(test (> 20 10) :t)
+(test (> 30 20 10) :t)
+(test (> 30 20 21) :f)
 
-(test (< 10) :true)
-(test (< 10 20) :true)
-(test (< 10 20 30) :true)
-(test (< 10 20 19) :false)
+(test (< 10) :t)
+(test (< 10 20) :t)
+(test (< 10 20 30) :t)
+(test (< 10 20 19) :f)
 
-(test (all? (part < 0) ()) :true)
-(test (all? (part < 0) (list 1 2 3)) :true)
-(test (all? (part < 0) (list 1 0 3)) :false)
+(test (all? (part < 0) ()) :t)
+(test (all? (part < 0) (list 1 2 3)) :t)
+(test (all? (part < 0) (list 1 0 3)) :f)
 
-(test (some? (part < 0) ()) :false)
-(test (some? (part < 0) (list 1 2 3)) :true)
-(test (some? (part < 0) (list 1 0 -1)) :true)
+(test (some? (part < 0) ()) :f)
+(test (some? (part < 0) (list 1 2 3)) :t)
+(test (some? (part < 0) (list 1 0 -1)) :t)
 
-(test (and (> 1 0) (> 0 1)) :false)
-(test (or (> 1 0) (> 0 1)) :true)
+(test (and (> 1 0) (> 0 1)) :f)
+(test (or (> 1 0) (> 0 1)) :t)
 
 (test (let (a 1 b 2) (+ a b)) 3)
 (test (let (a 1 b 2) (+ a b) 10) 10)
@@ -527,8 +525,8 @@
 
 (test (find (part < 3) (ran 10)) 4)
 (test (find (part < 3) (ran 3)) :nil)
-(test (in? 3 (ran 3)) :false)
-(test (in? 3 (ran 10)) :true)
+(test (in? 3 (ran 3)) :f)
+(test (in? 3 (ran 10)) :t)
 (test (drop? (part > 4) (ran 2)) ())
 (test (drop? (part > 4) (ran 6)) (list 4 5))
 (test (take? (part > 4) (ran 6)) (list 0 1 2 3))
@@ -565,11 +563,11 @@
 (test (apply #(fold + 0 them) (ran 10)) (apply + (ran 10)))
 
 (test (assoc {} 10 :ten) {10 :ten})
-(test (map? 10) :false)
-(test (map? {}) :true)
-(test (map? {:a 10}) :true)
-(test (map? {:a 10} :b) :false)
-(test (map? {:a 10} {:b 30}) :true)
+(test (map? 10) :f)
+(test (map? {}) :t)
+(test (map? {:a 10}) :t)
+(test (map? {:a 10} :b) :f)
+(test (map? {:a 10} {:b 30}) :t)
 (test (dissoc {:a 10 :b 20} :a :c) {:b 20})
 (test (map-len (apply hmap (ran 100))) 50)
 (test (map-len (apply hmap (ran 8))) 4)
@@ -578,22 +576,22 @@
 
 (test {(env) 10} {(env) 10})
 
-(test (> (list 2) (list 1)) :true)
-(test (> (list 1) (list 2)) :false)
+(test (> (list 2) (list 1)) :t)
+(test (> (list 1) (list 2)) :f)
 
-(test (pair? (list)) :false)
-(test (pair? (list 1)) :true)
-(test (pair? (list 1) (list 2)) :true)
-(test (pair? (list 1) (list)) :false)
+(test (pair? (list)) :f)
+(test (pair? (list 1)) :t)
+(test (pair? (list 1) (list 2)) :t)
+(test (pair? (list 1) (list)) :f)
 
 (test (vec-len []) 0)
 (test (vec-len [1]) 1)
 (test (vec-len [1 2]) 2)
 (test (vec-len (apply vec (ran 33))) 33)
 
-(test (vec? []) :true)
-(test (vec? [] []) :true)
-(test (vec? [] :nil) :false)
+(test (vec? []) :t)
+(test (vec? [] []) :t)
+(test (vec? [] :nil) :f)
 
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
@@ -652,4 +650,4 @@
       (hash (push-left 0 (apply vec (map inc (ran 32))))))
 
 ;"TODO: all data accessors accepts :nil as argument and returns :nil"
-;"todo: replace :true and :false with :t and :f?
+;"todo: replace :t and :f with :t and :f?

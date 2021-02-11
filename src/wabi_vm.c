@@ -96,10 +96,10 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
   ign = wabi_vm_atom_from_cstring(vm, "_");
   if(vm->ert) return;
 
-  fls = wabi_vm_atom_from_cstring(vm, "false");
+  fls = wabi_vm_atom_from_cstring(vm, "f");
   if(vm->ert) return;
 
-  trh = wabi_vm_atom_from_cstring(vm, "true");
+  trh = wabi_vm_atom_from_cstring(vm, "t");
   if(vm->ert) return;
 
   vm->ctrl = NULL;
