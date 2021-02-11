@@ -169,7 +169,7 @@
     (f . as)
   (if
    (= () as) ()
-   (some? = () as) ()
+   (some? (part = ()) as) ()
    (cons (apply f (map1 car as))
          (apply map (cons f (map1 cdr as))))))
 
@@ -193,9 +193,10 @@
 
 (defx letr
     e (bs . xs)
-  (def e1 (ext e))
-  (each (part eval e1) (map (part list def) (odds bs) (evens bs)))
-  (eval e1 (list* do xs)))
+  (eval (ext e)
+    (list* do
+           (conc (map (part list def) (odds bs) (evens bs)) xs))))
+
 
 (defn comp
     fs
@@ -258,6 +259,7 @@
    (t? (car as)) (car as)
    (find t? (cdr as))))
 
+;(defn in? (a as) (find (part = a) as))
 (defn in?
     (a as)
   (if
@@ -276,7 +278,7 @@
 (defn drop?
     (t? as)
   (if
-   (= () as) ()e
+   (= () as) ()
    (t? (car as)) (drop? t? (cdr as))
    as))
 
@@ -341,6 +343,11 @@
            (list (list* let '((it . _) them) bs)))))
 
 
+(defn vec-update
+    (v j fn . xs)
+  (vec-set v j (apply fn (list* (vec-ref v j) xs))))
+
+
 (defx bench
     e as
   (let (t0 (clock)
@@ -359,9 +366,13 @@
     r))
 
 (defx test
-    e (a b)
-  (let ((ax bx) (map (part eval e) (list a b)))
-    (pr (= ax bx))))
+    e as
+  (let (asx (map (part eval e) as))
+    (pr (list* '= as)
+        (if (apply = asx) :ok :error))))
+
+
+(test (bin-len "") 0)
 
 (test (bin-len "") 0)
 (test (bin-len "ciao") 4)
@@ -398,7 +409,7 @@
       (ran 9))
 
 
-(test (if) nil)
+(test (if) :nil)
 
 (test (if :true) :true)
 (test (if 10) 10)
@@ -413,7 +424,7 @@
 (test (odds ()) ())
 (test (evens ()) ())
 (test (odds (qs 1)) (qs 1))
-(test (evens (qs 1)) :nil)
+(test (evens (qs 1)) ())
 (test (odds (list 1 2 3 4 5 6 8)) (list 1 3 5 8))
 (test (evens (list 1 2 3 4 5 6 8)) (list 2 4 6))
 
@@ -435,7 +446,7 @@
 (test (* 2 (prompt x (prompt y (+ 1 (control y ky (+ 2 (control x kx (ky (kx 3))))))))) 12)
 
 (test
- (rec recur (a (list 0 1) r nil)
+ (rec recur (a (list 0 1) r ())
    (if
     (= () a) (rev r)
     (recur (cdr a) (cons (inc (car a)) r))))
@@ -484,11 +495,11 @@
 (test (< 10 20 30) :true)
 (test (< 10 20 19) :false)
 
-(test (all? (part < 0) nil) :true)
+(test (all? (part < 0) ()) :true)
 (test (all? (part < 0) (list 1 2 3)) :true)
 (test (all? (part < 0) (list 1 0 3)) :false)
 
-(test (some? (part < 0) nil) :false)
+(test (some? (part < 0) ()) :false)
 (test (some? (part < 0) (list 1 2 3)) :true)
 (test (some? (part < 0) (list 1 0 -1)) :true)
 
@@ -538,10 +549,16 @@
 
 (test (hd (ran 10)) (car (ran 10)))
 (test (fst (ran 10)) (car (ran 10)))
-(test (hd nil) (car nil))
-(test (fst nil) (car nil))
+(test (hd :nil) (car :nil) :nil)
+(test (fst :nil) (car :nil) :nil)
 
 (test (map #(+ it 1) (ran 5)) (map inc (ran 5)))
+
+(defn fib
+    (n)
+  (if (< n 2) n
+      (+ (fib (- n 1))
+         (fib (- n 2)))))
 
 (test (map #(if (zero? it) 0 (one? it) 1 (+ (me (- it 1)) (me (- it 2)))) (ran 6)) (map fib (ran 6)))
 
@@ -564,10 +581,6 @@
 (test (> (list 2) (list 1)) :true)
 (test (> (list 1) (list 2)) :false)
 
-(test (kont 100) 103)
-
-(test (plc-reset (plc 10) 20) 20)
-
 (test (pair? (list)) :false)
 (test (pair? (list 1)) :true)
 (test (pair? (list 1) (list 2)) :true)
@@ -580,7 +593,7 @@
 
 (test (vec? []) :true)
 (test (vec? [] []) :true)
-(test (vec? [] nil) :false)
+(test (vec? [] :nil) :false)
 
 (test (push-right [] 1) [1])
 (test (push-right [] 1 2) [1 2])
@@ -615,12 +628,11 @@
 (test (vec-ref [1 2 3] 3) :nil)
 (test (vec-ref (apply vec (ran 1000)) 500) 500)
 
-
 (letr (r (ran 1000) q (apply vec r))
   (test (map #(vec-ref q it) r) r))
 
 
-(test (vec-set [] 0 10) nil)
+(test (vec-set [] 0 10) :nil)
 (test (vec-ref (vec-set [1] 0 100) 0) 100)
 (test (vec-ref (vec-set [0 1] 0 :zero 1 :one) 0) :zero)
 
