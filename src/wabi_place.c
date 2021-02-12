@@ -55,7 +55,7 @@ wabi_place_plc(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -88,7 +88,7 @@ wabi_place_plc_val(const wabi_vm vm)
     return;
   }
   vm->ctrl = wabi_place_val(plc);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -131,7 +131,7 @@ wabi_place_plc_cas(const wabi_vm vm)
   res = __sync_bool_compare_and_swap (&plc->val, old, new) ? vm->trh : vm->fls;
 
   vm->ctrl = res;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 

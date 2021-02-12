@@ -64,7 +64,7 @@ static void
 wabi_atom_atom_table(const wabi_vm vm)
 {
   vm->ctrl = vm->atbl;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -76,7 +76,7 @@ wabi_atom_atom(const wabi_vm vm)
 
   if(wabi_atom_is_empty(vm, ctrl)) {
     vm->ctrl = vm->nil;
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
   bin = wabi_car((wabi_pair) ctrl);
@@ -84,7 +84,7 @@ wabi_atom_atom(const wabi_vm vm)
 
   if(wabi_atom_is_nil(vm, bin)) {
     vm->ctrl = vm->nil;
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
   if (!wabi_is_binary(bin)) {
@@ -95,7 +95,7 @@ wabi_atom_atom(const wabi_vm vm)
   if (vm->ert)
     return;
   vm->ctrl = res;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 void

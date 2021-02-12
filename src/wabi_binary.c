@@ -364,7 +364,7 @@ wabi_binary_bin_concat(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) bin;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -427,7 +427,7 @@ wabi_binary_bin_sub(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = (wabi_val) bin;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -461,7 +461,7 @@ wabi_binary_bin_length(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -478,7 +478,7 @@ wabi_binary_bin_p(const wabi_vm vm)
 
     if(! wabi_is_binary((wabi_val) bin)) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
   }
@@ -487,7 +487,7 @@ wabi_binary_bin_p(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 

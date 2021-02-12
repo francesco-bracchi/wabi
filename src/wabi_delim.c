@@ -31,7 +31,7 @@ static void wabi_cont_prompt_bt(const wabi_vm vm) {
   ctrl = wabi_cdr((wabi_pair)ctrl);
   env = (wabi_env)((wabi_cont_call)vm->cont)->env;
 
-  cont = wabi_cont_next((wabi_cont)vm->cont);
+  cont = wabi_cont_pop((wabi_cont)vm->cont);
   prmt = cont =
       wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt)vm->prmt, cont);
   if (vm->ert)
@@ -93,7 +93,7 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
   if (vm->ert)
     return;
 
-  cont = wabi_cont_next((wabi_cont)vm->cont);
+  cont = wabi_cont_pop((wabi_cont)vm->cont);
   prompt = (wabi_cont_prompt)vm->prmt;
 
   kval = wabi_combiner_continuation_new(vm, cont);
@@ -115,7 +115,7 @@ static void wabi_cont_control_bt(const wabi_vm vm) {
   if (vm->ert)
     return;
 
-  cont = wabi_cont_next((wabi_cont)prompt);
+  cont = wabi_cont_pop((wabi_cont)prompt);
 
   if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);

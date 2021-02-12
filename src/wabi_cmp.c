@@ -16,7 +16,7 @@
 #include "wabi_vector.h"
 #include "wabi_atom.h"
 #include "wabi_cmp.h"
-
+#include "wabi_builtin.h"
 
 int
 wabi_cmp(const wabi_val a, const wabi_val b)
@@ -151,7 +151,7 @@ wabi_cmp_eq(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b)) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
   }
@@ -160,7 +160,7 @@ wabi_cmp_eq(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -184,7 +184,7 @@ wabi_cmp_eq(const wabi_vm vm)
 /*     if(wabi_cmp(a, b)) { */
 
 /*       vm->ctrl = vm->trh; */
-/*       vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
+/*       vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont); */
 /*       return; */
 /*     } */
 /*   } */
@@ -193,7 +193,7 @@ wabi_cmp_eq(const wabi_vm vm)
 /*     return; */
 /*   } */
 /*   vm->ctrl = vm->fls; */
-/*   vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont); */
+/*   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont); */
 /* } */
 
 
@@ -215,7 +215,7 @@ wabi_cmp_gt(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) >= 0) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
     a = b;
@@ -225,7 +225,7 @@ wabi_cmp_gt(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -247,7 +247,7 @@ wabi_cmp_gt_eq(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) > 0) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
     a = b;
@@ -257,11 +257,11 @@ wabi_cmp_gt_eq(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
-static void
+void
 wabi_cmp_lt(const wabi_vm vm)
 {
   wabi_val a, b, ctrl;
@@ -279,7 +279,7 @@ wabi_cmp_lt(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) <= 0) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
     a = b;
@@ -289,7 +289,7 @@ wabi_cmp_lt(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 
@@ -311,7 +311,7 @@ wabi_cmp_lt_eq(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(wabi_cmp(a, b) < 0) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
     a = b;
@@ -321,7 +321,7 @@ wabi_cmp_lt_eq(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 // TODO
@@ -335,7 +335,7 @@ wabi_cmp_builtins(const wabi_vm vm, const wabi_env env)
   if(vm->ert) return;
   wabi_defn(vm, env, ">", &wabi_cmp_gt);
   if(vm->ert) return;
-  wabi_defn(vm, env, "<", &wabi_cmp_lt);
+  wabi_defn(vm, env, "<", (wabi_builtin_fun) WABI_BT_LT);
   if(vm->ert) return;
   wabi_defn(vm, env, ">=", &wabi_cmp_gt_eq);
   if(vm->ert) return;

@@ -31,7 +31,7 @@ wabi_fixnum_new(const wabi_vm vm,
 }
 
 
-static void
+void
 wabi_number_builtin_sum(const wabi_vm vm)
 {
   long ac;
@@ -55,7 +55,7 @@ wabi_number_builtin_sum(const wabi_vm vm)
   *a = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
   vm->ctrl = a;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -81,13 +81,13 @@ wabi_number_builtin_mul(const wabi_vm vm)
   if(vm->ert) return;
   *a = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
   vm->ctrl = a;
 }
 
 
-static void
-wabi_number_builtin_diff(const wabi_vm vm)
+void
+wabi_number_builtin_dif(const wabi_vm vm)
 {
   long ac;
   wabi_val a, res, ctrl;
@@ -109,7 +109,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
     // unary op
     *res = (- ac) & wabi_word_value_mask;
     WABI_SET_TAG(res, wabi_tag_fixnum);
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
     vm->ctrl = res;
     return;
   }
@@ -124,7 +124,7 @@ wabi_number_builtin_diff(const wabi_vm vm)
   }
   *res = ac & wabi_word_value_mask;
   WABI_SET_TAG(res, wabi_tag_fixnum);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
   vm->ctrl = res;
 }
 
@@ -165,7 +165,7 @@ wabi_number_builtin_div(const wabi_vm vm)
 
   *res = ac & wabi_word_value_mask;
   WABI_SET_TAG(a, wabi_tag_fixnum);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
   vm->ctrl = res;
 }
 
@@ -173,11 +173,11 @@ wabi_number_builtin_div(const wabi_vm vm)
 void
 wabi_number_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_defn(vm, env, "+", &wabi_number_builtin_sum);
+  wabi_defn(vm, env, "+", (wabi_builtin_fun) WABI_BT_SUM);
   if(vm->ert) return;
   wabi_defn(vm, env, "*", &wabi_number_builtin_mul);
   if(vm->ert) return;
-  wabi_defn(vm, env, "-", &wabi_number_builtin_diff);
+  wabi_defn(vm, env, "-", (wabi_builtin_fun) WABI_BT_DIF);
   if(vm->ert) return;
   wabi_defn(vm, env, "/", &wabi_number_builtin_div);
   if(vm->ert) return;

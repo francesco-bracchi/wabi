@@ -228,7 +228,7 @@ wabi_env_extend_bt(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 void

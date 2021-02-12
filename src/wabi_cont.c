@@ -112,7 +112,7 @@ wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont0)
     default:
       break;
     }
-    cont = wabi_cont_next(cont);
+    cont = wabi_cont_pop(cont);
   }
 }
 
@@ -147,11 +147,11 @@ wabi_cont_concat_cont(const wabi_vm vm,
   new_prompt = (wabi_cont_prompt) wabi_cont_done;
 
   for(;;) {
-    if(*((wabi_val) wabi_cont_next(cont)) == 0)
+    if(*((wabi_val) wabi_cont_pop(cont)) == 0)
       break;
     prev_cont = cont;
     new_prev_cont = new_cont;
-    cont = wabi_cont_next(cont);
+    cont = wabi_cont_pop(cont);
     new_cont = wabi_cont_copy(vm, cont);
     if(vm->ert) return;
     if(new_prev_cont) new_prev_cont->next = ((wabi_word) new_cont) | WABI_TAG(prev_cont);
@@ -163,7 +163,7 @@ wabi_cont_concat_cont(const wabi_vm vm,
       if(! res_prompt) res_prompt = new_prompt;
     }
   }
-  right_cont = wabi_cont_next((wabi_cont) vm->cont);
+  right_cont = wabi_cont_pop((wabi_cont) vm->cont);
   right_prompt = (wabi_cont_prompt) vm->prmt;
   new_cont->next = (wabi_word) right_cont | WABI_TAG(new_cont);
 

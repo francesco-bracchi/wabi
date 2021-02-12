@@ -99,7 +99,7 @@ wabi_combiner_fx(const wabi_vm vm)
   fx->compiled_body = (wabi_word) vm->nil;
   WABI_SET_TAG(fx, wabi_tag_oper);
   vm->ctrl = (wabi_val) fx;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 
@@ -154,7 +154,7 @@ wabi_combiner_wrap(const wabi_vm vm)
   }
 
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -209,7 +209,7 @@ wabi_combiner_unwrap(const wabi_vm vm)
   }
 
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -243,7 +243,7 @@ wabi_combiner_combiner_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -273,7 +273,7 @@ wabi_combiner_applicative_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -303,7 +303,7 @@ wabi_combiner_operative_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -333,7 +333,7 @@ wabi_combiner_builtin_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -364,7 +364,7 @@ wabi_combiner_derived_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -393,7 +393,7 @@ wabi_combiner_cont_p(const wabi_vm vm)
     res = vm->fls;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -417,7 +417,7 @@ wabi_combiner_derived_combiner_body(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) wabi_combiner_derived_body((wabi_combiner_derived) val);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -442,7 +442,7 @@ wabi_combiner_derived_combiner_static_env(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) wabi_combiner_derived_static_env((wabi_combiner_derived) val);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -467,7 +467,7 @@ wabi_combiner_derived_combiner_parameters(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) wabi_combiner_derived_parameters((wabi_combiner_derived) val);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -491,7 +491,7 @@ wabi_combiner_derived_combiner_caller_env_name(const wabi_vm vm)
     return;
   }
   vm->ctrl = wabi_combiner_derived_caller_env_name((wabi_combiner_derived) val);
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 void

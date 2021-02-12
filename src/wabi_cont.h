@@ -242,7 +242,7 @@ wabi_cont_push_prog(wabi_vm vm, wabi_env env, wabi_val expressions, wabi_cont ne
 
 
 static inline wabi_cont
-wabi_cont_next(wabi_cont cont)
+wabi_cont_pop(wabi_cont cont)
 {
   return (wabi_cont) WABI_WORD_VAL(cont->next);
 }
@@ -359,10 +359,7 @@ wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont);
 void
 wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont);
 
-
 int
 wabi_cont_cmp(const wabi_cont a, const wabi_cont b);
-
-// #define wabi_cont_next(cont) (wabi_cont)(WABI_WORD_VAL((cont)->next))
 
 #endif

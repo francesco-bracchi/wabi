@@ -32,7 +32,11 @@ wabi_is_fixnum(const wabi_val val)
 {
   return WABI_IS(wabi_tag_fixnum, val);
 }
+void
+wabi_number_builtin_sum(const wabi_vm vm);
 
+void
+wabi_number_builtin_dif(const wabi_vm vm);
 
 static inline int
 wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {

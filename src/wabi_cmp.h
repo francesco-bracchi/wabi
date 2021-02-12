@@ -15,4 +15,7 @@ wabi_eq(const wabi_val left, const wabi_val right);
 void
 wabi_cmp_builtins(const wabi_vm vm, const wabi_env env);
 
+void
+wabi_cmp_lt(const wabi_vm vm);
+
 #endif

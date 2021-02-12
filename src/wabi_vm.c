@@ -56,6 +56,8 @@
 #include "wabi_error.h"
 #include "wabi_pr.h"
 #include "wabi_builtin.h"
+#include "wabi_number.h"
+#include "wabi_cmp.h"
 
 
 wabi_val
@@ -265,7 +267,7 @@ wabi_vm_reduce_eval_combination(const wabi_vm vm)
   comb = wabi_car(expr);
   args = wabi_cdr(expr);
 
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   cont = wabi_cont_push_apply(vm, env, args, cont);
   if(vm->ert) return;
 
@@ -302,7 +304,7 @@ wabi_vm_reduce_eval_symbol(const wabi_vm vm)
     return;
   }
 
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   vm->ctrl = val;
   vm->cont = (wabi_val) cont;
 }
@@ -321,7 +323,7 @@ wabi_vm_reduce_eval_self(const wabi_vm vm)
   wabi_cont cont;
 
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   vm->cont = (wabi_val) cont;
 }
 
@@ -360,7 +362,7 @@ wabi_vm_reduce_prompt(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   prmt = (wabi_cont_prompt) vm->prmt;
 
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   prmt = wabi_cont_prompt_next_prompt(prmt);
 
   vm->cont = (wabi_val) cont;
@@ -385,7 +387,7 @@ wabi_vm_reduce_apply_operative(const wabi_vm vm,
 
   cont = (wabi_cont) vm->cont;
 
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   cont = wabi_cont_push_call(vm, (wabi_env) env, comb, cont);
   if(vm->ert) return;
 
@@ -425,7 +427,7 @@ wabi_vm_reduce_apply_applicative(const wabi_vm vm,
     rst = wabi_cdr((wabi_pair) args);
 
     cont = (wabi_cont) vm->cont;
-    cont = wabi_cont_next(cont);
+    cont = wabi_cont_pop(cont);
     cont = wabi_cont_push_call(vm, (wabi_env) vm->nil, comb, cont);
     if(vm->ert) return;
     cont = wabi_cont_push_args(vm, (wabi_env) env, rst, vm->emp, cont);
@@ -439,7 +441,7 @@ wabi_vm_reduce_apply_applicative(const wabi_vm vm,
   } else {
     // no arguments
     cont = (wabi_cont) vm->cont;
-    cont = wabi_cont_next(cont);
+    cont = wabi_cont_pop(cont);
     cont = wabi_cont_push_call(vm, (wabi_env) vm->nil, comb, cont);
     if (vm->ert) return;
 
@@ -506,7 +508,7 @@ wabi_vm_reduce_args_more(const wabi_vm vm)
   if(vm->ert) return;
 
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   cont = wabi_cont_push_args(vm, envr, rst, done, cont);
   if(vm->ert) return;
   cont = wabi_cont_push_eval(vm, cont);
@@ -541,7 +543,7 @@ wabi_vm_reduce_args_done(const wabi_vm vm)
   if(vm->ert) return;
 
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
 
   vm->ctrl = (wabi_val) vals;
   vm->cont = (wabi_val) cont;
@@ -608,6 +610,15 @@ wabi_vm_reduce_call_builtin(const wabi_vm vm)
   case WABI_BT_IF:
     wabi_builtin_if(vm);
     break;
+  case WABI_BT_LT:
+    wabi_cmp_lt(vm);
+    break;
+  case WABI_BT_SUM:
+    wabi_number_builtin_sum(vm);
+    break;
+  case WABI_BT_DIF:
+    wabi_number_builtin_dif(vm);
+    break;
   default:
     ((wabi_builtin_fun)func)(vm);
     break;
@@ -654,7 +665,7 @@ wabi_vm_reduce_call_derived(const wabi_vm vm)
   if(vm->ert) return;
 
   cont = (wabi_cont)vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   if (wabi_is_pair(rst)) {
     cont = wabi_cont_push_prog(vm, (wabi_env) envr, rst, cont);
     if(vm->ert) return;
@@ -730,7 +741,7 @@ wabi_vm_reduce_sel(const wabi_vm vm)
 
   falsey = wabi_atom_is_false(vm, vm->ctrl) || wabi_atom_is_nil(vm, vm->ctrl);
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
   cont = wabi_cont_push_eval(vm, cont);
   if(vm->ert) return;
 
@@ -753,7 +764,7 @@ wabi_vm_reduce_prog(const wabi_vm vm)
   exps = (wabi_val) prog->expressions;
 
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
 
   if(!wabi_is_pair(exps)) {
     vm->cont = (wabi_val) cont;
@@ -793,7 +804,7 @@ wabi_vm_reduce_def(const wabi_vm vm)
   if(vm->ert) return;
 
   cont = (wabi_cont) vm->cont;
-  cont = wabi_cont_next(cont);
+  cont = wabi_cont_pop(cont);
 
   vm->cont = (wabi_val) cont;
 }

@@ -77,5 +77,8 @@ wabi_builtin_if(const wabi_vm vm);
 
 #define WABI_BT_DEF 0
 #define WABI_BT_IF 1
+#define WABI_BT_LT 2
+#define WABI_BT_SUM 3
+#define WABI_BT_DIF 4
 
 #endif

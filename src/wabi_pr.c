@@ -274,7 +274,7 @@ wabi_pr_cont_combiner(const wabi_vm vm, wabi_combiner_continuation val)
 
   do {
     wabi_pr_cont0(vm, cont);
-    cont = (wabi_cont) wabi_cont_next(cont);
+    cont = (wabi_cont) wabi_cont_pop(cont);
     if(cont) printf(" ");
   } while(cont);
 

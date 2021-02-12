@@ -739,7 +739,7 @@ wabi_vector_vec_concat(const wabi_vm vm)
   }
 
   vm->ctrl = (wabi_val) r;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -764,7 +764,7 @@ wabi_vector_vec(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -793,7 +793,7 @@ wabi_vector_vec_len(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = r;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -808,7 +808,7 @@ wabi_vector_vec_p(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(! wabi_is_vector(vec)) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
   }
@@ -817,7 +817,7 @@ wabi_vector_vec_p(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -851,7 +851,7 @@ wabi_vector_vec_push_right(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -887,7 +887,7 @@ wabi_vector_vec_push_left(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = (wabi_val) d;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -915,7 +915,7 @@ wabi_vector_vec_left(const wabi_vm vm)
   }
   v = wabi_vector_left(vm, d);
   vm->ctrl = v;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -944,7 +944,7 @@ wabi_vector_vec_right(const wabi_vm vm)
   v = wabi_vector_right(vm, d);
 
   vm->ctrl = v;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -975,7 +975,7 @@ wabi_vector_vec_pop_left(const wabi_vm vm)
   if(!v) v = vm->nil;
 
   vm->ctrl = v;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -1005,7 +1005,7 @@ wabi_vector_vec_pop_right(const wabi_vm vm)
   if(! v) v = vm->nil;
 
   vm->ctrl = v;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -1048,7 +1048,7 @@ wabi_vector_vec_ref(const wabi_vm vm)
 
   if(x < 0 || x >= s) {
     vm->ctrl = vm->nil;
-    vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+    vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
     return;
   }
   res = wabi_vector_ref(d, x);
@@ -1057,7 +1057,7 @@ wabi_vector_vec_ref(const wabi_vm vm)
     return;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -1102,7 +1102,7 @@ wabi_vector_vec_set(const wabi_vm vm)
 
     if (x < 0 || x >= s) {
       vm->ctrl = vm->nil;
-      vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+      vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
       return;
     }
     d = wabi_vector_set(vm, d, x, v);
@@ -1113,7 +1113,7 @@ wabi_vector_vec_set(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) d;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 

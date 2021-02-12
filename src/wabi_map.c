@@ -808,7 +808,7 @@ wabi_map_builtin_hmap(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -845,7 +845,7 @@ wabi_map_builtin_assoc(const wabi_vm vm)
     return;
   }
   vm->ctrl = (wabi_val) res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -876,7 +876,7 @@ wabi_map_builtin_dissoc(const wabi_vm vm)
     return;
   }
   vm->ctrl = res;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
@@ -914,7 +914,7 @@ wabi_map_builtin_len(const wabi_vm vm)
   if(vm->ert) return;
 
   vm->ctrl = len;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 static void
@@ -934,7 +934,7 @@ wabi_map_builtin_get
   while(wabi_is_pair(ctrl)) {
     if(wabi_atom_is_nil(vm, m)) {
       vm->ctrl = vm->nil;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
     if(! wabi_is_map((wabi_val) m)) {
@@ -951,7 +951,7 @@ wabi_map_builtin_get
     return;
   }
   vm->ctrl = m;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 

@@ -27,13 +27,13 @@ wabi_list_car(const wabi_vm vm) {
   }
   if (wabi_is_pair(pair)) {
     vm->ctrl = (wabi_val)wabi_car((wabi_pair)pair);
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
 
   if (wabi_atom_is_empty(vm, pair) || wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
   vm->ert = wabi_error_type_mismatch;
@@ -57,12 +57,12 @@ wabi_list_cdr(const wabi_vm vm) {
   }
   if (wabi_is_pair(pair)) {
     vm->ctrl = (wabi_val)wabi_cdr((wabi_pair)pair);
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
   if (wabi_atom_is_empty(vm, pair) || wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
-    vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
   vm->ert = wabi_error_type_mismatch;
@@ -95,7 +95,7 @@ wabi_list_len(const wabi_vm vm) {
   r = wabi_fixnum_new(vm, l);
   if(vm->ert) return;
   vm->ctrl = (wabi_val) r;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 
@@ -123,7 +123,7 @@ static void wabi_list_cons(const wabi_vm vm) {
   if (vm->ert)
     return;
   vm->ctrl = res;
-  vm->cont = (wabi_val)wabi_cont_next((wabi_cont)vm->cont);
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
 
@@ -144,7 +144,7 @@ static void wabi_list_list_p(const wabi_vm vm)
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(! wabi_is_list(vm, val)) {
       vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
       return;
     }
   }
@@ -153,7 +153,7 @@ static void wabi_list_list_p(const wabi_vm vm)
     return;
   }
   vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_next((wabi_cont) vm->cont);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
 
