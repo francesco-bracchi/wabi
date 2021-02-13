@@ -1,0 +1,348 @@
+(def q
+  (fx _ (p) p))
+
+(def qs
+  (fx _ p p))
+
+(def id
+  (wrap q))
+
+(def list
+  (wrap qs))
+
+(def cmt
+  (fx _ p :nil))
+
+(def env
+  (fx e _ e))
+
+(def apply
+  (wrap
+   (fx _ (o as)
+     (eval (env) (cons (unwrap o) as)))))
+
+(def list*
+  (wrap
+   (fx _ (a . as)
+     (if
+       (= () as) a
+       (cons a (apply list* as))))))
+
+(def fn
+  (fx e (as . bs)
+    (wrap (eval e (list* fx _ as bs)))))
+
+
+(def defx
+  (fx e (n e1 as . bs)
+    (eval e
+      (list def n (list* fx e1 as bs)))))
+
+(def defn
+  (fx e (n as . bs)
+    (eval e
+      (list def n (list* fn as bs)))))
+
+(defx prmt
+    e (t . bs)
+  (eval e
+    (list* prompt (eval e t) bs)))
+
+(defx ctrl
+    e (t . bs)
+  (eval e
+    (list* control (eval e t) bs)))
+
+(defn fold
+    (f i as)
+  (if
+   (= () as) i
+   (fold f (f i (car as)) (cdr as))))
+
+(defn conc
+    as
+  (rec conc (rs () a () as as)
+    (if
+     (pair? a) (conc (cons (car a) rs) (cdr a) as)
+     (pair? as) (conc rs (car as) (cdr as))
+     (rev rs))))
+
+(defn part
+    (f . as)
+  (fn bs (apply f (conc as bs))))
+
+(defn flip
+    (f)
+  (fn (a b . as) (apply f (list* b a as))))
+
+(defn foldr
+    (f as i)
+  (if
+   (= () as) i
+   (f (car as) (foldr f (cdr as) i))))
+
+(defn rev
+    (as)
+  (fold (flip cons) () as))
+
+(defn always
+    (v)
+  (fn _ v))
+
+(defn all?
+    (t? as)
+  (if
+   (= () as) :t
+   (t? (car as)) (all? t? (cdr as))
+   :f))
+
+(defn some?
+    (t? as)
+  (if
+   (= () as) :f
+   (t? (car as)) :t
+   (some? t? (cdr as))))
+
+(defn last
+    (as)
+  (if
+    (= () as) :nil
+    (= () (cdr as)) (car as)
+    (last (cdr as))))
+
+(defn but-last
+    (as)
+  (if
+    (= () as) :nil
+    (= () (cdr as)) ()
+    (const (car as) (but-last (cdr as)))))
+
+(defn snoc
+    (as a)
+  (if
+   (= () as) (list a)
+   (cons (car as) (snoc (cdr as) a))))
+
+(defn pipe
+    (a b)
+  (if
+   (pair? b) (snoc b a)
+   (list b a)))
+
+(defx ->
+    e (a . as)
+  (eval e (fold pipe a as)))
+
+(defx or
+    e bs
+  (some? (part eval e) bs))
+
+(defx and
+    e bs
+  (all? (part eval e) bs))
+
+(defn odds
+    (cs)
+  (if
+   (= () cs) ()
+   (cons (car cs) (evens (cdr cs)))))
+
+(defn evens
+    (cs)
+  (if
+   (= () cs) ()
+   (odds (cdr cs))))
+
+(defn map1
+    (f as)
+  (if
+   (= () as) ()
+   (cons (f (car as)) (map1 f (cdr as)))))
+
+(defn each1
+    (f as)
+  (if
+   (= () as) nil
+   (do (f (car as)) (each1 f (cdr as)))))
+
+(defn map
+    (f . as)
+  (if
+   (= () as) ()
+   (some? (part = ()) as) ()
+   (cons (apply f (map1 car as))
+         (apply map (cons f (map1 cdr as))))))
+
+(defn each
+    (f . as)
+  (if
+   (= () as) :nil
+   (some? = () as) :nil
+   (do (apply f (map1 car as))
+       (apply each (cons f (map1 cdr as))))))
+
+(defx rec
+    e (n bs . xs)
+  (def e1 (ext e))
+  (eval e1 (list* defn n (odds bs) xs))
+  (eval e1 (list* n (evens bs))))
+
+(defx let
+    e (bs . xs)
+  (eval e (list* (list* fn (odds bs) xs) (evens bs))))
+
+(defx letr
+    e (bs . xs)
+  (eval (ext e)
+    (list* do
+           (conc (map (part list def) (odds bs) (evens bs)) xs))))
+
+
+(defn comp
+    fs
+  (fold (fn (f g) (fn (x) (f (g x)))) id fs))
+
+(def inc
+  (part + 1))
+
+(def dec
+  (part (flip -) 1))
+
+(def zero?
+  (part = 0))
+
+(def one?
+  (part = 1))
+
+(def pos?
+  (part < 0))
+
+(def neg?
+  (part > 0))
+
+(def nil?
+  (part = :nil))
+
+(def ign?
+  (part = _))
+
+(defn take
+    (n as)
+  (if
+   (zero? n) ()
+   (= () as) ()
+   (cons (car as) (take (dec n) (cdr as)))))
+
+(defn drop
+    (n as)
+  (if
+   (zero? n) as
+   (= () as) ()
+   (drop (dec n) (cdr as))))
+
+(defn filter
+    (t? as)
+  (rec filter (as as rs ())
+    (if
+     (= () as) (rev rs)
+     (t? (car as)) (filter (cdr as) (cons (car as) rs))
+     (filter (cdr as) rs))))
+
+(defn remove
+    (t? as)
+  (filter (comp not t?) as))
+
+(defn find
+    (t? as)
+  (if
+   (= () as) :nil
+   (t? (car as)) (car as)
+   (find t? (cdr as))))
+
+;(defn in? (a as) (find (part = a) as))
+(defn in?
+    (a as)
+  (if
+    (= () as) :f
+    (= a (car as)) :t
+    (in? a (cdr as))))
+
+(defn take?
+    (t? as)
+  (rec take? (as as rs ())
+    (if
+     (= () as) (rev rs)
+     (t? (car as)) (take? (cdr as) (cons (car as) rs))
+     (rev rs))))
+
+(defn drop?
+    (t? as)
+  (if
+   (= () as) ()
+   (t? (car as)) (drop? t? (cdr as))
+   as))
+
+(defn iter
+    (i f n)
+  (rec iter (i i n n rs ())
+    (if
+     (< n 1) (rev rs)
+     (iter (f i) (dec n) (cons i rs)))))
+
+(defn ran
+    (n)
+  (iter 0 inc n))
+
+(def (fst snd trd fth)
+  (iter car (fn (f) (comp f cdr)) 4))
+
+(defn nth (n l)
+  (if
+   (= 0 n) (fst l)
+   (= 1 n) (snd l)
+   (= 2 n) (trd l)
+   (= 3 n) (fth l)
+   (nth (- n 3) (cdr (cdr (cdr l))))))
+
+(def tl
+  cdr)
+
+(def hd
+  car)
+
+(defn flat
+    (a)
+  (if
+   (= () a) ()
+   (not (pair? a)) (list a)
+   (conc (-> a car flat)
+         (-> a cdr flat))))
+
+(defx when
+    e (t? . bs)
+  (eval e
+    (list if t? (list* do bs))))
+
+(defx unless
+    e (t? . bs)
+  (eval e
+    (list* when (list not t?) bs)))
+
+(defx afx
+    e bs
+  (eval (ext e)
+    (list* defx 'me
+           'env 'them
+           (list (list* let '((it . _) them) bs)))))
+
+(defx afn
+    e bs
+  (eval (ext e)
+    (list* defn 'me
+           'them
+           (list (list* let '((it . _) them) bs)))))
+
+
+(defn vec-update
+    (v j fn . xs)
+  (vec-set v j (apply fn (list* (vec-ref v j) xs))))

@@ -1,0 +1,60 @@
+(load "wabi-lib/l1.wabi")
+(load "wabi-lib/visit.wabi")
+
+
+(defn nat (v)
+  (rec nat (j 0)
+    (v j)
+    (nat (inc j))))
+
+
+(defn foo (f)
+  (f 1 2 3)
+  (f 4 5 6)
+  (f 7 8 9)
+  :nil)
+
+
+(defn bar (f)
+  (f 10)
+  (f 2)
+  (f 10)
+  (f 4)
+  (f 5)
+  (f 5)
+  (f 5)
+  (f 5)
+  (f 5)
+  (f 4)
+  :nil)
+
+(-> nat
+    (s/reject #(<= it 100))
+    (s/map inc)
+    (s/drop 4)
+    (s/take 10)
+    (s/drop 2)
+    (s/iter + 0)
+    (s/drop-while #(< it 500))
+    (s/take-while #(< it 800))
+    (s/list)
+    pr)
+
+
+(pr (s/list foo))
+
+
+(-> bar s/dedup s/list pr)
+
+
+(-> nat (s/take 100) (s/every 10) (s/map +) (s/list) pr)
+
+
+ (defn fib
+     (v)
+   (rec fib (i 0 j 1)
+     (v j)
+     (fib j (+ i j))))
+
+
+(-> fib (s/take 35) (s/list) pr)
