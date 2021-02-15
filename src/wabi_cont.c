@@ -128,7 +128,6 @@ wabi_cont_concat_cont(const wabi_vm vm,
 
   ctrl = vm->ctrl;
   cont = cont0;
-
   if(! wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
@@ -139,16 +138,22 @@ wabi_cont_concat_cont(const wabi_vm vm,
     vm->ert = wabi_error_type_mismatch;
     return;
   }
+  if (*((wabi_val)cont) == 0) {
+    vm->ctrl = fst;
+    vm->env = vm->nil;
+    vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
+    return;
+  }
   new_cont = (wabi_cont) wabi_cont_copy(vm, cont);
   if(vm->ert) return;
 
   res_cont = new_cont;
   res_prompt = (wabi_cont_prompt) wabi_cont_done;
   new_prompt = (wabi_cont_prompt) wabi_cont_done;
-
   for(;;) {
-    if(*((wabi_val) wabi_cont_pop(cont)) == 0)
+    if (*((wabi_val)wabi_cont_pop(cont)) == 0) {
       break;
+    }
     prev_cont = cont;
     new_prev_cont = new_cont;
     cont = wabi_cont_pop(cont);

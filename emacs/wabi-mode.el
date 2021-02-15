@@ -16,6 +16,9 @@
      ("\\(;.*\n\\)"
       (1 font-lock-comment-face))
 
+     ("\\(:[[:alpha:]_*+*/-]*\\)"
+      (1 font-lock-constant-face))
+
      ("(\\(def\\)[ \r\n\t]+(\\([/[:alpha:]*!_-][^(){}[:space:]]*\\))[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))

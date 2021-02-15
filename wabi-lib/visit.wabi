@@ -1,4 +1,3 @@
-;;; visit.wabi
 
 (defn s/next
     (k)
@@ -85,15 +84,6 @@
       (cycle))))
 
 
-;(defn s/reduce
-    (f i g)
-  (rec reduce (i i k (s/init g))
-    (let (p (s/next k))
-      (if
-       p (reduce (apply f (cons i (cdr p))) (car p))
-       i))))
-
-
 ;(todo make map that produces more input and mapcar that produces only one)
 (defn s/map
     (f g)
@@ -139,7 +129,8 @@
   (s/with-state {} update g))
 
 
-(def s/uniq (part s/uniq-by id))
+(def s/uniq
+  (part s/uniq-by id))
 
 
 (defn s/list
