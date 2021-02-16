@@ -1,0 +1,23 @@
+(defx bench
+    e as
+  (let (t0 (clock)
+        v  (eval e (list* do as))
+        t (clock))
+    (list (/ (- t t0) 1000) as v)))
+
+
+(defx time
+    e as
+  (let ((d as r) (eval e (list* bench as)))
+    (pr 'benchmarks 'for)
+    (each pr as)
+    (pr '-------)
+    (pr 'time d 'ms)
+    (pr)
+    r))
+
+(defx test
+    e as
+  (let (asx (map (part eval e) as))
+    (pr (list* '= as)
+        (if (apply = asx) :ok (list :err)))))

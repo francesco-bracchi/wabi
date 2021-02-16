@@ -1,20 +1,11 @@
-(load "wabi-lib/l1.wabi")
-
+;"just amb"
 (defx amb
     e xs
   (control amb res
-    (rec loop (xs xs)
+    (rec first-of (xs xs)
       (if
        (= xs ()) :amb/fail
        (let (r (prompt amb (res (eval e (car xs)))))
          (if
           (not (= r :amb/fail)) r
-          (prompt amb (loop (cdr xs)))))))))
-
-(pr
- (prompt amb
-   (let (a (amb 1 2 3)
-         b (amb 4 5 6))
-     (pr :pair a b)
-     (when (not (= (* a b) 10)) (amb))
-     (list :ok a b))))
+          (prompt amb (first-of (cdr xs)))))))))
