@@ -193,7 +193,7 @@
 (defn each1
     (f as)
   (if
-   (= () as) nil
+   (= () as) :nil
    (do (f (car as)) (each1 f (cdr as)))))
 
 
@@ -209,7 +209,7 @@
     (f . as)
   (if
    (= () as) :nil
-   (some? = () as) :nil
+   (some? (part = ()) as) :nil
    (do (apply f (map1 car as))
        (apply each (cons f (map1 cdr as))))))
 
@@ -383,12 +383,18 @@
     (list* when (list not t?) bs)))
 
 
+(defx awhen
+    e (t? . bs)
+  (eval e
+    (list let (list 'it t?)
+          (list* when 'it bs))))
+
 (defx afx
     e bs
   (eval (ext e)
-    (list* defx 'me
-           'env 'them
-           (list (list* let '((it . _) them) bs)))))
+    (list* defx 'myself
+           'env 'they
+           (list (list* let '((it . _) they) bs)))))
 
 
 (defx afn
@@ -402,3 +408,33 @@
 (defn vec-update
     (v j fn . xs)
   (vec-set v j (apply fn (list* (vec-ref v j) xs))))
+
+
+
+(defn plc-swap
+    (p f . as)
+  (rec plc-swap (old (plc-val p))
+    (let (new (apply f (list* old as)))
+      (if
+       (plc-cas p old new) new
+       (plc-swap (plc-val plc))))))
+
+
+(defn plc-reset
+    (p v)
+  (plc-swap p (always v)))
+
+
+(defn type
+    (v)
+  (if
+   (atom? v) :atom
+   (pair? v) :pair
+   (bin? v) :bin
+   (map? v) :map
+   (vec? v) :vec
+   (app? v) :app
+   (oper? v) :oper
+   (cont? v) :cont
+   (number? v) :number
+   :nil))

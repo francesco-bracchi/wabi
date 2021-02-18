@@ -1,0 +1,6 @@
+(load "wabi-lib/l1.wabi")
+
+
+(def occur-check :t)
+
+;; todo (env sym) -> :nil | value

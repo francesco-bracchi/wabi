@@ -1,0 +1,31 @@
+(defn handler
+    (t k . xs)
+  (pr "error")
+  (exit))
+
+
+(defx raise
+    e (t . xs)
+  (control cond k (list :cond/raise t k xs)))
+
+
+(defx handle
+    e (h . xs)
+  (let (rs (prompt cond (eval e (list* do xs))))
+    (if (and (pair? e) (= (car e) :cond/raise))
+        (prompt cond (apply h (cdr rs)))
+        rs)))
+
+
+(defn div
+    (n d)
+  (/ n (rec resume (d d)
+         (if (= d 0)
+             (resume (raise :divide-by-zero))
+             d))))
+
+
+(handle (fn (t k . xs)
+          (if
+           (= t :divide-by-zero) (k 0.00001)
+           (= t :foo))))

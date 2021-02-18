@@ -1,4 +1,5 @@
 ;"just amb"
+
 (defx amb
     e xs
   (control amb res
@@ -7,5 +8,11 @@
        (= xs ()) :amb/fail
        (let (r (prompt amb (res (eval e (car xs)))))
          (if
-          (not (= r :amb/fail)) r
-          (prompt amb (first-of (cdr xs)))))))))
+          (= r :amb/fail) (prompt amb (first-of (cdr xs)))
+          r))))))
+
+
+(defx amb/with
+    e xs
+  (eval e
+    (list* prompt 'amb xs)))

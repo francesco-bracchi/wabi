@@ -1,0 +1,20 @@
+(def registry
+  {})
+
+
+(defx updater
+    e (s)
+  (fn (t . xs)
+    (eval e (list def s (list* t s xs)))))
+
+
+(def gen/update-registry
+  (updater registry))
+
+
+(def register
+  (part gen/update-registry assoc))
+
+
+(def unregister
+  (part gen/update-registry assoc))

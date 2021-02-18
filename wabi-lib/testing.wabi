@@ -11,7 +11,7 @@
   (let ((d as r) (eval e (list* bench as)))
     (pr 'benchmarks 'for)
     (each pr as)
-    (pr '-------)
+    (pr '----------)
     (pr 'time d 'ms)
     (pr)
     r))
