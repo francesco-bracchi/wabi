@@ -241,4 +241,7 @@ wabi_vector_hash(wabi_hash_state state, wabi_vector v);
 wabi_vector
 wabi_vector_concat(wabi_vm vm, wabi_vector l, wabi_vector r);
 
+wabi_val
+wabi_vector_ref(const wabi_vector d,
+                const wabi_size p);
 #endif

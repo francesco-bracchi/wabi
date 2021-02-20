@@ -140,33 +140,50 @@
     (const (car as) (but-last (cdr as)))))
 
 
-(defn snoc
-    (as a)
-  (if
-   (= () as) (list a)
-   (cons (car as) (snoc (cdr as) a))))
-
-
-(defn pipe
+(defn data-pipe
     (a b)
   (if
-   (pair? b) (snoc b a)
+   (pair? b) (conc b (list a))
    (list b a)))
 
 
 (defx ->
     e (a . as)
-  (eval e (fold pipe a as)))
+  "data piping"
+  (eval e (fold data-pipe a as)))
+
+
+(defn combiner-pipe
+    (a b)
+  (if
+   (pair? b) (cons a b)
+   (list a b)))
+
+(defx ->>
+    e (a . as)
+  "combiner piping"
+  (eval e (fold combiner-pipe a as)))
 
 
 (defx or
     e bs
-  (some? (part eval e) bs))
+  (if
+   (= bs ()) :f
+   (rec loop (b (eval e (car bs)) bs (cdr bs))
+     (if (= bs ()) b
+         b b
+         (loop (car bs) (cdr bs))))))
 
 
 (defx and
     e bs
-  (all? (part eval e) bs))
+  (if
+   (= bs ()) :t
+   (rec loop (b (eval e (car bs)) bs (cdr bs))
+     (if
+      (= () bs) b
+      (not b) :f
+      (loop (eval e (car bs)) (cdr bs))))))
 
 
 (defn odds

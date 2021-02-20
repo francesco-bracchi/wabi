@@ -53,6 +53,8 @@
 #include "wabi_binary.h"
 #include "wabi_symbol.h"
 #include "wabi_atom.h"
+#include "wabi_map.h"
+#include "wabi_vector.h"
 #include "wabi_error.h"
 #include "wabi_pr.h"
 #include "wabi_builtin.h"
@@ -678,6 +680,103 @@ wabi_vm_reduce_call_derived(const wabi_vm vm)
   vm->cont = (wabi_val) cont;
 }
 
+/* ctrl: k */
+/* envr: e */
+/* cont: ((call e0 {k0 v0 ...}) . s) */
+/* -------------------------------------- */
+/* control b */
+/* envr: (bind ex e0 ps as) */
+/* cont: ((eval) . s) */
+static inline void
+wabi_vm_reduce_call_map(const wabi_vm vm)
+{
+  wabi_val ctrl, key, val;
+  wabi_cont_call call;
+  wabi_cont cont;
+  wabi_map map;
+
+  call = (wabi_cont_call) vm->cont;
+  cont = (wabi_cont) vm->cont;
+  map = (wabi_map) call->combiner;
+  ctrl = (wabi_val) vm->ctrl;
+
+  if (!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  key = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if (!wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  val = wabi_map_get(map, key);
+  if (!val)  val = vm->nil;
+
+  cont = wabi_cont_pop(cont);
+  vm->ctrl = val;
+  vm->cont = (wabi_val) cont;
+}
+
+/* ctrl: k */
+/* envr: e */
+/* cont: ((call e0 [x ...]) . s) */
+/* -------------------------------------- */
+/* control b */
+/* envr: (bind ex e0 ps as) */
+/* cont: ((eval) . s) */
+static inline void
+wabi_vm_reduce_call_vector(const wabi_vm vm)
+{
+  wabi_val ctrl, val;
+  wabi_cont_call call;
+  wabi_cont cont;
+  wabi_vector vec;
+  wabi_size s, x;
+  wabi_fixnum key;
+
+  call = (wabi_cont_call) vm->cont;
+  cont = (wabi_cont) vm->cont;
+  vec = (wabi_vector) call->combiner;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  key = (wabi_fixnum) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(wabi_atom_is_nil(vm, key)) {
+    vm->ctrl = vm->nil;
+    vm->cont = (wabi_val) wabi_cont_pop(cont);
+    return;
+  }
+  if(!wabi_is_fixnum(key)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  if(!wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  x = WABI_CAST_INT64(key);
+  s = wabi_vector_size(vec);
+
+  if(x < 0 || x >= s) {
+    vm->ctrl = vm->nil;
+    vm->cont = (wabi_val) wabi_cont_pop(cont);
+    return;
+  }
+  val = wabi_vector_ref(vec, x);
+  if (!val) {
+    vm->ert = wabi_error_other;
+    return;
+  }
+  vm->ctrl = val;
+  vm->cont = (wabi_val)wabi_cont_pop(cont);
+}
 
 static inline void
 wabi_vm_reduce_call(const wabi_vm vm)
@@ -689,7 +788,6 @@ wabi_vm_reduce_call(const wabi_vm vm)
   comb = (wabi_val) call->combiner;
   switch (WABI_TAG(comb)) {
 
-  case wabi_tag_ct_oper:
   case wabi_tag_ct_app:
     wabi_vm_reduce_call_continuation(vm);
     break;
@@ -702,6 +800,17 @@ wabi_vm_reduce_call(const wabi_vm vm)
   case wabi_tag_oper:
   case wabi_tag_app:
     wabi_vm_reduce_call_derived(vm);
+    break;
+
+  case wabi_tag_map_hash:
+  case wabi_tag_map_array:
+  case wabi_tag_map_entry:
+    wabi_vm_reduce_call_map(vm);
+    break;
+
+  case wabi_tag_vector_deep:
+  case wabi_tag_vector_digit:
+    wabi_vm_reduce_call_vector(vm);
     break;
 
   default:
