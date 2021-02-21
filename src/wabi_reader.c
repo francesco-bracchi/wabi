@@ -79,6 +79,10 @@ wabi_reader_read_list(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+      vm->ert = wabi_error_read;
+      return NULL;
+  }
   if(**c == ')') {
     (*c)++;
     return vm->emp;
@@ -86,6 +90,10 @@ wabi_reader_read_list(const wabi_vm vm, char** c)
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   if(**c == ')') {
     (*c)++;
     d = vm->emp;
@@ -93,9 +101,17 @@ wabi_reader_read_list(const wabi_vm vm, char** c)
   else if(**c == '.') {
     (*c)++;
     wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
     d = wabi_reader_read_val(vm, c);
     if(vm->ert) return NULL;
     wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
     if (**c != ')') {
       vm->ert = wabi_error_read;
       return NULL;
@@ -116,6 +132,10 @@ wabi_reader_read_map(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   if(**c == '}') {
     (*c)++;
     return vm->emp;
@@ -136,6 +156,10 @@ wabi_reader_read_vector(const wabi_vm vm, char** c)
 {
   wabi_val a, d;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   if(**c == ']') {
     (*c)++;
     return vm->emp;
@@ -156,6 +180,10 @@ wabi_reader_read_quote(const wabi_vm vm, char** c)
 {
   wabi_val a, x, bin, sym;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
@@ -176,6 +204,10 @@ wabi_reader_read_afn(wabi_vm vm, char** c)
 {
   wabi_val a, x, bin, afn;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
@@ -193,6 +225,10 @@ wabi_reader_read_comment(const wabi_vm vm, char** c)
 {
   wabi_val a, x, bin, sym;
   wabi_reader_ws(c);
+  if (**c == '\0') {
+    vm->ert = wabi_error_read;
+    return NULL;
+  }
   a = wabi_reader_read_val(vm, c);
   if(vm->ert) return NULL;
   wabi_reader_ws(c);
@@ -332,14 +368,6 @@ wabi_reader_read_val(const wabi_vm vm, char** c)
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;
     return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_vector(vm, c));
-
-  /* case  ';': */
-  /*   (*c)++; */
-  /*   bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt"); */
-  /*   if(vm->ert) return NULL; */
-  /*   sym = (wabi_val) wabi_symbol_new(vm, bin); */
-  /*   if(vm->ert) return NULL; */
-  /*   return (wabi_val) wabi_cons(vm, sym, wabi_reader_read_val(vm, c)); */
 
   case '0':
   case '1':

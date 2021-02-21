@@ -353,30 +353,23 @@
      (< n 1) (rev rs)
      (iter (f i) (dec n) (cons i rs)))))
 
+
 (defn ran
     (n)
   (iter 0 inc n))
 
 
-(def (fst snd trd fth)
+(def (_ snd trd fth)
   (iter car (fn (f) (comp f cdr)) 4))
 
 
 (defn nth (n l)
   (if
-   (= 0 n) (fst l)
+   (= 0 n) (car l)
    (= 1 n) (snd l)
    (= 2 n) (trd l)
    (= 3 n) (fth l)
    (nth (- n 3) (cdr (cdr (cdr l))))))
-
-
-(def tl
-  cdr)
-
-
-(def hd
-  car)
 
 
 (defn flat
@@ -406,6 +399,7 @@
     (list let (list 'it t?)
           (list* when 'it bs))))
 
+
 (defx afx
     e bs
   (eval (ext e)
@@ -425,7 +419,6 @@
 (defn vec-update
     (v j fn . xs)
   (vec-set v j (apply fn (list* (vec-ref v j) xs))))
-
 
 
 (defn plc-swap

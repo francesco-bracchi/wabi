@@ -77,8 +77,7 @@
     (recur (cdr a) (cons (inc (car a)) r))))
  (list 1 2))
 
-(test (fst :nil) :nil)
-(test (fst (list 1 2 3 4 5)) 1)
+(test (car (list 1 2 3 4 5)) 1)
 (test (snd (list 1 2 3 4 5)) 2)
 (test (trd (list 1 2 3 4 5)) 3)
 (test (fth (list 1 2 3 4 5)) 4)
@@ -184,15 +183,10 @@
 (test (-> 3 ran) (ran 3))
 (test (-> 3 ran (apply +) (* 3)) (* 3 (apply + (ran 3))))
 
-(test (fst (ran 3)) 0)
+(test (car (ran 3)) 0)
 (test (snd (ran 3)) 1)
 (test (trd (ran 3)) 2)
 (test (fth (ran 3)) :nil)
-
-(test (hd (ran 10)) (car (ran 10)))
-(test (fst (ran 10)) (car (ran 10)))
-(test (hd :nil) (car :nil) :nil)
-(test (fst :nil) (car :nil) :nil)
 
 (test (map #(+ it 1) (ran 5)) (map inc (ran 5)))
 

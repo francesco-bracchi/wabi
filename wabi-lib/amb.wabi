@@ -1,5 +1,3 @@
-;"just amb"
-
 (defx amb
     e xs
   (control amb res
