@@ -37,19 +37,12 @@ wabi_place_val(const wabi_place place)
   return (wabi_val) place->val;
 }
 
+
 static inline void
 wabi_place_val_set(const wabi_place place,
                    const wabi_val val)
 {
   place->val = (wabi_word) val;
-}
-
-
-static inline void
-wabi_place_copy_val(const wabi_vm vm,
-                    const wabi_place place)
-{
-  wabi_copy_val_size(vm, (wabi_val) place, WABI_PLACE_SIZE);
 }
 
 

@@ -49,13 +49,6 @@ wabi_cdr(const wabi_pair pair)
 }
 
 static inline void
-wabi_pair_copy_val(const wabi_vm vm,
-                   const wabi_pair pair)
-{
-  wabi_copy_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
-}
-
-static inline void
 wabi_pair_collect_val(const wabi_vm vm,
                       const wabi_pair pair)
 {

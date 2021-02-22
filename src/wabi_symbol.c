@@ -61,12 +61,12 @@ wabi_symbol_sym_p(const wabi_vm vm)
 }
 
 
-static void
-wabi_symbol_symbol_table(const wabi_vm vm)
-{
-  vm->ctrl = vm->stbl;
-  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
-}
+/* static void */
+/* wabi_symbol_symbol_table(const wabi_vm vm) */
+/* { */
+/*   vm->ctrl = vm->stbl; */
+/*   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont); */
+/* } */
 
 static void
 wabi_symbol_sym(const wabi_vm vm)

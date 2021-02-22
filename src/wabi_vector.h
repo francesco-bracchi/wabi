@@ -158,20 +158,6 @@ wabi_vector_deep_middle(wabi_vector_deep d)
 
 
 static inline void
-wabi_vector_digit_copy_val(wabi_vm vm, wabi_vector_digit d)
-{
-  wabi_copy_val_size(vm, (wabi_val) d, WABI_VECTOR_DIGIT_SIZE + wabi_vector_digit_node_size(d));
-}
-
-
-static inline void
-wabi_vector_deep_copy_val(wabi_vm vm, wabi_vector_deep d)
-{
-  wabi_copy_val_size(vm, (wabi_val) d, WABI_VECTOR_DEEP_SIZE);
-}
-
-
-static inline void
 wabi_vector_digit_collect_val(wabi_vm vm, wabi_vector_digit d)
 {
   wabi_size j, n;

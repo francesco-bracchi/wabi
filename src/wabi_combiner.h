@@ -169,25 +169,6 @@ wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
  */
 
 static inline void
-wabi_combiner_derived_copy_val(const wabi_vm vm, const wabi_combiner_derived c)
-{
-  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
-}
-
-static inline void
-wabi_combiner_builtin_copy_val(const wabi_vm vm, const wabi_combiner_builtin c)
-{
-  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_BUILTIN_SIZE);
-}
-
-static inline void
-wabi_combiner_continuation_copy_val(const wabi_vm vm, const wabi_combiner_continuation c)
-{
-  wabi_copy_val_size(vm,  (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
-}
-
-
-static inline void
 wabi_combiner_derived_collect_val(const wabi_vm vm, const wabi_combiner_derived c)
 {
   wabi_collect_val_size(vm, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);

@@ -12,7 +12,8 @@
 typedef wabi_word* wabi_atom;
 
 wabi_atom
-wabi_atom_new(const wabi_vm vm, const wabi_val bin_ref);
+wabi_atom_new(const wabi_vm vm,
+              const wabi_val bin_ref);
 
 
 static inline wabi_val
@@ -22,19 +23,14 @@ wabi_atom_to_binary(const wabi_atom sym)
 }
 
 
-static inline void
-wabi_atom_copy_val(const wabi_vm vm, const wabi_atom sym)
-{
-  wabi_copy_val_size(vm, (wabi_val) sym, WABI_ATOM_SIZE);
-}
+void
+wabi_atom_collect_val(const wabi_vm vm,
+                      const wabi_val sym);
 
 
 void
-wabi_atom_collect_val(const wabi_vm vm, const wabi_val sym);
-
-
-void
-wabi_atom_builtins(const wabi_vm vm, const wabi_env env);
+wabi_atom_builtins(const wabi_vm vm,
+                   const wabi_env env);
 
 
 static inline int

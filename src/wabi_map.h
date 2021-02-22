@@ -145,24 +145,6 @@ wabi_map_builtins(const wabi_vm vm, const wabi_env env);
 
 
 static inline void
-wabi_map_array_copy_val(wabi_vm vm, wabi_map_array map)
-{
-  wabi_copy_val_size(vm, (wabi_val) map, WABI_MAP_SIZE);
-}
-
-static inline void
-wabi_map_entry_copy_val(wabi_vm vm, wabi_map_entry map)
-{
-  wabi_copy_val_size(vm, (wabi_val) map, WABI_MAP_SIZE);
-}
-
-static inline void
-wabi_map_hash_copy_val(wabi_vm vm, wabi_map_hash map)
-{
-  wabi_copy_val_size(vm, (wabi_val) map, WABI_MAP_SIZE);
-}
-
-static inline void
 wabi_map_entry_collect_val(wabi_vm vm, wabi_map_entry entry)
 {
   wabi_collect_val_size(vm, (wabi_val) entry, WABI_MAP_SIZE);

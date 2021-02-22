@@ -168,42 +168,6 @@ wabi_binary_sub(const wabi_vm vm,
  * collecting
  */
 
-static inline void
-wabi_binary_memcopy(char *dst, wabi_binary src) {
-  wabi_word pivot;
-
-  if(WABI_IS(wabi_tag_bin_leaf, src)) {
-    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
-  } else {
-    pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->right);
-  }
-}
-
-
-void
-wabi_binary_copy_val(const wabi_vm vm, const wabi_binary src)
-{
-  wabi_size len, word_size;
-
-  wabi_binary_leaf new_leaf;
-  wabi_word *new_blob;
-  len = wabi_binary_length((wabi_binary) src);
-  word_size = wabi_binary_word_size(len);
-  new_leaf = (wabi_binary_leaf) vm->stor.heap;
-  vm->stor.heap += 2;
-  new_blob = (wabi_word *) vm->stor.heap;
-  vm->stor.heap += 1 + word_size;
-  new_leaf->length = len;
-  new_leaf->data_ptr = (wabi_word) (new_blob+1);
-  *new_blob = 1 + word_size;
-  WABI_SET_TAG(new_blob, wabi_tag_bin_blob);
-  WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
-
-  wabi_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
-}
-
 
 /**
  * Hashing
@@ -490,6 +454,20 @@ wabi_binary_bin_p(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
+
+static inline void
+wabi_binary_memcopy(char *dst, wabi_binary src) {
+  wabi_word pivot;
+
+  if(WABI_IS(wabi_tag_bin_leaf, src)) {
+    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
+  } else {
+    // todo use a lop
+    pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
+    wabi_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
+    wabi_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->right);
+  }
+}
 
 char*
 wabi_binary_to_cstring(const wabi_vm vm,

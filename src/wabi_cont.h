@@ -247,56 +247,6 @@ wabi_cont_pop(wabi_cont cont)
   return (wabi_cont) WABI_WORD_VAL(cont->next);
 }
 
-
-static inline void
-wabi_cont_eval_copy_val(const wabi_vm vm, const wabi_cont_eval cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_EVAL_SIZE);
-}
-
-static inline void
-wabi_cont_apply_copy_val(const wabi_vm vm, const wabi_cont_apply cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_APPLY_SIZE);
-}
-
-static inline void
-wabi_cont_call_copy_val(const wabi_vm vm, const wabi_cont_call cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_CALL_SIZE);
-}
-
-static inline void
-wabi_cont_def_copy_val(const wabi_vm vm, const wabi_cont_def cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_DEF_SIZE);
-}
-
-static inline void
-wabi_cont_prog_copy_val(const wabi_vm vm, const wabi_cont_prog cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_PROG_SIZE);
-}
-
-static inline void
-wabi_cont_args_copy_val(const wabi_vm vm, const wabi_cont_args cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_ARGS_SIZE);
-}
-
-static inline void
-wabi_cont_prompt_copy_val(const wabi_vm vm, const wabi_cont_prompt cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_PROMPT_SIZE);
-
-}
-
-static inline void
-wabi_cont_sel_copy_val(const wabi_vm vm, const wabi_cont_sel cont)
-{
-  wabi_copy_val_size(vm, (wabi_val) cont, WABI_CONT_SEL_SIZE);
-}
-
 static inline void
 wabi_cont_eval_collect_val(const wabi_vm vm, const wabi_cont_eval cont)
 {

@@ -12,15 +12,8 @@ wabi_copy_val(const wabi_vm vm, const wabi_val src);
 void
 wabi_collect(const wabi_vm vm);
 
-
-
-static inline void
-wabi_copy_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size)
-{
-  wordcopy(vm->stor.heap, obj, size);
-  vm->stor.heap += size;
-}
-
+void
+wabi_copy_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size);
 
 // reverse order, because the first word contains references to a kind of tail
 // like pairs, the tail part is the first, byte, the same for continuations.

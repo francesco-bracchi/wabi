@@ -82,10 +82,6 @@ wabi_binary
 wabi_binary_sub(const wabi_vm vm, const wabi_binary bin, const wabi_size from, const wabi_size len);
 
 
-void
-wabi_binary_copy_val(const wabi_vm vm, const wabi_binary src);
-
-
 static inline void
 wabi_binary_collect_val(const wabi_vm vm, const wabi_binary src)
 {

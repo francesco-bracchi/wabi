@@ -433,5 +433,3 @@
 (defn plc-reset
     (p v)
   (plc-swap p (always v)))
-
-(vec 10)
