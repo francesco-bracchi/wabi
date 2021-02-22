@@ -505,9 +505,9 @@ wabi_combiner_builtins(const wabi_vm vm, const wabi_env env)
   if(vm->ert) return;
   wabi_defn(vm, env, "comb?", &wabi_combiner_combiner_p);
   if(vm->ert) return;
-  wabi_defn(vm, env, "app?", &wabi_combiner_applicative_p);
+  wabi_defn(vm, env, "fn?", &wabi_combiner_applicative_p);
   if(vm->ert) return;
-  wabi_defn(vm, env, "oper?", &wabi_combiner_operative_p);
+  wabi_defn(vm, env, "fx?", &wabi_combiner_operative_p);
   if(vm->ert) return;
   wabi_defn(vm, env, "cont?", &wabi_combiner_cont_p);
   if(vm->ert) return;

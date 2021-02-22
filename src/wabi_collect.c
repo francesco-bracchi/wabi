@@ -12,6 +12,10 @@
 #include "wabi_place.h"
 #include "wabi_vector.h"
 
+
+
+
+
 wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
 {
@@ -28,12 +32,9 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
     return WABI_DEREF(src);
 
   case wabi_tag_fixnum:
+  case wabi_tag_symbol:
     *res = *src;
     vm->stor.heap++;
-    break;
-
-  case wabi_tag_symbol:
-    wabi_symbol_copy_val(vm, (wabi_symbol) src);
     break;
 
   case wabi_tag_atom:

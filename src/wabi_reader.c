@@ -58,6 +58,19 @@ wabi_reader_is_ws(char c)
 }
 
 static inline int
+wabi_reader_is_newline(char c)
+{
+  switch (c) {
+  case '\n':
+  case '\r':
+  case '\f':
+    return 1;
+  default:
+    return 0;
+  }
+}
+
+static inline int
 wabi_reader_is_num(char c)
 {
   return c >= '0' && c <= '9';
@@ -223,24 +236,12 @@ wabi_reader_read_afn(wabi_vm vm, char** c)
 static inline wabi_val
 wabi_reader_read_comment(const wabi_vm vm, char** c)
 {
-  wabi_val a, x, bin, sym;
-  wabi_reader_ws(c);
-  if (**c == '\0') {
-    vm->ert = wabi_error_read;
-    return NULL;
+  if(**c == ';') {
+    while(!wabi_reader_is_newline(**c)) (*c)++;
+    return wabi_reader_read_val(vm, c);
   }
-  a = wabi_reader_read_val(vm, c);
-  if(vm->ert) return NULL;
-  wabi_reader_ws(c);
-  x = (wabi_val) wabi_cons(vm, a, vm->emp);
-  if(vm->ert) return NULL;
-
-  bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "cmt");
-  if(vm->ert) return NULL;
-  sym = (wabi_val) wabi_symbol_new(vm, bin);
-  if(vm->ert) return NULL;
-
-  return (wabi_val) wabi_cons(vm, sym, x);
+  wabi_reader_read_val(vm, c);
+  return wabi_reader_read_val(vm, c);
 }
 
 

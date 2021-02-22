@@ -1266,7 +1266,7 @@ wabi_vector_hash(const wabi_hash_state state,
   }
 }
 
-
+// TODO: rename push/pop left right
 void
 wabi_vector_builtins(const wabi_vm vm, const wabi_env env)
 {

@@ -286,7 +286,7 @@
 (defn take
     (n as)
   (if
-   (zero? n) ()
+   (= 0 n) ()
    (= () as) ()
    (cons (car as) (take (dec n) (cdr as)))))
 
@@ -294,7 +294,7 @@
 (defn drop
     (n as)
   (if
-   (zero? n) as
+   (= 0 n) as
    (= () as) ()
    (drop (dec n) (cdr as))))
 
@@ -405,7 +405,7 @@
   (eval (ext e)
     (list* defx 'myself
            'env 'they
-           (list (list* let '((it . _) they) bs)))))
+           (list (list* let (list it (list car 'they)) bs)))))o
 
 
 (defx afn
@@ -434,17 +434,4 @@
     (p v)
   (plc-swap p (always v)))
 
-
-(defn type
-    (v)
-  (if
-   (atom? v) :atom
-   (pair? v) :pair
-   (bin? v) :bin
-   (map? v) :map
-   (vec? v) :vec
-   (app? v) :app
-   (oper? v) :oper
-   (cont? v) :cont
-   (number? v) :number
-   :nil))
+(vec 10)

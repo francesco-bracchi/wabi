@@ -1,16 +1,10 @@
 (defx amb
     e xs
   (control amb res
-    (rec first-of (xs xs)
+    (rec loop (xs xs)
       (if
        (= xs ()) :amb/fail
        (let (r (prompt amb (res (eval e (car xs)))))
          (if
-          (= r :amb/fail) (prompt amb (first-of (cdr xs)))
+          (= r :amb/fail) (prompt amb (loop (cdr xs)))
           r))))))
-
-
-(defx amb/with
-    e xs
-  (eval e
-    (list* prompt 'amb xs)))
