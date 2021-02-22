@@ -405,7 +405,7 @@
   (eval (ext e)
     (list* defx 'myself
            'env 'they
-           (list (list* let (list it (list car 'they)) bs)))))o
+           (list (list* let (list it (list car 'they)) bs)))))
 
 
 (defx afn
