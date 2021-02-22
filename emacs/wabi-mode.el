@@ -7,16 +7,92 @@
 (defvar wabi-mode-syntax-table
   (let((table (make-syntax-table lisp-mode-syntax-table)))
     table))
+(defconst wabi-sym-forbidden-rest-chars
+  "][\";\\^`~\(\)\{\}\\,\s\t\n\r")
+
+(defconst wabi-sym-forbidden-1st-chars
+  (concat wabi-sym-forbidden-rest-chars "0-9:'"))
+
+(defconst wabi-sym-regexp
+  (concat "[^" clojure--sym-forbidden-1st-chars "][^" clojure--sym-forbidden-rest-chars "]*"))
+
+(defconst wabi-atom-regexp
+  (regexp-opt (list (concat ":" wabi-sym-regexp)
+                    "_"
+                    "()") t))
+
+(defconst wabi-number-regexp
+  "\\([0-9][0-9_]*\\)")
+
+(defconst wabi-core-combiners
+  (list
+   ;; builtins
+   "def" "if" "do" "pr" "eval" "clock" "not" "hash" "l0" "collect" "load"
+   ;; combiners
+   "fx" "wrap" "unwrap" "comb" "fx\\?" "fn\\?" "cont\\?"
+   ;; list
+   "cons" "car" "cdr" "pair\\?" "list\\?" "len"
+   ;; numbers
+   "+" "*" "-" "/"
+   ;; binarites
+   "bin\\?" "bin-len" "bin-cat" "bin-sub"
+   ;; compare
+   "=" "/=" ">" "<" ">=" "<="
+   ;; env
+   "env\\?" "ext"
+   ;; continuations
+   "prompt" "control" "prmt" "ctrl"
+   ;; map
+   "hmap" "assoc" "dissoc" "map-len" "map\\?" ;"map-get"
+   ;; symbols
+   "sym\\?" "sym"
+   ;; places
+   "plc" "plc\\?" "plc-val" "plc-cas"
+   ;; vectors
+   "vec" "vec-len" "vec\\?" "push-right" "push-left" "right" "left" "pop-left" "pop-right" "vec-concat" "vec-set"
+   ;; l1
+   ;; "q" "qs" "id" "list" "cmt" "env" "apply" "list*"
+   ;; "fn" "defx" "defn"
+   ;; "prmt" "ctrl"
+   ;; "fold" "foldr" "conc" "part" "flip" "rev" "always" "all\\?" "some\\?"
+   ;; "last" "but-last"
+   ;; "->" "->>"
+   ;; "or" "and"
+   ;; "map" "each"
+   ;; "rec" "let" "letr"
+   ;; "comp" "inc" "dec" "zero\\?" "one\\?" "pos\\?" "neg\\?" "ign\\?"
+   ;; "take" "drop" "filter" "remove" "find" "in\\?" "take\\?" "drop\\?" "iter" "ran"
+   ;; "snd" "trd" "fth" "nth"
+   ;; "when" "unless" "awhen" "afn"
+   ;; "vec-update" "plc-swap" "type"
+   ))
+
+(defconst wabi-ws-regexp
+  "[ \r\n\t]+")
+
+(defconst wabi-symbol-boundary-regexp
+  "[ \";\\^`~\(\)\{\}\\,\s\t\n\r]")
+
+(defconst wabi-builtin-regexp
+  (concat wabi-symbol-boundary-regexp
+          "\\(" (regexp-opt wabi-core-combiners t) "\\)"
+          wabi-symbol-boundary-regexp))
+
+(defconst wabi-comment-regexp
+  "\\(;;.*\n\\)")
 
 (defun wabi-add-keywords (mode)
   (font-lock-remove-keywords mode '("(\\(do\\)[ \r\n\t()]" 1 font-lock-keyword-face))
   (font-lock-add-keywords
    mode
    `(
-     ("\\(;.*\n\\)"
+     (,wabi-comment-regexp
       (1 font-lock-comment-face))
 
-     ("\\(:[[:alpha:]_*+*/-]*\\)"
+     (,wabi-atom-regexp
+      (1 font-lock-constant-face))
+
+     (,wabi-number-regexp
       (1 font-lock-constant-face))
 
      ("(\\(def\\)[ \r\n\t]+(\\([/[:alpha:]*!_-][^(){}[:space:]]*\\))[ \r\n\t]"
@@ -39,14 +115,6 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
-     ("(\\(defg\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
-      (1 font-lock-keyword-face)
-      (2 font-lock-function-name-face))
-
-     ("(\\(defm\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
-      (1 font-lock-keyword-face)
-      (2 font-lock-function-name-face))
-
      ("(\\(prompt\\)[ \r\n\t]+\\([/[:alpha:]*!_-][^(){}[:space:]]*\\)[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
@@ -61,75 +129,11 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
-     ("(\\(plc\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(letr\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(prmt\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(ctrl\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(when\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(when-let\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(unless\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(if\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(eval\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(->\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(and\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(or\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(do\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(fn\\)[\[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(fx\\)[\[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(wrap\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(unwrap\\)[ \r\n\t()]" 1 font-lock-keyword-face)
-     ("(\\(each\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(map\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(apply\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(fold\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(flip\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(ran\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(comp\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(part\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(iter\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(always\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(cons\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(car\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(cdr\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(hd\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(tl\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(fst\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(snd\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(trd\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(fth\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(nth\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(last\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(but-last\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(all\\?\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(some\\?\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(conc\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(filter\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(remove\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(in\\?\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(evens\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(find\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(odds\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(len\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(inc\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(dec\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(drop\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(take\\)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(nil\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(pair\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(bin\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(atom\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(num\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(map\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(vec\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(app\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(oper\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(cont\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(sym\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(env\\^)[ \r\n\t()]]" 1 font-lock-builtin-face)
-     ("(\\(num\\?\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(gen\\)[ \r\n\t()]" 1 font-lock-builtin-face)
-     ("(\\(export\\)[ \r\n\t()]" 1 font-lock-builtin-face)
+     (,wabi-builtin-regexp
+      (1 font-lock-builtin-face))
+
+     ;; (,wabi-builtin-regexp
+     ;;  1 font-lock-keyword-face)
      )))
 
 (defun wabi-indent ()
