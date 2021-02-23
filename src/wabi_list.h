@@ -46,14 +46,6 @@ wabi_cdr(const wabi_pair pair)
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
 }
 
-static inline void
-wabi_pair_hash(const wabi_hash_state state,
-               const wabi_pair pair) {
-  wabi_hash_step(state, "P", 1);
-  wabi_hash_val(state, wabi_car(pair));
-  wabi_hash_val(state, wabi_cdr(pair));
-}
-
 
 void
 wabi_list_builtins(const wabi_vm vm, const wabi_env env);

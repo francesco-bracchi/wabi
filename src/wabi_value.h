@@ -41,8 +41,7 @@ typedef enum wabi_tag_enum {
   wabi_tag_cont_def       = 0x1900000000000000,
   wabi_tag_cont_prog      = 0x1A00000000000000,
 
-  wabi_tag_ct_app         = 0x1B00000000000000,
-  wabi_tag_ct_oper        = 0x1C00000000000000,
+  wabi_tag_ct             = 0x1B00000000000000,
 
   wabi_tag_vector_digit   = 0x1D00000000000000,
   wabi_tag_vector_deep    = 0x1E00000000000000
@@ -133,8 +132,7 @@ wabi_tag_to_string(wabi_word* w)
     return "cont_def";
   case wabi_tag_cont_prog:
     return "cont_prog";
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
+  case wabi_tag_ct:
     return "continuation";
   case wabi_tag_vector_digit:
     return "vector_digit";

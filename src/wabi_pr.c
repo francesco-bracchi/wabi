@@ -428,8 +428,7 @@ wabi_pr(const wabi_vm vm, wabi_val val) {
     printf("F#");
     wabi_pr(vm, (wabi_val) WABI_WORD_VAL(*val));
     break;
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
+  case wabi_tag_ct:
     wabi_pr_cont_combiner(vm, (wabi_combiner_continuation) val);
     break;
   case wabi_tag_place:

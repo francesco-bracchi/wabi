@@ -47,6 +47,7 @@ wabi_application_builtin_new(const wabi_vm vm,
   return (wabi_combiner) res;
 }
 
+//todo: move into wabi_cont.c
 wabi_combiner
 wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont)
 {
@@ -54,7 +55,7 @@ wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont)
   res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
   if(vm->ert) return NULL;
   res->cont = (wabi_word) cont;
-  WABI_SET_TAG(res, wabi_tag_ct_app);
+  WABI_SET_TAG(res, wabi_tag_ct);
   return (wabi_combiner) res;
 }
 
@@ -134,17 +135,9 @@ wabi_combiner_wrap(const wabi_vm vm)
     *res = WABI_WORD_VAL(*res);
     WABI_SET_TAG(res, wabi_tag_bt_app);
     break;
-  case wabi_tag_ct_oper:
-    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-    if(vm->ert) return;
-    wordcopy(res, fx, WABI_COMBINER_CONTINUATION_SIZE);
-    *res = WABI_WORD_VAL(*res);
-    WABI_SET_TAG(res, wabi_tag_bt_app);
-    break;
 
   case wabi_tag_app:
   case wabi_tag_bt_app:
-  case wabi_tag_ct_app:
     res = fx;
     break;
 
@@ -189,17 +182,9 @@ wabi_combiner_unwrap(const wabi_vm vm)
     *res = WABI_WORD_VAL(*res);
     WABI_SET_TAG(res, wabi_tag_bt_oper);
     break;
-  case wabi_tag_ct_app:
-    res = (wabi_val) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
-    if(vm->ert) return;
-    wordcopy(res, fn, WABI_COMBINER_CONTINUATION_SIZE);
-    *res = WABI_WORD_VAL(*res);
-    WABI_SET_TAG(res, wabi_tag_ct_oper);
-    break;
 
   case wabi_tag_oper:
   case wabi_tag_bt_oper:
-  case wabi_tag_ct_oper:
     res = fn;
     break;
 
@@ -235,8 +220,6 @@ wabi_combiner_combiner_p(const wabi_vm vm)
   case wabi_tag_oper:
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
     res = vm->trh;
     break;
   default:
@@ -266,7 +249,6 @@ wabi_combiner_applicative_p(const wabi_vm vm)
   switch(WABI_TAG(val)) {
   case wabi_tag_app:
   case wabi_tag_bt_app:
-  case wabi_tag_ct_app:
     res = vm->trh;
     break;
   default:
@@ -296,7 +278,6 @@ wabi_combiner_operative_p(const wabi_vm vm)
   switch(WABI_TAG(val)) {
   case wabi_tag_oper:
   case wabi_tag_bt_oper:
-  case wabi_tag_ct_oper:
     res = vm->trh;
     break;
   default:
@@ -383,10 +364,8 @@ wabi_combiner_cont_p(const wabi_vm vm)
     vm->ert = wabi_error_bindings;
     return;
   }
-  // todo optimize in a single bitwise operation?
   switch(WABI_TAG(val)) {
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
+  case wabi_tag_ct:
     res = vm->trh;
     break;
   default:

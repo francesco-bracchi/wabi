@@ -9,7 +9,6 @@
 
 #define wabi_cont_c
 
-
 static inline wabi_size
 wabi_cont_size(const wabi_cont cont)
 {
@@ -35,7 +34,6 @@ wabi_cont_size(const wabi_cont cont)
   }
 }
 
-
 void
 wabi_cont_copy_val(const wabi_store store, const wabi_cont cont)
 {
@@ -43,7 +41,6 @@ wabi_cont_copy_val(const wabi_store store, const wabi_cont cont)
   wordcopy(store->heap, (wabi_word*) cont, size);
   store->heap += size;
 }
-
 
 static inline wabi_cont
 wabi_cont_copy(const wabi_vm vm, const wabi_cont cont) {
@@ -56,65 +53,6 @@ wabi_cont_copy(const wabi_vm vm, const wabi_cont cont) {
   wordcopy((wabi_word*) res, (wabi_word*) cont, size);
   return res;
 }
-
-
-/**
- * hashing
- */
-void
-wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont0)
-{
-  wabi_cont cont;
-  cont = cont0;
-  wabi_hash_step(state, "O", 1);
-  while(cont) {
-    switch(WABI_TAG(cont)) {
-    case wabi_tag_cont_eval:
-      wabi_hash_step(state, "E", 1);
-      break;
-    case wabi_tag_cont_prompt:
-      wabi_hash_step(state, "P", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_prompt) cont)->tag);
-      break;
-    case wabi_tag_cont_apply:
-      wabi_hash_step(state, "A", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_apply) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_apply) cont)->args);
-      break;
-    case wabi_tag_cont_call:
-      wabi_hash_step(state, "C", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_call) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_call) cont)->combiner);
-      break;
-    case wabi_tag_cont_sel:
-      wabi_hash_step(state, "S", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_sel) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_sel) cont)->left);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_sel) cont)->right);
-      break;
-    case wabi_tag_cont_args:
-      wabi_hash_step(state, "R", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_args) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_args) cont)->data);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_args) cont)->done);
-      break;
-    case wabi_tag_cont_def:
-      wabi_hash_step(state, "D", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_def) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_def) cont)->pattern);
-      break;
-    case wabi_tag_cont_prog:
-      wabi_hash_step(state, "P", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_prog) cont)->env);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_prog) cont)->expressions);
-      break;
-    default:
-      break;
-    }
-    cont = wabi_cont_pop(cont);
-  }
-}
-
 
 void
 wabi_cont_concat_cont(const wabi_vm vm,

@@ -3,7 +3,6 @@
 
 #include "wabi_vm.h"
 #include "wabi_value.h"
-#include "wabi_hash.h"
 #include "wabi_env.h"
 #include "wabi_store.h"
 
@@ -130,10 +129,6 @@ wabi_map_iterator_next(wabi_map_iter iter);
 
 wabi_word
 wabi_map_length(wabi_map map);
-
-
-void
-wabi_map_hash_(wabi_hash_state state, wabi_map map);
 
 
 void

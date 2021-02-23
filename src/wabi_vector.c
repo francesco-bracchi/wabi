@@ -9,7 +9,6 @@
 #include "wabi_builtin.h"
 #include "wabi_atom.h"
 #include "wabi_number.h"
-#include "wabi_hash.h"
 
 
 static inline int
@@ -1213,23 +1212,6 @@ wabi_vector_iter_current(const wabi_vector_iter iter)
   return (wabi_val) *(t + f->pos);
 }
 
-
-void
-wabi_vector_hash(const wabi_hash_state state,
-                 const wabi_vector v)
-{
-  wabi_vector_iter_t iter;
-  wabi_val x;
-
-  wabi_vector_iter_init(&iter, v);
-  wabi_hash_step(state, "V", 1);
-  for(;;) {
-    x = wabi_vector_iter_current(&iter);
-    if(! x) return;
-    wabi_hash_val(state, x);
-    wabi_vector_iter_next(&iter);
-  }
-}
 
 // TODO: rename push/pop left right
 void

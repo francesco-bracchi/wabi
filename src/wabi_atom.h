@@ -35,13 +35,6 @@ wabi_is_atom(const wabi_val v) {
 }
 
 
-static inline void
-wabi_atom_hash(const wabi_hash_state state, const wabi_atom val)
-{
-  wabi_hash_step(state, "A", 1);
-  wabi_hash_val(state, wabi_atom_to_binary(val));
-}
-
 static inline int
 wabi_atom_is_empty(const wabi_vm vm, const wabi_val v)
 {

@@ -158,8 +158,7 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
     wabi_copy_val_size(vm, src, WABI_COMBINER_DERIVED_SIZE);
     break;
 
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
+  case wabi_tag_ct:
     wabi_copy_val_size(vm,src, WABI_COMBINER_CONTINUATION_SIZE);
     break;
 
@@ -400,8 +399,7 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
     wabi_collect_combiner_bt(vm, (wabi_combiner_builtin) val);
     break;
 
-  case wabi_tag_ct_app:
-  case wabi_tag_ct_oper:
+  case wabi_tag_ct:
     wabi_collect_val_size(vm, val, WABI_COMBINER_CONTINUATION_SIZE);
     break;
 

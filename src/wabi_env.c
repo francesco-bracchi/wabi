@@ -37,7 +37,6 @@
 #include "wabi_error.h"
 #include "wabi_builtin.h"
 #include "wabi_atom.h"
-#include "wabi_hash.h"
 
 static wabi_size rnd = 0;
 

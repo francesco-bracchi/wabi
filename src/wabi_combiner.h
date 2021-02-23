@@ -121,15 +121,13 @@ wabi_combiner_builtins(const wabi_vm vm, const wabi_env env);
 inline static int
 wabi_combiner_is_operative(const wabi_val combiner) {
   return WABI_IS(wabi_tag_oper, combiner)
-    || WABI_IS(wabi_tag_bt_oper, combiner)
-    || WABI_IS(wabi_tag_ct_oper, combiner);
+    || WABI_IS(wabi_tag_bt_oper, combiner);
 }
 
 static inline int
 wabi_combiner_is_applicative(const wabi_val combiner) {
   return WABI_IS(wabi_tag_app, combiner)
-    || WABI_IS(wabi_tag_bt_app, combiner)
-    || WABI_IS(wabi_tag_ct_app, combiner);
+    || WABI_IS(wabi_tag_bt_app, combiner);
 }
 
 static inline int
@@ -141,7 +139,7 @@ wabi_combiner_is_builtin(const wabi_val combiner)
 static inline int
 wabi_combiner_is_continuation(const wabi_val combiner)
 {
-  return WABI_IS(wabi_tag_ct_app, combiner) || WABI_IS(wabi_tag_ct_oper, combiner);
+  return WABI_IS(wabi_tag_ct, combiner);
 }
 
 static inline int
@@ -161,33 +159,5 @@ wabi_combiner_continuation_cont(const wabi_combiner_continuation cont)
 
 wabi_combiner
 wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
-
-static inline void
-wabi_combiner_hash(const wabi_hash_state state, const wabi_combiner c)
-{
-  switch(WABI_TAG(c)) {
-  case wabi_tag_bt_app:
-    wabi_hash_step(state, "C", 1);
-  case wabi_tag_bt_oper:
-    wabi_hash_step(state, "B", 1);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_builtin) c)->c_name);
-    return;
-  case wabi_tag_app:
-    wabi_hash_step(state, "C", 1);
-  case wabi_tag_oper:
-    wabi_hash_step(state, "D", 1);
-    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_static_env((wabi_combiner_derived) c));
-    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_caller_env_name((wabi_combiner_derived) c));
-    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_parameters((wabi_combiner_derived) c));
-    wabi_hash_val(state, (wabi_val) wabi_combiner_derived_body((wabi_combiner_derived) c));
-    return;
-  case wabi_tag_ct_app:
-    wabi_hash_step(state, "C", 1);
-  case wabi_tag_ct_oper:
-    wabi_hash_step(state, "C", 1);
-    wabi_hash_val(state, (wabi_val) wabi_combiner_continuation_cont((wabi_combiner_continuation) c));
-    return;
-  }
-}
 
 #endif

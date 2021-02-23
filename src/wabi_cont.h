@@ -238,10 +238,7 @@ wabi_cont_pop(wabi_cont cont)
 }
 
 void
-wabi_cont_concat_cont(const wabi_vm vm, const wabi_cont cont);
-
-void
-wabi_cont_hash(const wabi_hash_state state, const wabi_cont cont);
-
+wabi_cont_concat_cont(const wabi_vm vm,
+                      const wabi_cont cont);
 
 #endif

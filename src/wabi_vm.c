@@ -787,7 +787,7 @@ wabi_vm_reduce_call(const wabi_vm vm)
   comb = (wabi_val) call->combiner;
   switch (WABI_TAG(comb)) {
 
-  case wabi_tag_ct_app:
+  case wabi_tag_ct:
     wabi_vm_reduce_call_continuation(vm);
     break;
 

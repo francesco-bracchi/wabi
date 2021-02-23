@@ -38,12 +38,4 @@ wabi_is_symbol(const wabi_val v) {
 }
 
 
-static inline void
-wabi_symbol_hash(const wabi_hash_state state,
-                 const wabi_symbol val)
-{
-  wabi_hash_step(state, "S", 1);
-  wabi_hash_val(state, wabi_symbol_to_binary(val));
-}
-
 #endif

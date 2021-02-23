@@ -152,7 +152,6 @@ wabi_binary_sub_node(const wabi_vm vm,
   return (wabi_binary) new_node;
 }
 
-
 wabi_binary
 wabi_binary_sub(const wabi_vm vm,
                 const wabi_binary bin,
@@ -162,52 +161,6 @@ wabi_binary_sub(const wabi_vm vm,
   return WABI_IS(wabi_tag_bin_leaf, bin)
     ? wabi_binary_sub_leaf(vm, (wabi_binary_leaf) bin, from, len)
     : wabi_binary_sub_node(vm, (wabi_binary_node) bin, from, len);
-}
-
-/**
- * collecting
- */
-
-
-/**
- * Hashing
- */
-
-static void
-wabi_binary_hash_generic(const wabi_hash_state state, const wabi_binary bin);
-
-static inline void
-wabi_binary_leaf_hash(const wabi_hash_state state, const wabi_binary_leaf leaf)
-{
-  wabi_hash_step(state, (char *) leaf->data_ptr, wabi_binary_length((wabi_binary) leaf));
-}
-
-static inline void
-wabi_binary_node_hash(const wabi_hash_state state, const wabi_binary_node node)
-{
-  wabi_binary_hash_generic(state, (wabi_binary) node->left);
-  wabi_binary_hash_generic(state, (wabi_binary) node->right);
-}
-
-static void
-wabi_binary_hash_generic(const wabi_hash_state state, const wabi_binary bin)
-{
-  switch(WABI_TAG(bin)) {
-  case wabi_tag_bin_leaf:
-    wabi_binary_leaf_hash(state, (wabi_binary_leaf_t *) bin);
-    break;
-  case wabi_tag_bin_node:
-    wabi_binary_node_hash(state, (wabi_binary_node_t *) bin);
-    break;
-  }
-}
-
-void
-wabi_binary_hash(const wabi_hash_state state,
-                 const wabi_binary bin)
-{
-  wabi_hash_step(state, "B", 1);
-  wabi_binary_hash_generic(state, bin);
 }
 
 /**

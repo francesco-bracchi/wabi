@@ -4,7 +4,6 @@
 
 #include "wabi_value.h"
 #include "wabi_vm.h"
-#include "wabi_hash.h"
 #include "wabi_env.h"
 
 typedef struct wabi_binary_leaf_struct
@@ -82,11 +81,7 @@ wabi_binary
 wabi_binary_sub(const wabi_vm vm, const wabi_binary bin, const wabi_size from, const wabi_size len);
 
 void
-wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin);
-
-void
 wabi_binary_builtins(const wabi_vm vm, const wabi_env env);
-
 
 char*
 wabi_binary_to_cstring(const wabi_vm vm,

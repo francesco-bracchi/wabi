@@ -184,10 +184,6 @@ void
 wabi_vector_builtins(const wabi_vm vm, const wabi_env env);
 
 
-void
-wabi_vector_hash(wabi_hash_state state, wabi_vector v);
-
-
 wabi_vector
 wabi_vector_concat(wabi_vm vm, wabi_vector l, wabi_vector r);
 
