@@ -91,7 +91,7 @@ wabi_env_actually_set(const wabi_env env,
   env->numE++;
 }
 
-static inline wabi_val
+wabi_val
 wabi_env_lookup_local(const wabi_env env, const wabi_val k)
 {
   wabi_size j, l;
@@ -134,7 +134,6 @@ wabi_env_lookup(const
   } while(env);
   return NULL;
 }
-
 
 void
 wabi_env_set(const wabi_vm vm,

@@ -31,18 +31,15 @@ wabi_env
 wabi_env_extend(const wabi_vm vm,
                 const wabi_env prev);
 
-
 void
 wabi_env_builtins(const wabi_vm vm,
                   const wabi_env env);
-
 
 static inline wabi_env
 wabi_env_new(const wabi_vm vm)
 {
   return wabi_env_extend(vm, NULL);
 }
-
 
 static inline void
 wabi_env_hash(wabi_hash_state state,
@@ -51,7 +48,6 @@ wabi_env_hash(wabi_hash_state state,
   wabi_hash_step(state, "E", 1);
   wabi_hash_step(state, (char*) env->uid, WABI_WORD_SIZE);
 }
-
 
 static inline int
 wabi_env_cmp(wabi_env left,
@@ -62,11 +58,9 @@ wabi_env_cmp(wabi_env left,
   return -1;
 }
 
-
 int
 wabi_env_cmp(const wabi_env left,
              const wabi_env right);
-
 
 static inline int
 wabi_is_env(const wabi_val val) {
