@@ -143,39 +143,4 @@ wabi_map_cmp(wabi_map left, wabi_map right);
 void
 wabi_map_builtins(const wabi_vm vm, const wabi_env env);
 
-
-static inline void
-wabi_map_entry_collect_val(wabi_vm vm, wabi_map_entry entry)
-{
-  wabi_collect_val_size(vm, (wabi_val) entry, WABI_MAP_SIZE);
-}
-
-
-static inline void
-wabi_map_array_collect_val(wabi_vm vm, wabi_map_array array)
-{
-  wabi_word size;
-  size = array->size;
-
-  wordcopy(vm->stor.heap, (wabi_word*) WABI_WORD_VAL(array->table), wabi_sizeof(wabi_map_entry_t) * size);
-  array->table = (wabi_word) vm->stor.heap;
-  vm->stor.heap += wabi_sizeof(wabi_map_entry_t) * size;
-  WABI_SET_TAG(array, wabi_tag_map_array);
-  vm->stor.scan += wabi_sizeof(wabi_map_array_t);
-}
-
-
-static inline void
-wabi_map_hash_collect_val(wabi_vm vm, wabi_map_hash map)
-{
-  wabi_word size;
-  size = WABI_MAP_BITMAP_COUNT(map->bitmap);
-
-  wordcopy(vm->stor.heap, (wabi_word*) WABI_WORD_VAL(map->table), wabi_sizeof(wabi_map_entry_t) * size);
-  map->table = (wabi_word) vm->stor.heap;
-  vm->stor.heap += wabi_sizeof(wabi_map_entry_t) * size;
-  WABI_SET_TAG(map, wabi_tag_map_hash);
-  vm->stor.scan += wabi_sizeof(wabi_map_hash_t);
-}
-
 #endif

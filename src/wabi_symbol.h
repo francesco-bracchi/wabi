@@ -5,7 +5,6 @@
 #include "wabi_vm.h"
 #include "wabi_value.h"
 #include "wabi_map.h"
-#include "wabi_collect.h"
 
 #define WABI_SYMBOL_SIZE 1
 

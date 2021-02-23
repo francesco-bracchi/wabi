@@ -16,7 +16,6 @@
 #include "wabi_list.h"
 #include "wabi_cont.h"
 #include "wabi_vm.h"
-#include "wabi_collect.h"
 #include "wabi_env.h"
 #include "wabi_error.h"
 
@@ -163,36 +162,6 @@ wabi_combiner_continuation_cont(const wabi_combiner_continuation cont)
 wabi_combiner
 wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
 
-
-/**
- * Collecting
- */
-
-static inline void
-wabi_combiner_derived_collect_val(const wabi_vm vm, const wabi_combiner_derived c)
-{
-  wabi_collect_val_size(vm, (wabi_val) c, WABI_COMBINER_DERIVED_SIZE);
-}
-
-static inline void
-wabi_combiner_builtin_collect_val(const wabi_vm vm, const wabi_combiner_builtin c)
-{
-  wabi_word tag;
-  tag = WABI_TAG(c);
-
-  ((wabi_combiner_builtin) c)->c_name =
-    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_cname(c));
-  ((wabi_combiner_builtin) c)->c_xtra =
-    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_xtra(c));
-  WABI_SET_TAG(c, tag);
-  vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
-}
-
-static inline void
-wabi_combiner_continuation_collect_val(const wabi_vm vm, const wabi_combiner_continuation c)
-{
-  wabi_collect_val_size(vm, (wabi_val) c, WABI_COMBINER_CONTINUATION_SIZE);
-}
 
 static inline int
 wabi_combiner_builtin_cmp(const wabi_combiner_builtin a, const wabi_combiner_builtin b)

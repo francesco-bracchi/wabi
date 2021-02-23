@@ -156,38 +156,6 @@ wabi_vector_deep_middle(wabi_vector_deep d)
   return (wabi_vector) d->middle;
 }
 
-
-static inline void
-wabi_vector_digit_collect_val(wabi_vm vm, wabi_vector_digit d)
-{
-  wabi_size j, n;
-  wabi_val t;
-  n = wabi_vector_digit_node_size(d);
-  t = wabi_vector_digit_table(d);
-  for(j = 0; j < n; j++)
-    *(t + j) = (wabi_word) wabi_copy_val(vm, (wabi_word*) *(t + j));
-
-  vm->stor.scan+= n + WABI_VECTOR_DIGIT_SIZE;
-}
-
-
-static inline void
-wabi_vector_deep_collect_val(wabi_vm vm, wabi_vector_deep d)
-{
-  wabi_vector m;
-  wabi_vector_digit l, r;
-
-  l = wabi_vector_deep_left(d);
-  m = wabi_vector_deep_middle(d);
-  r = wabi_vector_deep_right(d);
-
-  d->left = (wabi_word) wabi_copy_val(vm, (wabi_word*) l);
-  d->middle = (wabi_word) wabi_copy_val(vm, (wabi_word*) m);
-  d->right = (wabi_word) wabi_copy_val(vm, (wabi_word*) r);
-
-  vm->stor.scan += WABI_VECTOR_DEEP_SIZE;
-}
-
 wabi_vector
 wabi_vector_push_left(wabi_vm vm, wabi_val v, wabi_vector d);
 

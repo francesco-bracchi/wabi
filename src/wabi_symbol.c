@@ -8,22 +8,13 @@
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
 
-static inline void
-wabi_symbol_set_stbl(const wabi_vm vm,
-                     const wabi_val binref,
-                     const wabi_val sym) {
-  wabi_map tbl;
-
-  tbl = wabi_map_assoc(vm, (wabi_map) vm->stbl, binref, sym);
-  if(vm->ert) return;
-  vm->stbl = (wabi_val) tbl;
-}
-
 wabi_symbol
 wabi_symbol_new(const wabi_vm vm,
                 const wabi_val binref)
 {
   wabi_symbol res;
+  wabi_map tbl;
+
   res = (wabi_symbol) wabi_map_get((wabi_map) vm->stbl, binref);
   if(res) return res;
 
@@ -32,26 +23,14 @@ wabi_symbol_new(const wabi_vm vm,
 
   *res = (wabi_word) binref;
   WABI_SET_TAG(res, wabi_tag_symbol);
-  wabi_symbol_set_stbl(vm, binref, res);
+
+  tbl = wabi_map_assoc(vm, (wabi_map) vm->stbl, binref, res);
+  if(vm->ert) return NULL;
+  vm->stbl = (wabi_val) tbl;
+
   return res;
 }
 
-
-void
-wabi_symbol_collect_val(const wabi_vm vm, const wabi_val sym)
-{
-  wabi_val binref;
-  binref = wabi_symbol_to_binary(sym);
-  binref = wabi_copy_val(vm, binref);
-  *sym = (wabi_word) binref;
-  WABI_SET_TAG(sym, wabi_tag_symbol);
-  vm->stor.scan+= WABI_SYMBOL_SIZE;
-
-  if(wabi_map_get((wabi_map) vm->stbl, binref))
-    return;
-
-  wabi_symbol_set_stbl(vm, binref, sym);
-}
 
 
 static void

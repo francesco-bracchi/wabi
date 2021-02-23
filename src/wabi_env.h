@@ -7,7 +7,6 @@
 #include "wabi_vm.h"
 #include "wabi_error.h"
 #include "wabi_hash.h"
-#include "wabi_collect.h"
 
 typedef struct wabi_env_struct {
   wabi_word prev;
@@ -43,11 +42,6 @@ wabi_env_new(const wabi_vm vm)
 {
   return wabi_env_extend(vm, NULL);
 }
-
-
-void
-wabi_env_collect_val(const wabi_vm vm,
-                     const wabi_env env);
 
 
 static inline void

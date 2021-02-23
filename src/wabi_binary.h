@@ -81,15 +81,6 @@ wabi_binary_concat(const wabi_vm vm, const wabi_binary left, const wabi_binary r
 wabi_binary
 wabi_binary_sub(const wabi_vm vm, const wabi_binary bin, const wabi_size from, const wabi_size len);
 
-
-static inline void
-wabi_binary_collect_val(const wabi_vm vm, const wabi_binary src)
-{
-  // once in the new heap all binaries are of leaf type
-  vm->stor.scan += WABI_BINARY_LEAF_SIZE;
-}
-
-
 void
 wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin);
 

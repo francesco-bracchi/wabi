@@ -24,6 +24,8 @@ wabi_atom_new(const wabi_vm vm,
               const wabi_val binref)
 {
   wabi_atom res;
+  wabi_map tbl;
+
   res = (wabi_atom) wabi_map_get((wabi_map) vm->atbl, binref);
   if(res) return res;
 
@@ -32,26 +34,13 @@ wabi_atom_new(const wabi_vm vm,
 
   *res = (wabi_word) binref;
   WABI_SET_TAG(res, wabi_tag_atom);
-  wabi_atom_set_atbl(vm, binref, res);
+
+  tbl = wabi_map_assoc(vm, (wabi_map) vm->atbl, binref, res);
+  if(vm->ert) return NULL;
+  vm->atbl = (wabi_val) tbl;
+
   return res;
 }
-
-void
-wabi_atom_collect_val(const wabi_vm vm, const wabi_val sym)
-{
-  wabi_val binref;
-  binref = wabi_atom_to_binary(sym);
-  binref = wabi_copy_val(vm, binref);
-  *sym = (wabi_word) binref;
-  WABI_SET_TAG(sym, wabi_tag_atom);
-  vm->stor.scan+= WABI_ATOM_SIZE;
-
-  if(wabi_map_get((wabi_map) vm->atbl, binref))
-    return;
-
-  wabi_atom_set_atbl(vm, binref, sym);
-}
-
 
 static void
 wabi_atom_atom_p(const wabi_vm vm)

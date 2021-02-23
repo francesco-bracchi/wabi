@@ -65,30 +65,6 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
   return res;
 }
 
-/**
- * Collecting
- */
-
-void
-wabi_env_collect_val(wabi_vm vm, wabi_env env)
-{
-  wabi_size j;
-  wabi_word *k, *v;
-  if(WABI_WORD_VAL(env->prev)) {
-    env->prev = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(env->prev));
-  }
-  env->maxE = env->numE;
-  for(j = 0; j < env->numE; j++) {
-    k = ((wabi_val) env->data) + 2 * j;
-    v = ((wabi_val) env->data) + 1 + 2 * j;
-    *k = (wabi_word) wabi_copy_val(vm, (wabi_val) *k);
-    *v = (wabi_word) wabi_copy_val(vm, (wabi_val) *v);
-  }
-  WABI_SET_TAG(env, wabi_tag_env);
-  vm->stor.scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
-}
-
-
 void
 wabi_env_set_expand(const wabi_vm vm,
                     const wabi_env env)

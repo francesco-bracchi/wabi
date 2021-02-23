@@ -13,9 +13,7 @@
 #include "wabi_vector.h"
 
 
-// todo: uncomment
-// static inline void
-void
+static inline void
 wabi_copy_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size)
 {
   wordcopy(vm->stor.heap, obj, size);
@@ -183,6 +181,172 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   return res;
 }
 
+// reverse order, because the first word contains references to a kind of tail
+// like pairs, the tail part is the first, byte, the same for continuations.
+static inline void
+wabi_collect_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size)
+{
+  wabi_size cnt;
+  wabi_word* pos;
+  wabi_word tag;
+
+  tag = WABI_WORD_TAG(*obj);
+  cnt = 0;
+  pos = obj + (size - 1);
+  while(cnt < size) {
+    *pos = (wabi_word) wabi_copy_val(vm, (wabi_word*) WABI_WORD_VAL(*pos));
+    cnt++;
+    pos--;
+  }
+  WABI_SET_TAG(obj, tag);
+  vm->stor.scan+= size;
+}
+
+static inline void
+wabi_collect_symbol(const wabi_vm vm, const wabi_val sym)
+{
+  wabi_val binref;
+  wabi_map tbl;
+
+  binref = wabi_symbol_to_binary(sym);
+  binref = wabi_copy_val(vm, binref);
+  *sym = (wabi_word) binref;
+  WABI_SET_TAG(sym, wabi_tag_symbol);
+  vm->stor.scan+= WABI_SYMBOL_SIZE;
+
+  if(wabi_map_get((wabi_map) vm->stbl, binref))
+    return;
+
+  tbl = wabi_map_assoc(vm, (wabi_map) vm->stbl, binref, sym);
+  if(vm->ert) return;
+  vm->stbl = (wabi_val) tbl;
+}
+
+static inline void
+wabi_collect_atom(const wabi_vm vm, const wabi_val atm)
+{
+  wabi_val binref;
+  wabi_map tbl;
+
+  binref = wabi_atom_to_binary(atm);
+  binref = wabi_copy_val(vm, binref);
+  *atm = (wabi_word) binref;
+  WABI_SET_TAG(atm, wabi_tag_atom);
+  vm->stor.scan+= WABI_ATOM_SIZE;
+
+  if(wabi_map_get((wabi_map) vm->atbl, binref))
+    return;
+
+  tbl = wabi_map_assoc(vm, (wabi_map) vm->atbl, binref, atm);
+  if(vm->ert) return;
+  vm->atbl = (wabi_val) tbl;
+}
+
+static inline void
+wabi_collect_map_array(wabi_vm vm, wabi_map_array array)
+{
+  wabi_word size;
+  size = array->size;
+
+  wordcopy(vm->stor.heap, (wabi_word*) WABI_WORD_VAL(array->table), wabi_sizeof(wabi_map_entry_t) * size);
+  array->table = (wabi_word) vm->stor.heap;
+  vm->stor.heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(array, wabi_tag_map_array);
+  vm->stor.scan += wabi_sizeof(wabi_map_array_t);
+}
+
+
+static inline void
+wabi_collect_map_hash(wabi_vm vm, wabi_map_hash map)
+{
+  wabi_word size;
+  size = WABI_MAP_BITMAP_COUNT(map->bitmap);
+
+  wordcopy(vm->stor.heap, (wabi_word*) WABI_WORD_VAL(map->table), wabi_sizeof(wabi_map_entry_t) * size);
+  map->table = (wabi_word) vm->stor.heap;
+  vm->stor.heap += wabi_sizeof(wabi_map_entry_t) * size;
+  WABI_SET_TAG(map, wabi_tag_map_hash);
+  vm->stor.scan += wabi_sizeof(wabi_map_hash_t);
+}
+
+static inline void
+wabi_collect_combiner_bt(const wabi_vm vm, const wabi_combiner_builtin c)
+{
+  wabi_word tag;
+  tag = WABI_TAG(c);
+
+  ((wabi_combiner_builtin) c)->c_name =
+    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_cname(c));
+  ((wabi_combiner_builtin) c)->c_xtra =
+    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_xtra(c));
+  WABI_SET_TAG(c, tag);
+  vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
+}
+
+static inline void
+wabi_collect_env(wabi_vm vm, wabi_env env)
+{
+  wabi_size j;
+  wabi_word *k, *v;
+  if(WABI_WORD_VAL(env->prev)) {
+    env->prev = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(env->prev));
+  }
+  env->maxE = env->numE;
+  for(j = 0; j < env->numE; j++) {
+    k = ((wabi_val) env->data) + 2 * j;
+    v = ((wabi_val) env->data) + 1 + 2 * j;
+    *k = (wabi_word) wabi_copy_val(vm, (wabi_val) *k);
+    *v = (wabi_word) wabi_copy_val(vm, (wabi_val) *v);
+  }
+  WABI_SET_TAG(env, wabi_tag_env);
+  vm->stor.scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
+}
+
+static inline void
+wabi_collect_prompt(const wabi_vm vm, const wabi_cont_prompt cont)
+{
+  cont->tag = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->tag));
+  if(cont->next != (wabi_word) wabi_cont_done) {
+    cont->next = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next));
+  }
+  if(cont->next_prompt != (wabi_word) wabi_cont_done) {
+    cont->next_prompt = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next_prompt));
+  }
+  WABI_SET_TAG(cont, wabi_tag_cont_prompt);
+  vm->stor.scan+=WABI_CONT_PROMPT_SIZE;
+}
+
+
+static inline void
+wabi_collect_vector_digit(wabi_vm vm, wabi_vector_digit d)
+{
+  wabi_size j, n;
+  wabi_val t;
+  n = wabi_vector_digit_node_size(d);
+  t = wabi_vector_digit_table(d);
+  for(j = 0; j < n; j++)
+    *(t + j) = (wabi_word) wabi_copy_val(vm, (wabi_word*) *(t + j));
+
+  vm->stor.scan+= n + WABI_VECTOR_DIGIT_SIZE;
+}
+
+
+static inline void
+wabi_collect_vector_deep(wabi_vm vm, wabi_vector_deep d)
+{
+  wabi_vector m;
+  wabi_vector_digit l, r;
+
+  l = wabi_vector_deep_left(d);
+  m = wabi_vector_deep_middle(d);
+  r = wabi_vector_deep_right(d);
+
+  d->left = (wabi_word) wabi_copy_val(vm, (wabi_word*) l);
+  d->middle = (wabi_word) wabi_copy_val(vm, (wabi_word*) m);
+  d->right = (wabi_word) wabi_copy_val(vm, (wabi_word*) r);
+
+  vm->stor.scan += WABI_VECTOR_DEEP_SIZE;
+}
 
 static inline void
 wabi_collect_val(wabi_vm vm, wabi_val val)
@@ -199,99 +363,107 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
     break;
 
   case wabi_tag_symbol:
-    wabi_symbol_collect_val(vm, (wabi_symbol) val);
+    wabi_collect_symbol(vm, (wabi_symbol) val);
     break;
 
   case wabi_tag_atom:
-    wabi_atom_collect_val(vm, (wabi_atom) val);
+    wabi_collect_atom(vm, (wabi_atom) val);
     break;
 
   case wabi_tag_bin_leaf:
-    wabi_binary_collect_val(vm, (wabi_binary) val);
+    vm->stor.scan += WABI_BINARY_LEAF_SIZE;
     break;
 
   case wabi_tag_pair:
-    wabi_pair_collect_val(vm, (wabi_pair) val);
+    wabi_collect_val_size(vm, val, WABI_PAIR_SIZE);
     break;
 
   case wabi_tag_map_entry:
-    wabi_map_entry_collect_val(vm, (wabi_map_entry) val);
+    wabi_collect_val_size(vm, val, WABI_MAP_SIZE);
     break;
+
   case wabi_tag_map_array:
-    wabi_map_array_collect_val(vm, (wabi_map_array) val);
+    wabi_collect_map_array(vm, (wabi_map_array) val);
     break;
+
   case wabi_tag_map_hash:
-    wabi_map_hash_collect_val(vm, (wabi_map_hash) val);
+    wabi_collect_map_hash(vm, (wabi_map_hash) val);
     break;
 
   case wabi_tag_oper:
   case wabi_tag_app:
-    wabi_combiner_derived_collect_val(vm, (wabi_combiner_derived) val);
+    wabi_collect_val_size(vm, val, WABI_COMBINER_DERIVED_SIZE);
     break;
 
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    wabi_combiner_builtin_collect_val(vm, (wabi_combiner_builtin) val);
+    wabi_collect_combiner_bt(vm, (wabi_combiner_builtin) val);
     break;
 
   case wabi_tag_ct_app:
   case wabi_tag_ct_oper:
-    wabi_combiner_continuation_collect_val(vm, (wabi_combiner_continuation) val);
+    wabi_collect_val_size(vm, val, WABI_COMBINER_CONTINUATION_SIZE);
     break;
 
   case wabi_tag_env:
-    wabi_env_collect_val(vm, (wabi_env) val);
-    break;
-
-  case wabi_tag_cont_eval:
-    wabi_cont_eval_collect_val(vm, (wabi_cont_eval) val);
+    wabi_collect_env(vm, (wabi_env) val);
     break;
 
   case wabi_tag_cont_prompt:
-    wabi_cont_prompt_collect_val(vm, (wabi_cont_prompt) val);
+    wabi_collect_prompt(vm, (wabi_cont_prompt) val);
+    break;
+
+  case wabi_tag_cont_eval:
+    wabi_collect_val_size(vm, val, WABI_CONT_EVAL_SIZE);
     break;
 
   case wabi_tag_cont_apply:
-    wabi_cont_apply_collect_val(vm, (wabi_cont_apply) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_APPLY_SIZE);
     break;
 
   case wabi_tag_cont_call:
-    wabi_cont_call_collect_val(vm, (wabi_cont_call) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_CALL_SIZE);
     break;
 
   case wabi_tag_cont_def:
-    wabi_cont_def_collect_val(vm, (wabi_cont_def) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_DEF_SIZE);
     break;
 
   case wabi_tag_cont_prog:
-    wabi_cont_prog_collect_val(vm, (wabi_cont_prog) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_PROG_SIZE);
     break;
 
   case wabi_tag_cont_args:
-    wabi_cont_args_collect_val(vm, (wabi_cont_args) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_ARGS_SIZE);
     break;
 
   case wabi_tag_cont_sel:
-    wabi_cont_sel_collect_val(vm, (wabi_cont_sel) val);
+    wabi_collect_val_size(vm, val, WABI_CONT_SEL_SIZE);
     break;
 
   case wabi_tag_place:
-    wabi_place_collect_val(vm, (wabi_place) val);
+    wabi_place_val_set((wabi_place) val, wabi_copy_val(vm, wabi_place_val((wabi_place) val)));
+    vm->stor.scan+= WABI_PLACE_SIZE;
     break;
 
   case wabi_tag_vector_digit:
-    wabi_vector_digit_collect_val(vm, (wabi_vector_digit) val);
+    wabi_collect_vector_digit(vm, (wabi_vector_digit) val);
     break;
 
   case wabi_tag_vector_deep:
-    wabi_vector_deep_collect_val(vm, (wabi_vector_deep) val);
+    wabi_collect_vector_deep(vm, (wabi_vector_deep) val);
     break;
 
   case wabi_tag_forward:
     *val = WABI_WORD_VAL(*val);
     vm->stor.scan++;
     break;
+
+  case wabi_tag_bin_node:
+    vm->ert = wabi_error_other;
+    break;
   }
+
 }
 
 

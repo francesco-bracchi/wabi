@@ -5,7 +5,6 @@
 #include "wabi_value.h"
 #include "wabi_atom.h"
 #include "wabi_vm.h"
-#include "wabi_collect.h"
 #include "wabi_env.h"
 #include "wabi_cmp.h"
 
@@ -46,13 +45,6 @@ static inline wabi_val
 wabi_cdr(const wabi_pair pair)
 {
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
-}
-
-static inline void
-wabi_pair_collect_val(const wabi_vm vm,
-                      const wabi_pair pair)
-{
-  wabi_collect_val_size(vm, (wabi_val) pair, WABI_PAIR_SIZE);
 }
 
 static inline void

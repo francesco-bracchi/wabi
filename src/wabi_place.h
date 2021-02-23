@@ -6,7 +6,6 @@
 #include "wabi_vm.h"
 #include "wabi_env.h"
 #include "wabi_error.h"
-#include "wabi_collect.h"
 #include "wabi_hash.h"
 #include "wabi_cmp.h"
 
@@ -43,15 +42,6 @@ wabi_place_val_set(const wabi_place place,
                    const wabi_val val)
 {
   place->val = (wabi_word) val;
-}
-
-
-static inline void
-wabi_place_collect_val(const wabi_vm vm,
-                       const wabi_place place)
-{
-  wabi_place_val_set(place, wabi_copy_val(vm, wabi_place_val(place)));
-  vm->stor.scan+= WABI_PLACE_SIZE;
 }
 
 

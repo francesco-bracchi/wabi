@@ -5,7 +5,6 @@
 #include "wabi_vm.h"
 #include "wabi_value.h"
 #include "wabi_map.h"
-#include "wabi_collect.h"
 
 #define WABI_ATOM_SIZE 1
 
@@ -21,11 +20,6 @@ wabi_atom_to_binary(const wabi_atom sym)
 {
   return (wabi_val) WABI_WORD_VAL(*sym);
 }
-
-
-void
-wabi_atom_collect_val(const wabi_vm vm,
-                      const wabi_val sym);
 
 
 void
