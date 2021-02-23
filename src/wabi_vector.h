@@ -184,10 +184,6 @@ void
 wabi_vector_builtins(const wabi_vm vm, const wabi_env env);
 
 
-int
-wabi_vector_cmp(wabi_vector left, wabi_vector right);
-
-
 void
 wabi_vector_hash(wabi_hash_state state, wabi_vector v);
 
@@ -198,4 +194,16 @@ wabi_vector_concat(wabi_vm vm, wabi_vector l, wabi_vector r);
 wabi_val
 wabi_vector_ref(const wabi_vector d,
                 const wabi_size p);
+
+void
+wabi_vector_iter_init(const wabi_vector_iter iter,
+                      const wabi_vector v);
+
+void
+wabi_vector_iter_next(const wabi_vector_iter iter);
+
+
+wabi_val
+wabi_vector_iter_current(const wabi_vector_iter iter);
+
 #endif

@@ -5,6 +5,8 @@
 #include "wabi_vm.h"
 #include "wabi_value.h"
 #include "wabi_map.h"
+#include "wabi_env.h"
+#include "wabi_cmp.h"
 
 #define WABI_ATOM_SIZE 1
 

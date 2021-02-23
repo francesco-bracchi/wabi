@@ -38,10 +38,4 @@ wabi_number_builtin_sum(const wabi_vm vm);
 void
 wabi_number_builtin_dif(const wabi_vm vm);
 
-static inline int
-wabi_cmp_fixnum(wabi_fixnum a, wabi_fixnum b) {
-  long d = WABI_CAST_INT64(b) - WABI_CAST_INT64(a);
-  return d ? (d > 0L ? 1 : -1) : 0;
-}
-
 #endif

@@ -4,7 +4,7 @@
 #include "wabi_vm.h"
 #include "wabi_value.h"
 #include "wabi_hash.h"
-#include "wabi_cmp.h"
+#include "wabi_env.h"
 #include "wabi_store.h"
 
 #define WABI_MAP_ITER_STACK_SIZE 10
@@ -134,10 +134,6 @@ wabi_map_length(wabi_map map);
 
 void
 wabi_map_hash_(wabi_hash_state state, wabi_map map);
-
-
-int
-wabi_map_cmp(wabi_map left, wabi_map right);
 
 
 void

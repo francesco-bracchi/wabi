@@ -1,6 +1,5 @@
 #include "wabi_value.h"
 #include "wabi_cont.h"
-#include "wabi_cmp.h"
 #include "wabi_vm.h"
 #include "wabi_combiner.h"
 #include "wabi_atom.h"
@@ -178,64 +177,5 @@ wabi_cont_concat_cont(const wabi_vm vm,
   if(new_prompt) {
     new_prompt->next_prompt = (wabi_word) right_prompt;
     vm->prmt = (wabi_val) res_prompt;
-  }
-}
-
-
-int
-wabi_cont_cmp(const wabi_cont a, const wabi_cont b)
-{
-  int cmp;
-  switch(WABI_TAG(a)) {
-  case wabi_tag_cont_eval:
-    return wabi_cmp((wabi_val) ((wabi_cont_eval) a)->next, (wabi_val) ((wabi_cont_eval) b)->next);
-
-  case wabi_tag_cont_apply:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->args, (wabi_val) ((wabi_cont_apply) b)->args);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_apply) a)->env, (wabi_val) ((wabi_cont_apply) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_apply) a)->next, (wabi_val) ((wabi_cont_apply) b)->next);
-
-  case wabi_tag_cont_call:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->combiner, (wabi_val) ((wabi_cont_call) b)->combiner);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_call) a)->env, (wabi_val) ((wabi_cont_call) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_call) a)->next, (wabi_val) ((wabi_cont_call) b)->next);
-
-  case wabi_tag_cont_sel:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->left, (wabi_val) ((wabi_cont_sel) b)->left);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->right, (wabi_val) ((wabi_cont_sel) b)->right);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_sel) a)->env, (wabi_val) ((wabi_cont_sel) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_sel) a)->next, (wabi_val) ((wabi_cont_sel) b)->next);
-
-  case wabi_tag_cont_args:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->data, (wabi_val) ((wabi_cont_args) b)->data);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->done, (wabi_val) ((wabi_cont_args) b)->done);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_args) a)->env, (wabi_val) ((wabi_cont_args) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_args) a)->next, (wabi_val) ((wabi_cont_args) b)->next);
-
-  case wabi_tag_cont_def:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->pattern, (wabi_val) ((wabi_cont_def) b)->pattern);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_def) a)->env, (wabi_val) ((wabi_cont_def) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_def) a)->next, (wabi_val) ((wabi_cont_def) b)->next);
-
-  case wabi_tag_cont_prog:
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->expressions, (wabi_val) ((wabi_cont_prog) b)->expressions);
-    if(cmp) return cmp;
-    cmp = wabi_cmp((wabi_val) ((wabi_cont_prog) a)->env, (wabi_val) ((wabi_cont_prog) b)->env);
-    if(cmp) return cmp;
-    return wabi_cmp((wabi_val) ((wabi_cont_prog) a)->next, (wabi_val) ((wabi_cont_prog) b)->next);
-  default:
-    return -1000;
   }
 }

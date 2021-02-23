@@ -7,6 +7,7 @@
 #include "wabi_map.h"
 #include "wabi_cont.h"
 #include "wabi_builtin.h"
+#include "wabi_cmp.h"
 
 static inline void
 wabi_atom_set_atbl(const wabi_vm vm,

@@ -9,7 +9,6 @@
 #include "wabi_builtin.h"
 #include "wabi_atom.h"
 #include "wabi_number.h"
-#include "wabi_cmp.h"
 #include "wabi_hash.h"
 
 
@@ -1175,7 +1174,7 @@ wabi_vector_iter_move(const wabi_vector_iter iter)
 }
 
 
-static inline void
+void
 wabi_vector_iter_next(const wabi_vector_iter iter)
 {
   iter->top->pos++;
@@ -1199,7 +1198,7 @@ wabi_vector_iter_init(const wabi_vector_iter iter,
 }
 
 
-static inline wabi_val
+wabi_val
 wabi_vector_iter_current(const wabi_vector_iter iter)
 {
   wabi_vector_iter_frame f;
@@ -1212,40 +1211,6 @@ wabi_vector_iter_current(const wabi_vector_iter iter)
   f = iter->top;
   t = wabi_vector_digit_table((wabi_vector_digit) f->vector);
   return (wabi_val) *(t + f->pos);
-}
-
-
-int
-wabi_vector_cmp(const wabi_vector left,
-                const wabi_vector right)
-{
-  wabi_vector_iter_t left_iter, right_iter;
-  wabi_val l, r;
-  int cmp;
-
-  cmp = wabi_vector_size(right) - wabi_vector_size(left);
-  if(cmp) return cmp;
-
-  wabi_vector_iter_init(&left_iter, left);
-  wabi_vector_iter_init(&right_iter, right);
-
-  for(;;) {
-    l = wabi_vector_iter_current(&left_iter);
-    r = wabi_vector_iter_current(&right_iter);
-    if(!l && !r) {
-      return 0;
-    }
-    if(!r) {
-      return 1;
-    }
-    if(!l) {
-      return -1;
-    }
-    cmp = wabi_cmp(l, r);
-    if(cmp) return cmp;
-    wabi_vector_iter_next(&left_iter);
-    wabi_vector_iter_next(&right_iter);
-  }
 }
 
 

@@ -84,11 +84,6 @@ wabi_binary_sub(const wabi_vm vm, const wabi_binary bin, const wabi_size from, c
 void
 wabi_binary_hash(const wabi_hash_state state, const wabi_binary bin);
 
-
-int
-wabi_binary_cmp(const wabi_binary left, const wabi_binary right);
-
-
 void
 wabi_binary_builtins(const wabi_vm vm, const wabi_env env);
 

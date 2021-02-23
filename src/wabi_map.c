@@ -34,7 +34,6 @@ wabi_map_hash_assoc_rec(wabi_vm vm,
                         wabi_word hash,
                         wabi_word hash_offset);
 
-
 static wabi_map
 wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_map_array map,
@@ -42,14 +41,12 @@ wabi_map_array_assoc_rec(wabi_vm vm,
                          wabi_word hash,
                          wabi_word hash_offset);
 
-
 static inline wabi_map
 wabi_map_assoc_rec(wabi_vm vm,
                    wabi_map map,
                    wabi_map_entry entry,
                    wabi_word hash,
                    wabi_word hash_offset);
-
 
 static wabi_map_hash
 wabi_map_array_promote(const wabi_vm vm,
@@ -148,7 +145,6 @@ wabi_map_array_assoc_rec(wabi_vm vm,
   return (wabi_map) new_map;
 }
 
-
 static wabi_map
 wabi_map_hash_assoc_rec(const wabi_vm vm,
                         const wabi_map_hash map,
@@ -197,7 +193,6 @@ wabi_map_hash_assoc_rec(const wabi_vm vm,
   return (wabi_map) new_map;
 }
 
-
 static wabi_map
 wabi_map_entry_assoc_rec(const wabi_vm vm,
                          const wabi_map_entry entry0,
@@ -228,7 +223,6 @@ wabi_map_entry_assoc_rec(const wabi_vm vm,
   return (wabi_map) map;
 }
 
-
 static inline wabi_map
 wabi_map_assoc_rec(const wabi_vm vm,
                    const wabi_map map,
@@ -251,7 +245,6 @@ wabi_map_assoc_rec(const wabi_vm vm,
   return NULL;
 }
 
-
 wabi_map
 wabi_map_assoc(const wabi_vm vm,
                const wabi_map map,
@@ -270,18 +263,15 @@ wabi_map_assoc(const wabi_vm vm,
   return wabi_map_assoc_rec(vm, map, entry, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
-
 /**
  * DISSOC operation
  */
-
 static inline wabi_map
 wabi_map_dissoc_rec(const wabi_vm vm,
                     const wabi_map map,
                     const wabi_val key,
                     const wabi_word hash,
                     const wabi_word hash_offset);
-
 
 static inline wabi_map
 wabi_map_entry_dissoc_rec(const wabi_vm vm,
@@ -340,7 +330,6 @@ wabi_map_array_dissoc_rec(const wabi_vm vm,
   return (wabi_map) map;
 }
 
-
 static inline void
 wabi_map_insert_sort(const wabi_map_entry table,
                      const int size)
@@ -364,7 +353,6 @@ wabi_map_insert_sort(const wabi_map_entry table,
     i++;
   }
 }
-
 
 static wabi_map
 wabi_map_hash_demote(const wabi_vm vm,
@@ -417,7 +405,6 @@ wabi_map_hash_demote(const wabi_vm vm,
   return (wabi_map) new_map;
 }
 
-
 static wabi_map
 wabi_map_hash_dissoc_rec(const wabi_vm vm,
                          const wabi_map_hash map,
@@ -468,7 +455,6 @@ wabi_map_hash_dissoc_rec(const wabi_vm vm,
   return (wabi_map) map;
 }
 
-
 static inline wabi_map
 wabi_map_dissoc_rec(const wabi_vm vm,
                     const wabi_map map,
@@ -491,7 +477,6 @@ wabi_map_dissoc_rec(const wabi_vm vm,
   return NULL;
 }
 
-
 wabi_map
 wabi_map_dissoc(const wabi_vm vm,
                 const wabi_map map,
@@ -502,7 +487,6 @@ wabi_map_dissoc(const wabi_vm vm,
   return wabi_map_dissoc_rec(vm, map, key, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
-
 /**
  * GET Operation
  */
@@ -512,13 +496,11 @@ wabi_map_hash_get_rec(const wabi_map_hash map,
                       const wabi_word hash,
                       const wabi_word hash_offset);
 
-
 static wabi_val
 wabi_map_array_get_rec(const wabi_map_array map,
                        const wabi_val key,
                        const wabi_word hash,
                        const wabi_word hash_offset);
-
 
 static wabi_val
 wabi_map_hash_get_rec(const wabi_map_hash map,
@@ -602,7 +584,6 @@ wabi_map_get_rec(const wabi_map map,
   return wabi_map_hash_get_rec((wabi_map_hash) map, key, hash, hash_offset);
 }
 
-
 wabi_val
 wabi_map_get(const wabi_map map,
              const wabi_val key)
@@ -612,11 +593,9 @@ wabi_map_get(const wabi_map map,
   return wabi_map_get_rec(map, key, hash, WABI_MAP_INITIAL_OFFSET);
 }
 
-
 /**
  * Iterator
  */
-
 static inline void
 wabi_map_iterator_grow(const wabi_map_iter iter)
 {
@@ -664,7 +643,6 @@ wabi_map_iterator_grow(const wabi_map_iter iter)
   while(iter->top < WABI_MAP_ITER_STACK_SIZE);
 }
 
-
 static inline int
 wabi_map_iterator_frame_full(const wabi_map_iter_frame frame)
 {
@@ -688,7 +666,6 @@ wabi_map_iterator_frame_full(const wabi_map_iter_frame frame)
   return 0;
 }
 
-
 static inline void
 wabi_map_iterator_shrink(const wabi_map_iter iter)
 {
@@ -698,7 +675,6 @@ wabi_map_iterator_shrink(const wabi_map_iter iter)
   }
   (iter->stack + iter->top)->pos++;
 }
-
 
 void
 wabi_map_iterator_init(const wabi_map_iter iter,
@@ -712,7 +688,6 @@ wabi_map_iterator_init(const wabi_map_iter iter,
   wabi_map_iterator_grow(iter);
 }
 
-
 wabi_map_entry
 wabi_map_iterator_current(const wabi_map_iter iter) {
   wabi_map_iter_frame frame;
@@ -720,7 +695,6 @@ wabi_map_iterator_current(const wabi_map_iter iter) {
   frame = iter->stack + iter->top;
   return (wabi_map_entry) frame->map;
 }
-
 
 void
 wabi_map_iterator_next(const wabi_map_iter iter) {
@@ -745,7 +719,6 @@ wabi_map_empty(const wabi_vm vm)
 
   return (wabi_map) map;
 }
-
 
 /**
  * Length
@@ -848,7 +821,6 @@ wabi_map_builtin_assoc(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
 static void
 wabi_map_builtin_dissoc(const wabi_vm vm)
 {
@@ -879,13 +851,11 @@ wabi_map_builtin_dissoc(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
 static void
 wabi_map_builtin_map_p(const wabi_vm vm)
 {
   wabi_builtin_predicate(vm, &wabi_is_map);
 }
-
 
 static void
 wabi_map_builtin_len(const wabi_vm vm)
@@ -954,7 +924,6 @@ wabi_map_builtin_get
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
 static inline void
 wabi_map_hash_entry(const wabi_hash_state state,
                     const wabi_map_entry entry)
@@ -962,7 +931,6 @@ wabi_map_hash_entry(const wabi_hash_state state,
   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_KEY(entry));
   wabi_hash_val(state, (wabi_val) WABI_MAP_ENTRY_VALUE(entry));
 }
-
 
 static inline void
 wabi_map_hash_map(const wabi_hash_state state,
@@ -977,7 +945,6 @@ wabi_map_hash_map(const wabi_hash_state state,
   }
 }
 
-
 void
 wabi_map_hash_(const wabi_hash_state state, const wabi_map map)
 {
@@ -988,44 +955,6 @@ wabi_map_hash_(const wabi_hash_state state, const wabi_map map)
   }
   wabi_map_hash_map(state, map);
 }
-
-
-int
-wabi_map_cmp(const wabi_map left,
-             const wabi_map right)
-{
-  wabi_map_iter_t left_iter, right_iter;
-  wabi_map_entry left_entry, right_entry;
-  int cmp;
-  wabi_map_iterator_init(&left_iter, left);
-  wabi_map_iterator_init(&right_iter, right);
-
-  do {
-    left_entry = wabi_map_iterator_current(&left_iter);
-    right_entry = wabi_map_iterator_current(&right_iter);
-
-    if(!left_entry && !right_entry) {
-      return 0;
-    }
-    else if(!right_entry) {
-      return 1;
-    }
-    else if(!left_entry) {
-      return -1;
-    }
-    else {
-      cmp = wabi_cmp(WABI_MAP_ENTRY_KEY(left_entry),
-                     WABI_MAP_ENTRY_KEY(right_entry));
-      if(cmp) return cmp;
-      cmp =  wabi_cmp(WABI_MAP_ENTRY_VALUE(left_entry),
-                      WABI_MAP_ENTRY_VALUE(right_entry));
-      if(cmp) return cmp;
-    }
-    wabi_map_iterator_next(&left_iter);
-    wabi_map_iterator_next(&right_iter);
-  } while(1);
-}
-
 
 void
 wabi_map_builtins(const wabi_vm vm, const wabi_env env)

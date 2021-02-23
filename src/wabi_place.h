@@ -7,7 +7,6 @@
 #include "wabi_env.h"
 #include "wabi_error.h"
 #include "wabi_hash.h"
-#include "wabi_cmp.h"
 
 typedef struct wabi_place_struct
 {
@@ -44,23 +43,12 @@ wabi_place_val_set(const wabi_place place,
   place->val = (wabi_word) val;
 }
 
-
 static inline void
 wabi_place_hash(const wabi_hash_state state,
                 const wabi_place place)
 {
   wabi_hash_step(state, "R", 1);
   wabi_hash_step(state, (char*) &(place->uid), WABI_WORD_SIZE);
-}
-
-
-static inline int
-wabi_place_cmp(const wabi_place left,
-               const wabi_place right)
-{
-  if(left->uid == right->uid) return 0;
-  if(left->uid > right->uid) return 1;
-  return -1;
 }
 
 static inline int

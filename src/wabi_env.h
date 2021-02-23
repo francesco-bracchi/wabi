@@ -49,15 +49,6 @@ wabi_env_hash(wabi_hash_state state,
   wabi_hash_step(state, (char*) env->uid, WABI_WORD_SIZE);
 }
 
-static inline int
-wabi_env_cmp(wabi_env left,
-             wabi_env right)
-{
-  if(left->uid == right->uid) return 0;
-  if(left->uid > right->uid) return 1;
-  return -1;
-}
-
 int
 wabi_env_cmp(const wabi_env left,
              const wabi_env right);

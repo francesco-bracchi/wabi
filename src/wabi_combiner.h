@@ -162,34 +162,6 @@ wabi_combiner_continuation_cont(const wabi_combiner_continuation cont)
 wabi_combiner
 wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
 
-
-static inline int
-wabi_combiner_builtin_cmp(const wabi_combiner_builtin a, const wabi_combiner_builtin b)
-{
-  return wabi_binary_cmp((wabi_binary) a->c_name, (wabi_binary) b->c_name);
-}
-
-static inline int
-wabi_combiner_derived_cmp(const wabi_combiner_derived a, const wabi_combiner_derived b)
-{
-    int cmp;
-    cmp = wabi_cmp(wabi_combiner_derived_body(a),
-                   wabi_combiner_derived_body(b));
-    if(cmp) return cmp;
-
-    cmp = wabi_cmp(wabi_combiner_derived_parameters(a),
-                   wabi_combiner_derived_parameters(a));
-    if(cmp) return cmp;
-
-    cmp = wabi_cmp(wabi_combiner_derived_caller_env_name(a),
-                   wabi_combiner_derived_caller_env_name(b));
-    if(cmp) return cmp;
-
-    return wabi_cmp(wabi_combiner_derived_static_env(a),
-                    wabi_combiner_derived_static_env(b));
-}
-
-
 static inline void
 wabi_combiner_hash(const wabi_hash_state state, const wabi_combiner c)
 {

@@ -11,7 +11,6 @@
 #include "wabi_error.h"
 #include "wabi_list.h"
 
-
 wabi_fixnum
 wabi_fixnum_new(const wabi_vm vm,
                 const int64_t val)
@@ -29,7 +28,6 @@ wabi_fixnum_new(const wabi_vm vm,
   WABI_SET_TAG(res, wabi_tag_fixnum);
   return res;
 }
-
 
 void
 wabi_number_builtin_sum(const wabi_vm vm)
@@ -58,7 +56,6 @@ wabi_number_builtin_sum(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
 static void
 wabi_number_builtin_mul(const wabi_vm vm)
 {
@@ -84,7 +81,6 @@ wabi_number_builtin_mul(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
   vm->ctrl = a;
 }
-
 
 void
 wabi_number_builtin_dif(const wabi_vm vm)
@@ -128,7 +124,6 @@ wabi_number_builtin_dif(const wabi_vm vm)
   vm->ctrl = res;
 }
 
-
 static void
 wabi_number_builtin_div(const wabi_vm vm)
 {
@@ -168,7 +163,6 @@ wabi_number_builtin_div(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
   vm->ctrl = res;
 }
-
 
 void
 wabi_number_builtins(const wabi_vm vm, const wabi_env env)

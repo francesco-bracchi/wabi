@@ -202,7 +202,6 @@ wabi_binary_hash_generic(const wabi_hash_state state, const wabi_binary bin)
   }
 }
 
-
 void
 wabi_binary_hash(const wabi_hash_state state,
                  const wabi_binary bin)
@@ -210,91 +209,6 @@ wabi_binary_hash(const wabi_hash_state state,
   wabi_hash_step(state, "B", 1);
   wabi_binary_hash_generic(state, bin);
 }
-
-
-/**
- * Comparing
- * todo: use a zipper structure, so that we don't have to do so many recursive calls
- */
-
-static inline int
-wabi_binary_cmp_leaves(const wabi_binary_leaf left,
-                       wabi_word from_left,
-                       wabi_word len_left,
-                       const wabi_binary_leaf right,
-                       wabi_word from_right,
-                       wabi_word len_right)
-{
-  wabi_word count;
-  char *left_char, *right_char;
-
-  count = (len_left < len_right ? len_left : len_right) - 1;
-  left_char = ((char *) left->data_ptr) + from_left;
-  right_char = ((char *) right->data_ptr) + from_right;
-  while(*left_char == *right_char && (count > 0)) {
-    count--;
-    left_char++;
-    right_char++;
-  }
-  return *left_char == *right_char ? len_left - len_right : *left_char - *right_char;
-}
-
-
-static int
-wabi_binary_cmp_bin(const wabi_binary left,
-                    wabi_word from_left,
-                    wabi_word len_left,
-                    const wabi_binary right,
-                    wabi_word from_right,
-                    wabi_word len_right)
-{
-
-  wabi_binary left_left, left_right;
-  wabi_word pivot, left_len0;
-  int cmp;
-  if(!len_left && !len_right ) {
-    return 0;
-  }
-  if(!len_left ) {
-    return 1;
-  }
-  if (!len_right) {
-    return -1;
-  }
-  if(WABI_IS(wabi_tag_bin_node, left)) {
-    left_left = (wabi_binary) ((wabi_binary_node) left)->left;
-    left_right = (wabi_binary) ((wabi_binary_node) left)->right;
-    pivot = wabi_binary_length(left_left);
-
-    if(from_left >= pivot) {
-      return wabi_binary_cmp_bin(left_right, from_left - pivot, len_left, right, from_right, len_right);
-    }
-    left_len0 = pivot - from_left;
-    if(len_left <= left_len0) {
-      // is this ever visited?
-      return wabi_binary_cmp_bin(left_left, from_left, len_left, right, from_right, len_right);
-    }
-    if(len_right <= left_len0) {
-      return wabi_binary_cmp_bin(left_left, from_left, left_len0, right, from_right, len_right);
-    }
-    cmp = wabi_binary_cmp_bin(left_left, from_left, left_len0, right, from_right, left_len0);
-    if(cmp) return cmp;
-    return wabi_binary_cmp_bin(left_right, 0, len_left - left_len0, right, from_right + left_len0, len_right - left_len0);
-  }
-
-  if(WABI_IS(wabi_tag_bin_node, right)) {
-    return - wabi_binary_cmp_bin(right, from_right, len_right, left, from_left, len_left);
-  }
-  return wabi_binary_cmp_leaves((wabi_binary_leaf) left, from_left, len_left,
-                                (wabi_binary_leaf) right, from_right, len_right);
-}
-
-int
-wabi_binary_cmp(const wabi_binary left, const wabi_binary right)
-{
-  return wabi_binary_cmp_bin(left, 0, wabi_binary_length(left), right, 0, wabi_binary_length(right));
-}
-
 
 /**
  * Builtins

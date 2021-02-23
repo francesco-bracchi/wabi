@@ -6,7 +6,6 @@
 #include "wabi_atom.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
-#include "wabi_cmp.h"
 
 typedef struct wabi_pair_struct
 {
@@ -55,14 +54,6 @@ wabi_pair_hash(const wabi_hash_state state,
   wabi_hash_val(state, wabi_cdr(pair));
 }
 
-
-static inline int
-wabi_pair_cmp(const wabi_pair left, const wabi_pair right)
-{
-  int cmp0 = wabi_cmp(wabi_car(left), wabi_car(right));
-  if(cmp0) return cmp0;
-  return wabi_cmp(wabi_cdr(left), wabi_cdr(right));
-}
 
 void
 wabi_list_builtins(const wabi_vm vm, const wabi_env env);
