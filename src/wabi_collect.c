@@ -59,7 +59,7 @@ wabi_collect_binary_copy_val(const wabi_vm vm, const wabi_binary src)
 }
 
 
-void
+static inline void
 wabi_collect_env_copy_val(const wabi_vm vm,
                           const wabi_env env)
 {
