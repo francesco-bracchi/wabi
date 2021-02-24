@@ -83,7 +83,5 @@ wabi_symbol_builtins(const wabi_vm vm, const wabi_env env)
 {
   wabi_defn(vm, env, "sym?", &wabi_symbol_sym_p);
   if(vm->ert) return;
-  // wabi_defn(vm, env, "symbol-table", &wabi_symbol_symbol_table);
-  // if(vm->ert) return;
   wabi_defn(vm, env, "sym", &wabi_symbol_sym);
 }

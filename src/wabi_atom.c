@@ -93,7 +93,5 @@ wabi_atom_builtins(const wabi_vm vm, const wabi_env env)
 {
   wabi_defn(vm, env, "atom?", &wabi_atom_atom_p);
   if(vm->ert) return;
-  wabi_defn(vm, env, "atom-table", &wabi_atom_atom_table);
-  if(vm->ert) return;
   wabi_defn(vm, env, "atom", &wabi_atom_atom);
 }

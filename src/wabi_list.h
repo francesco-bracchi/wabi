@@ -46,11 +46,6 @@ wabi_cdr(const wabi_pair pair)
   return (wabi_val) WABI_WORD_VAL(pair->cdr);
 }
 
-
-void
-wabi_list_builtins(const wabi_vm vm, const wabi_env env);
-
-
 static inline int
 wabi_is_pair(const wabi_val v)
 {

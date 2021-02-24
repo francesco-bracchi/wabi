@@ -604,28 +604,8 @@ wabi_vm_reduce_call_builtin(const wabi_vm vm)
   comb = (wabi_combiner_builtin) call->combiner;
   func = WABI_WORD_VAL(comb->c_ptr);
 
-  switch (func) {
-  case WABI_BT_DEF:
-    wabi_builtin_def(vm);
-    break;
-  case WABI_BT_IF:
-    wabi_builtin_if(vm);
-    break;
-  case WABI_BT_LT:
-    wabi_cmp_lt(vm);
-    break;
-  case WABI_BT_SUM:
-    wabi_number_builtin_sum(vm);
-    break;
-  case WABI_BT_DIF:
-    wabi_number_builtin_dif(vm);
-    break;
-  default:
-    ((wabi_builtin_fun)func)(vm);
-    break;
-  }
+  wabi_builtin_call(vm, func);
 }
-
 
 /* ctrl: as */
 /* envr: e */

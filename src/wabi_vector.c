@@ -29,7 +29,6 @@ wabi_vector_empty_new(const wabi_vm vm) {
   return wabi_vector_digit_new(vm, 0, 0);
 }
 
-
 static inline wabi_vector_digit
 wabi_vector_single_new(const wabi_vm vm,
                        const wabi_val v,
@@ -44,7 +43,6 @@ wabi_vector_single_new(const wabi_vm vm,
   *t = (wabi_word) v;
   return d;
 }
-
 
 static wabi_vector
 wabi_vector_push_right_generic(const wabi_vm vm,

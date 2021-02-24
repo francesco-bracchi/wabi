@@ -23,10 +23,6 @@ wabi_fixnum
 wabi_fixnum_new(const wabi_vm vm,
                 const int64_t val);
 
-void
-wabi_number_builtins(const wabi_vm vm, const wabi_env env);
-
-
 static inline int
 wabi_is_fixnum(const wabi_val val)
 {
