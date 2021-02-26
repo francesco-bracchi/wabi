@@ -14,12 +14,13 @@
   (concat wabi-sym-forbidden-rest-chars "0-9:'"))
 
 (defconst wabi-sym-regexp
-  (concat "[^" clojure--sym-forbidden-1st-chars "][^" clojure--sym-forbidden-rest-chars "]*"))
+  (concat "[^" wabi-sym-forbidden-1st-chars "][^" wabi-sym-forbidden-rest-chars "]*"))
+
+(defconst wabi-column-atom-regexp
+  ":[^];{}()#]*")
 
 (defconst wabi-atom-regexp
-  (regexp-opt (list (concat ":" wabi-sym-regexp)
-                    "_"
-                    "()") t))
+  "\\(:[^];{}()#]*\\|()\\|_\\)")
 
 (defconst wabi-number-regexp
   "\\([0-9][0-9_]*\\)")
@@ -89,9 +90,6 @@
      (,wabi-comment-regexp
       (1 font-lock-comment-face))
 
-     (,wabi-atom-regexp
-      (1 font-lock-constant-face))
-
      (,wabi-number-regexp
       (1 font-lock-constant-face))
 
@@ -132,8 +130,9 @@
      (,wabi-builtin-regexp
       (1 font-lock-builtin-face))
 
-     ;; (,wabi-builtin-regexp
-     ;;  1 font-lock-keyword-face)
+     (,wabi-atom-regexp
+      (1 font-lock-constant-face))
+
      )))
 
 (defun wabi-indent ()
