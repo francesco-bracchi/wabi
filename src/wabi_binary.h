@@ -87,4 +87,8 @@ char*
 wabi_binary_to_cstring(const wabi_vm vm,
                        const wabi_binary bin);
 
+wabi_binary_node
+wabi_binary_node_new(const wabi_vm vm,
+                     const wabi_binary left,
+                     const wabi_binary right);
 #endif

@@ -36,11 +36,6 @@
        (cons a (apply list* as))))))
 
 
-(def fn
-  (fx e (as . bs)
-    (wrap (eval e (list* fx _ as bs)))))
-
-
 (def defx
   (fx e (n e1 as . bs)
     (eval e

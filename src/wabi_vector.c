@@ -792,31 +792,6 @@ wabi_vector_vec_len(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
-static void
-wabi_vector_vec_p(const wabi_vm vm)
-{
-  wabi_val ctrl, vec;
-
-  ctrl = vm->ctrl;
-  while(wabi_is_pair(ctrl)) {
-    vec = wabi_car((wabi_pair) ctrl);
-    ctrl = wabi_cdr((wabi_pair) ctrl);
-    if(! wabi_is_vector(vec)) {
-      vm->ctrl = vm->fls;
-      vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
-      return;
-    }
-  }
-  if(!wabi_atom_is_empty(vm, ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  vm->ctrl = vm->trh;
-  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
-}
-
-
 static void
 wabi_vector_vec_push_right(const wabi_vm vm)
 {
@@ -1218,8 +1193,6 @@ wabi_vector_builtins(const wabi_vm vm, const wabi_env env)
   wabi_defn(vm, env, "vec", &wabi_vector_vec);
   if(vm->ert) return;
   wabi_defn(vm, env, "vec-len", &wabi_vector_vec_len);
-  if(vm->ert) return;
-  wabi_defn(vm, env, "vec?", &wabi_vector_vec_p);
   if(vm->ert) return;
   wabi_defn(vm, env, "push-right", &wabi_vector_vec_push_right);
   if(vm->ert) return;

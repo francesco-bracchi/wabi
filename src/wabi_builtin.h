@@ -21,10 +21,6 @@ wabi_builtin_load_cstring(const wabi_vm vm,
                           char* data);
 
 void
-wabi_builtin_predicate(const wabi_vm vm,
-                       const wabi_builtin_test_fn fn);
-
-void
 wabi_def(const wabi_vm vm,
          const wabi_env env,
          char* name,
@@ -119,6 +115,11 @@ wabi_defx(const wabi_vm vm,
 #define WABI_BT_LOAD 62
 #define WABI_BT_LEN 63
 #define WABI_BT_ENV_EXT 64
+#define WABI_BT_HASH 65
+#define WABI_BT_BIN_LEN 66
+#define WABI_BT_BIN_CAT 67
+#define WABI_BT_BIN_SUB 68
+#define WABI_BT_COLLECT 69
 
 void
 wabi_builtin_call(wabi_vm vm,

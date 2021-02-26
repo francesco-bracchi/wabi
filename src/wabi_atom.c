@@ -44,20 +44,6 @@ wabi_atom_new(const wabi_vm vm,
 }
 
 static void
-wabi_atom_atom_p(const wabi_vm vm)
-{
-  wabi_builtin_predicate(vm, &wabi_is_atom);
-}
-
-
-static void
-wabi_atom_atom_table(const wabi_vm vm)
-{
-  vm->ctrl = vm->atbl;
-  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
-}
-
-static void
 wabi_atom_atom(const wabi_vm vm)
 {
   wabi_val ctrl, bin, res;
@@ -91,7 +77,5 @@ wabi_atom_atom(const wabi_vm vm)
 void
 wabi_atom_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_defn(vm, env, "atom?", &wabi_atom_atom_p);
-  if(vm->ert) return;
   wabi_defn(vm, env, "atom", &wabi_atom_atom);
 }

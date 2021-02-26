@@ -852,12 +852,6 @@ wabi_map_builtin_dissoc(const wabi_vm vm)
 }
 
 static void
-wabi_map_builtin_map_p(const wabi_vm vm)
-{
-  wabi_builtin_predicate(vm, &wabi_is_map);
-}
-
-static void
 wabi_map_builtin_len(const wabi_vm vm)
 {
   wabi_val ctrl;
@@ -937,9 +931,6 @@ wabi_map_builtins(const wabi_vm vm, const wabi_env env)
   if(vm->ert) return;
 
   wabi_defn(vm, env, "map-len", &wabi_map_builtin_len);
-  if(vm->ert) return;
-
-  wabi_defn(vm, env, "map?", &wabi_map_builtin_map_p);
   if(vm->ert) return;
 
   wabi_defn(vm, env, "map-get", &wabi_map_builtin_get);

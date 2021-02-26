@@ -31,15 +31,6 @@ wabi_symbol_new(const wabi_vm vm,
   return res;
 }
 
-
-
-static void
-wabi_symbol_sym_p(const wabi_vm vm)
-{
-  wabi_builtin_predicate(vm, &wabi_is_symbol);
-}
-
-
 /* static void */
 /* wabi_symbol_symbol_table(const wabi_vm vm) */
 /* { */
@@ -81,7 +72,5 @@ wabi_symbol_sym(const wabi_vm vm)
 void
 wabi_symbol_builtins(const wabi_vm vm, const wabi_env env)
 {
-  wabi_defn(vm, env, "sym?", &wabi_symbol_sym_p);
-  if(vm->ert) return;
   wabi_defn(vm, env, "sym", &wabi_symbol_sym);
 }

@@ -12,8 +12,4 @@ typedef struct wabi_delim_control_struct {
 
 typedef wabi_delim_control_t* wabi_delim_control;
 
-void
-wabi_delim_builtins(const wabi_vm vm, const wabi_env env);
-
-
 #endif

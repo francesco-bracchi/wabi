@@ -58,13 +58,6 @@ wabi_place_plc(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
 }
 
-
-static void
-wabi_place_plc_p(const wabi_vm vm)
-{
-  wabi_builtin_predicate(vm, &wabi_is_place);
-}
-
 static void
 wabi_place_plc_val(const wabi_vm vm)
 {
@@ -140,8 +133,6 @@ wabi_place_builtins(const wabi_vm vm,
                     const wabi_env env)
 {
   wabi_defn(vm, env, "plc", &wabi_place_plc);
-  if(vm->ert) return;
-  wabi_defn(vm, env, "plc?", &wabi_place_plc_p);
   if(vm->ert) return;
   wabi_defn(vm, env, "plc-val", &wabi_place_plc_val);
   if(vm->ert) return;
