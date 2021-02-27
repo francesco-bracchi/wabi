@@ -189,7 +189,7 @@ wabi_cmp_env(wabi_env left,
 static inline int
 wabi_cmp_bt(const wabi_combiner_builtin a, const wabi_combiner_builtin b)
 {
-  return wabi_cmp((wabi_val) a->c_name, (wabi_val) b->c_name);
+  return wabi_cmp_fixnum((wabi_fixnum) a, (wabi_fixnum) b);
 }
 
 static inline int

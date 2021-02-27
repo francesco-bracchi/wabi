@@ -219,12 +219,12 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
 
   case wabi_tag_bt_app:
     wabi_hash_step(state, "CBA", 3);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_builtin) val)->c_name);
+    wabi_hash_step(state, (char *) val, 8);
     return;
 
   case wabi_tag_bt_oper:
     wabi_hash_step(state, "CBO", 3);
-    wabi_hash_val(state, (wabi_val) ((wabi_combiner_builtin) val)->c_name);
+    wabi_hash_step(state, (char *) val, 8);
     return;
 
     // todo rename ct_app to _ct

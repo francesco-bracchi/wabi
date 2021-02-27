@@ -271,14 +271,6 @@ wabi_collect_map_hash(wabi_vm vm, wabi_map_hash map)
 static inline void
 wabi_collect_combiner_bt(const wabi_vm vm, const wabi_combiner_builtin c)
 {
-  wabi_word tag;
-  tag = WABI_TAG(c);
-
-  ((wabi_combiner_builtin) c)->c_name =
-    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_cname(c));
-  ((wabi_combiner_builtin) c)->c_xtra =
-    (wabi_word) wabi_copy_val(vm, (wabi_word*) wabi_combiner_builtin_xtra(c));
-  WABI_SET_TAG(c, tag);
   vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
 }
 

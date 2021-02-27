@@ -307,7 +307,7 @@ void
 wabi_defx(const wabi_vm vm,
           const wabi_env env,
           char* name,
-          const wabi_builtin_fun fun)
+          const wabi_word fun)
 {
   wabi_binary bin;
   wabi_symbol sym;
@@ -316,7 +316,7 @@ wabi_defx(const wabi_vm vm,
   if(vm->ert) return;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
   if(vm->ert) return;
-  oper = wabi_operator_builtin_new(vm, bin, fun);
+  oper = wabi_operator_builtin_new(vm, fun);
   if(vm->ert) return;
   wabi_env_set(vm, env, sym, (wabi_val) oper);
 }
@@ -325,7 +325,7 @@ void
 wabi_defn(const wabi_vm vm,
           const wabi_env env,
           char* name,
-          const wabi_builtin_fun fun)
+          const wabi_word fun)
 {
   wabi_binary bin;
   wabi_symbol sym;
@@ -334,7 +334,7 @@ wabi_defn(const wabi_vm vm,
   if(vm->ert) return;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
   if(vm->ert) return;
-  app = wabi_application_builtin_new(vm, bin, fun);
+  app = wabi_application_builtin_new(vm, fun);
   if(vm->ert) return;
   wabi_env_set(vm, env, sym, (wabi_val) app);
 }
@@ -363,205 +363,205 @@ wabi_builtin_stdenv(const wabi_vm vm)
   env = wabi_env_new(vm);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "def", (wabi_builtin_fun) WABI_BT_DEF);
+  wabi_defx(vm, env, "def", WABI_BT_DEF);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "if", (wabi_builtin_fun) WABI_BT_IF);
+  wabi_defx(vm, env, "if", WABI_BT_IF);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "do", (wabi_builtin_fun) WABI_BT_DO);
+  wabi_defx(vm, env, "do", WABI_BT_DO);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "pair?", (wabi_builtin_fun) WABI_BT_PAIR_Q);
+  wabi_defn(vm, env, "pair?", WABI_BT_PAIR_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "num?", (wabi_builtin_fun) WABI_BT_NUM_Q);
+  wabi_defn(vm, env, "num?", WABI_BT_NUM_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "sym?", (wabi_builtin_fun) WABI_BT_SYM_Q);
+  wabi_defn(vm, env, "sym?", WABI_BT_SYM_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "atom?", (wabi_builtin_fun) WABI_BT_ATOM_Q);
+  wabi_defn(vm, env, "atom?", WABI_BT_ATOM_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "bin?", (wabi_builtin_fun) WABI_BT_BIN_Q);
+  wabi_defn(vm, env, "bin?", WABI_BT_BIN_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "plc?", (wabi_builtin_fun) WABI_BT_PLC_Q);
+  wabi_defn(vm, env, "plc?", WABI_BT_PLC_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "map?", (wabi_builtin_fun) WABI_BT_MAP_Q);
+  wabi_defn(vm, env, "map?", WABI_BT_MAP_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "vec?", (wabi_builtin_fun) WABI_BT_VEC_Q);
+  wabi_defn(vm, env, "vec?", WABI_BT_VEC_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "env?", (wabi_builtin_fun) WABI_BT_ENV_Q);
+  wabi_defn(vm, env, "env?", WABI_BT_ENV_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "cont?", (wabi_builtin_fun) WABI_BT_CONT_Q);
+  wabi_defn(vm, env, "cont?", WABI_BT_CONT_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "fx?", (wabi_builtin_fun) WABI_BT_FX_Q);
+  wabi_defn(vm, env, "fx?", WABI_BT_FX_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "fn?", (wabi_builtin_fun) WABI_BT_FN_Q);
+  wabi_defn(vm, env, "fn?", WABI_BT_FN_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "pr", (wabi_builtin_fun) WABI_BT_PR);
+  wabi_defn(vm, env, "pr", WABI_BT_PR);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "eval", (wabi_builtin_fun) WABI_BT_EVAL);
+  wabi_defn(vm, env, "eval", WABI_BT_EVAL);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "clock", (wabi_builtin_fun) WABI_BT_CLOCK);
+  wabi_defn(vm, env, "clock", WABI_BT_CLOCK);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "not", (wabi_builtin_fun) WABI_BT_NOT);
+  wabi_defn(vm, env, "not", WABI_BT_NOT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "hash", (wabi_builtin_fun) WABI_BT_HASH);
+  wabi_defn(vm, env, "hash", WABI_BT_HASH);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "l0", (wabi_builtin_fun) WABI_BT_L0);
+  wabi_defn(vm, env, "l0", WABI_BT_L0);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "collect", (wabi_builtin_fun) WABI_BT_COLLECT);
+  wabi_defn(vm, env, "collect", WABI_BT_COLLECT);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "load", (wabi_builtin_fun) WABI_BT_LOAD);
+  wabi_defx(vm, env, "load", WABI_BT_LOAD);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm,env, "cons", (wabi_builtin_fun) WABI_BT_CONS);
+  wabi_defn(vm,env, "cons", WABI_BT_CONS);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm,env, "car", (wabi_builtin_fun) WABI_BT_CAR);
+  wabi_defn(vm,env, "car", WABI_BT_CAR);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm,env, "cdr", (wabi_builtin_fun) WABI_BT_CDR);
+  wabi_defn(vm,env, "cdr", WABI_BT_CDR);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm,env, "list?", (wabi_builtin_fun) WABI_BT_LIST_Q);
+  wabi_defn(vm,env, "list?", WABI_BT_LIST_Q);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm,env, "len", (wabi_builtin_fun) WABI_BT_LEN);
+  wabi_defn(vm,env, "len", WABI_BT_LEN);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "+", (wabi_builtin_fun) WABI_BT_SUM);
+  wabi_defn(vm, env, "+", WABI_BT_SUM);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "*", (wabi_builtin_fun) WABI_BT_MUL);
+  wabi_defn(vm, env, "*", WABI_BT_MUL);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "-", (wabi_builtin_fun) WABI_BT_DIF);
+  wabi_defn(vm, env, "-", WABI_BT_DIF);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "/", (wabi_builtin_fun) WABI_BT_DIV);
+  wabi_defn(vm, env, "/", WABI_BT_DIV);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "=", (wabi_builtin_fun) WABI_BT_EQ);
+  wabi_defn(vm, env, "=", WABI_BT_EQ);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "/=", (wabi_builtin_fun) WABI_BT_NEQ);
+  wabi_defn(vm, env, "/=", WABI_BT_NEQ);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, ">", (wabi_builtin_fun) WABI_BT_GT);
+  wabi_defn(vm, env, ">", WABI_BT_GT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "<", (wabi_builtin_fun) WABI_BT_LT);
+  wabi_defn(vm, env, "<", WABI_BT_LT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, ">=", (wabi_builtin_fun) WABI_BT_GTE);
+  wabi_defn(vm, env, ">=", WABI_BT_GTE);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "<=", (wabi_builtin_fun) WABI_BT_LTE);
+  wabi_defn(vm, env, "<=", WABI_BT_LTE);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "fx", (wabi_builtin_fun) WABI_BT_FX);
+  wabi_defx(vm, env, "fx", WABI_BT_FX);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "fn", (wabi_builtin_fun) WABI_BT_FN);
+  wabi_defx(vm, env, "fn", WABI_BT_FN);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "wrap", (wabi_builtin_fun) WABI_BT_WRAP);
+  wabi_defn(vm, env, "wrap", WABI_BT_WRAP);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "unwrap", (wabi_builtin_fun) WABI_BT_UNWRAP);
+  wabi_defn(vm, env, "unwrap", WABI_BT_UNWRAP);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "ext", (wabi_builtin_fun) WABI_BT_ENV_EXT);
+  wabi_defn(vm, env, "ext", WABI_BT_ENV_EXT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "bin-len", (wabi_builtin_fun) WABI_BT_BIN_LEN);
+  wabi_defn(vm, env, "bin-len", WABI_BT_BIN_LEN);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "bin-cat", (wabi_builtin_fun) WABI_BT_BIN_CAT);
+  wabi_defn(vm, env, "bin-cat", WABI_BT_BIN_CAT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "bin-sub", (wabi_builtin_fun) WABI_BT_BIN_SUB);
+  wabi_defn(vm, env, "bin-sub", WABI_BT_BIN_SUB);
   if(vm->ert) return NULL;
 
-  wabi_defx(vm, env, "prompt", (wabi_builtin_fun) WABI_BT_PROMPT);
+  wabi_defx(vm, env, "prompt", WABI_BT_PROMPT);
   if (vm->ert)return NULL;
 
-  wabi_defx(vm, env, "control", (wabi_builtin_fun) WABI_BT_CONTROL);
+  wabi_defx(vm, env, "control", WABI_BT_CONTROL);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "map/new", (wabi_builtin_fun) WABI_BT_MAP_NEW);
+  wabi_defn(vm, env, "map/new", WABI_BT_MAP_NEW);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "assoc", (wabi_builtin_fun) WABI_BT_ASSOC);
+  wabi_defn(vm, env, "assoc", WABI_BT_ASSOC);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "dissoc", (wabi_builtin_fun) WABI_BT_DISSOC);
+  wabi_defn(vm, env, "dissoc", WABI_BT_DISSOC);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "map-len", (wabi_builtin_fun) WABI_BT_MAP_LEN);
+  wabi_defn(vm, env, "map-len", WABI_BT_MAP_LEN);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "sym", (wabi_builtin_fun) WABI_BT_SYM);
+  wabi_defn(vm, env, "sym", WABI_BT_SYM);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "atom", (wabi_builtin_fun) WABI_BT_ATOM);
+  wabi_defn(vm, env, "atom", WABI_BT_ATOM);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "vec", (wabi_builtin_fun) WABI_BT_VEC);
+  wabi_defn(vm, env, "vec", WABI_BT_VEC);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "vec-len", (wabi_builtin_fun) WABI_BT_VEC_LEN);
+  wabi_defn(vm, env, "vec-len", WABI_BT_VEC_LEN);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "push-right", (wabi_builtin_fun) WABI_BT_VEC_PUSH_RIGHT);
+  wabi_defn(vm, env, "push-right", WABI_BT_VEC_PUSH_RIGHT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "push-left", (wabi_builtin_fun) WABI_BT_VEC_PUSH_LEFT);
+  wabi_defn(vm, env, "push-left", WABI_BT_VEC_PUSH_LEFT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "right", (wabi_builtin_fun) WABI_BT_VEC_RIGHT);
+  wabi_defn(vm, env, "right", WABI_BT_VEC_RIGHT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "left", (wabi_builtin_fun) WABI_BT_VEC_LEFT);
+  wabi_defn(vm, env, "left", WABI_BT_VEC_LEFT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "pop-left", (wabi_builtin_fun) WABI_BT_VEC_POP_LEFT);
+  wabi_defn(vm, env, "pop-left", WABI_BT_VEC_POP_LEFT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "pop-right", (wabi_builtin_fun) WABI_BT_VEC_POP_RIGHT);
+  wabi_defn(vm, env, "pop-right", WABI_BT_VEC_POP_RIGHT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "vec-concat", (wabi_builtin_fun) WABI_BT_VEC_CONCAT);
+  wabi_defn(vm, env, "vec-concat", WABI_BT_VEC_CONCAT);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "vec-set", (wabi_builtin_fun) WABI_BT_VEC_SET);
+  wabi_defn(vm, env, "vec-set", WABI_BT_VEC_SET);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "plc", (wabi_builtin_fun) WABI_BT_PLC);
+  wabi_defn(vm, env, "plc", WABI_BT_PLC);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "plc-val", (wabi_builtin_fun) WABI_BT_PLC_VAL);
+  wabi_defn(vm, env, "plc-val", WABI_BT_PLC_VAL);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "plc-cas", (wabi_builtin_fun) WABI_BT_PLC_CAS);
+  wabi_defn(vm, env, "plc-cas", WABI_BT_PLC_CAS);
   if(vm->ert) return NULL;
 
   return env;

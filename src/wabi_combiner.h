@@ -29,13 +29,10 @@ typedef struct wabi_combiner_derived_struct {
   wabi_word compiled_body;
 } wabi_combiner_derived_t;
 
-
 typedef wabi_combiner_derived_t* wabi_combiner_derived;
 
 typedef struct wabi_combiner_builtin_struct {
-  wabi_word c_xtra;
-  wabi_word c_name;
-  wabi_word c_ptr;
+  wabi_word bid;
 } wabi_combiner_builtin_t;
 
 typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
@@ -43,8 +40,6 @@ typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
 typedef struct wabi_combiner_continuation_struct {
   wabi_word cont;
 } wabi_combiner_continuation_t;
-
-
 
 typedef wabi_combiner_continuation_t* wabi_combiner_continuation;
 
@@ -56,16 +51,19 @@ typedef union wabi_combiner_union {
 
 typedef wabi_combiner_t* wabi_combiner;
 
+
 #define WABI_COMBINER_DERIVED_SIZE wabi_sizeof(wabi_combiner_derived_t)
 #define WABI_COMBINER_BUILTIN_SIZE wabi_sizeof(wabi_combiner_builtin_t)
 #define WABI_COMBINER_CONTINUATION_SIZE wabi_sizeof(wabi_combiner_continuation_t)
 
 
 wabi_combiner
-wabi_operator_builtin_new(const wabi_vm vm, const wabi_binary cname, const wabi_builtin_fun cfun);
+wabi_operator_builtin_new(const wabi_vm vm, const
+                          wabi_word bid);
 
 wabi_combiner
-wabi_application_builtin_new(const wabi_vm vm, const wabi_binary cname, const wabi_builtin_fun cfun);
+wabi_application_builtin_new(const wabi_vm vm,
+                             const wabi_word bid);
 
 static inline wabi_val
 wabi_combiner_derived_static_env(const wabi_combiner_derived c)
@@ -98,21 +96,9 @@ wabi_combiner_derived_compiled_body(const wabi_combiner_derived c)
 }
 
 static inline void*
-wabi_combiner_builtin_cptr(const wabi_combiner_builtin c)
+wabi_combiner_builtin_bid(const wabi_combiner_builtin c)
 {
-  return (void*) c->c_ptr;
-}
-
-static inline wabi_binary
-wabi_combiner_builtin_cname(const wabi_combiner_builtin c)
-{
-  return (wabi_binary) c->c_name;
-}
-
-static inline void*
-wabi_combiner_builtin_xtra(const wabi_combiner_builtin c)
-{
-  return (void*) WABI_WORD_VAL(c->c_xtra);
+  return (void*) c->bid;
 }
 
 void

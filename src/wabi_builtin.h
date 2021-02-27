@@ -16,24 +16,6 @@ wabi_env
 wabi_builtin_stdenv(const wabi_vm vm);
 
 void
-wabi_def(const wabi_vm vm,
-         const wabi_env env,
-         char* name,
-         wabi_val val);
-
-void
-wabi_defn(const wabi_vm vm,
-          const wabi_env env,
-         char* name,
-          const wabi_builtin_fun fun);
-
-void
-wabi_defx(const wabi_vm vm,
-          const wabi_env env,
-          char* name,
-          const wabi_builtin_fun fun);
-
-void
 wabi_builtin_call(const wabi_vm vm,
                   const wabi_word func);
 

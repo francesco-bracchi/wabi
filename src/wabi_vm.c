@@ -602,7 +602,7 @@ wabi_vm_reduce_call_builtin(const wabi_vm vm)
 
   call = (wabi_cont_call) vm->cont;
   comb = (wabi_combiner_builtin) call->combiner;
-  func = WABI_WORD_VAL(comb->c_ptr);
+  func = WABI_WORD_VAL(comb->bid);
 
   wabi_builtin_call(vm, func);
 }

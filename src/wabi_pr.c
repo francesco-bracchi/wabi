@@ -405,7 +405,7 @@ wabi_pr(const wabi_vm vm, wabi_val val) {
     break;
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    printf("~B%lu", ((wabi_combiner_builtin) val)->c_ptr);
+    printf("~B%lu", ((wabi_combiner_builtin) val)->bid);
     break;
   case wabi_tag_cont_eval:
   case wabi_tag_cont_apply:
