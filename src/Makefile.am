@@ -7,13 +7,9 @@ libwabi_la_SOURCES = \
 	wabi_binary.h \
 	wabi_binary.c \
 	wabi_number.h \
-	wabi_number.c \
 	wabi_atom.h \
-	wabi_atom.c \
 	wabi_symbol.h \
-	wabi_symbol.c \
 	wabi_list.h \
-	wabi_list.c \
 	wabi_hash.h \
 	wabi_hash.c \
 	wabi_cmp.h \

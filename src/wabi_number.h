@@ -19,9 +19,24 @@ static const wabi_word wabi_fixnum_max = wabi_word_value_mask;
 
 #define WABI_CAST_INT64(v) ((int64_t) (FIXNUM_NEG(*v) ? *v | 0xFF00000000000000 : WABI_WORD_VAL(*v)))
 
-wabi_fixnum
+static inline wabi_fixnum
 wabi_fixnum_new(const wabi_vm vm,
-                const int64_t val);
+                const int64_t val)
+{
+  wabi_val res;
+
+  if(val >= wabi_fixnum_max) {
+    vm->ert = wabi_error_out_of_range;
+    return NULL;
+  }
+  res = wabi_vm_alloc(vm, 1);
+  if(vm->ert) return NULL;
+
+  *res = val & wabi_word_value_mask;
+  WABI_SET_TAG(res, wabi_tag_fixnum);
+  return res;
+}
+
 
 static inline int
 wabi_is_fixnum(const wabi_val val)
