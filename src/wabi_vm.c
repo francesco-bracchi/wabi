@@ -757,6 +757,23 @@ wabi_vm_reduce_call_vector(const wabi_vm vm)
   vm->cont = (wabi_val)wabi_cont_pop(cont);
 }
 
+/* ctrl: :nil */
+/* envr: e */
+/* cont: ((call e0 [x ...]) . s) */
+/* -------------------------------------- */
+/* ctrl :nil */
+/* envr: e */
+/* cont: s */
+static inline void
+wabi_vm_reduce_call_nil(const wabi_vm vm)
+{
+  wabi_cont cont;;
+
+  cont = (wabi_cont) vm->cont;
+  vm->ctrl = vm->nil;
+  vm->cont = (wabi_val)wabi_cont_pop(cont);
+}
+
 static inline void
 wabi_vm_reduce_call(const wabi_vm vm)
 {
@@ -791,8 +808,11 @@ wabi_vm_reduce_call(const wabi_vm vm)
   case wabi_tag_vector_digit:
     wabi_vm_reduce_call_vector(vm);
     break;
-
   default:
+    if (comb == vm->nil) {
+      wabi_vm_reduce_call_nil(vm);
+      break;
+    }
     // todo: vectors and maps managed as applicatives
     vm->ert = wabi_error_type_mismatch;
   }

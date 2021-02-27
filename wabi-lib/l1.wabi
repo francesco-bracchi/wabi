@@ -411,9 +411,14 @@
            (list (list* let '((it . _) them) bs)))))
 
 
+(defn vec-ref
+    (v x)
+  (v x))
+
+
 (defn vec-update
     (v j fn . xs)
-  (vec-set v j (apply fn (list* (vec-ref v j) xs))))
+  (vec-set v j (apply fn (list* (v j) xs))))
 
 
 (defn plc-swap

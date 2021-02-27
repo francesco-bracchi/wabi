@@ -14,6 +14,30 @@
 #include "wabi_cont.h"
 #include "wabi_pr.h"
 
+void
+wabi_builtin_load_cstring(const wabi_vm vm, const wabi_env env, char* str)
+{
+  wabi_pair exs;
+  wabi_cont cont;
+
+  exs = (wabi_pair) wabi_reader_read_all(vm, str);
+  if(vm->ert) return;
+  if(! wabi_is_pair((wabi_val) exs)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  cont = (wabi_cont) vm->cont;
+  if(cont) cont = wabi_cont_pop(cont);
+  cont = wabi_cont_push_prog(vm, env, wabi_cdr(exs), cont);
+  if(vm->ert) return;
+  cont = wabi_cont_push_eval(vm, cont);
+  if(vm->ert) return;
+
+  vm->ctrl = wabi_car(exs);
+  vm->env = (wabi_val) env;
+  vm->cont = (wabi_val) cont;
+}
+
 int
 main(int argc,
      char* argv[])

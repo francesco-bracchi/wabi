@@ -44,7 +44,7 @@
    ;; continuations
    "prompt" "control" "prmt" "ctrl"
    ;; map
-   "hmap" "assoc" "dissoc" "map-len" "map\\?" ;"map-get"
+   "map/new" "assoc" "dissoc" "map-len" "map\\?" ;"map-get"
    ;; symbols
    "sym\\?" "sym"
    ;; places

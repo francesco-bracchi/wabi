@@ -356,7 +356,7 @@ wabi_reader_read_val(const wabi_vm vm, char** c)
 
   case  '{':
     (*c)++;
-    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "hmap");
+    bin = (wabi_val) wabi_binary_leaf_new_from_cstring(vm, "map/new");
     if(vm->ert) return NULL;
     sym = (wabi_val) wabi_symbol_new(vm, bin);
     if(vm->ert) return NULL;

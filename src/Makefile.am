@@ -27,7 +27,6 @@ libwabi_la_SOURCES = \
 	wabi_place.h \
 	wabi_place.c \
 	wabi_delim.h \
-	wabi_delim.c \
 	wabi_combiner.h \
 	wabi_combiner.c \
 	wabi_queue.h \

@@ -16,11 +16,6 @@ wabi_env
 wabi_builtin_stdenv(const wabi_vm vm);
 
 void
-wabi_builtin_load_cstring(const wabi_vm vm,
-                          const wabi_env env,
-                          char* data);
-
-void
 wabi_def(const wabi_vm vm,
          const wabi_env env,
          char* name,
@@ -37,6 +32,10 @@ wabi_defx(const wabi_vm vm,
           const wabi_env env,
           char* name,
           const wabi_builtin_fun fun);
+
+void
+wabi_builtin_call(const wabi_vm vm,
+                  const wabi_word func);
 
 #define WABI_BT_CONS 1
 #define WABI_BT_CAR 2
@@ -74,11 +73,11 @@ wabi_defx(const wabi_vm vm,
 #define WABI_BT_PROMPT 30
 #define WABI_BT_CONTROL 31
 
-#define WABI_BT_HMAP 32
+#define WABI_BT_MAP_NEW 32
 #define WABI_BT_ASSOC 33
 #define WABI_BT_DISSOC 34
 #define WABI_BT_MAP_LEN 35
-#define WABI_BT_MAP_GET 36
+// #define WABI_BT_MAP_GET 36
 
 #define WABI_BT_SYM 37
 #define WABI_BT_ATOM 38
@@ -98,7 +97,7 @@ wabi_defx(const wabi_vm vm,
 
 #define WABI_BT_VEC_LEN 49
 #define WABI_BT_VEC_CONCAT 50
-#define WABI_BT_VEC_REF 51
+// #define WABI_BT_VEC_REF 51
 #define WABI_BT_VEC_SET 52
 
 
@@ -121,7 +120,4 @@ wabi_defx(const wabi_vm vm,
 #define WABI_BT_BIN_SUB 68
 #define WABI_BT_COLLECT 69
 
-void
-wabi_builtin_call(wabi_vm vm,
-                  wabi_word func);
 #endif

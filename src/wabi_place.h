@@ -23,11 +23,6 @@ wabi_place_new(const wabi_vm vm,
                const wabi_val init);
 
 
-void
-wabi_place_builtins(const wabi_vm vm,
-                    const wabi_env env);
-
-
 static inline wabi_val
 wabi_place_val(const wabi_place place)
 {

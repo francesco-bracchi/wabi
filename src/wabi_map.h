@@ -130,8 +130,4 @@ wabi_map_iterator_next(wabi_map_iter iter);
 wabi_word
 wabi_map_length(wabi_map map);
 
-
-void
-wabi_map_builtins(const wabi_vm vm, const wabi_env env);
-
 #endif

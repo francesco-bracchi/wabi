@@ -201,8 +201,8 @@
 
 (test (assoc {} 10 :ten) {10 :ten})
 (test (dissoc {:a 10 :b 20} :a :c) {:b 20})
-(test (map-len (apply hmap (ran 100))) 50)
-(test (map-len (apply hmap (ran 8))) 4)
+(test (map-len (apply map/new (ran 100))) 50)
+(test (map-len (apply map/new (ran 8))) 4)
 
 (test (hash "ciao") (hash (bin-cat "ci" "ao")))
 
@@ -242,27 +242,27 @@
 (test (pop-right [1]) [])
 (test (pop-right [1 2 3]) [1 2])
 
-(test (vec-ref [] 0) :nil)
-(test (vec-ref [1 2 3] -1) :nil)
-(test (vec-ref [1 2 3] 0) 1)
-(test (vec-ref [1 2 3] 2) 3)
-(test (vec-ref [1 2 3] 3) :nil)
-(test (vec-ref (apply vec (ran 1000)) 500) 500)
+(test ([] 0) :nil)
+(test ([1 2 3] -1) :nil)
+(test ([1 2 3] 0) 1)
+(test ([1 2 3] 2) 3)
+(test ([1 2 3] 3) :nil)
+(test ((apply vec (ran 1000)) 500) 500)
 
 (letr (r (ran 1000) q (apply vec r))
-  (test (map #(vec-ref q it) r) r))
+  (test (map q r) r))
 
 
 (test (vec-set [] 0 10) :nil)
-(test (vec-ref (vec-set [1] 0 100) 0) 100)
-(test (vec-ref (vec-set [0 1] 0 :zero 1 :one) 0) :zero)
+(test ((vec-set [1] 0 100) 0) 100)
+(test ((vec-set [0 1] 0 :zero 1 :one) 0) :zero)
 
 (letr (rx (ran 1000) qx (apply vec rx))
     (test
-     (map #(vec-ref (vec-set qx it :other) it) rx)
+     (map #((vec-set qx it :other) it) rx)
      (map (always :other) rx)))
 
-(test (vec-ref (vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
+(test ((vec-update (apply vec (ran 1000)) 37 + 100) 37) 137)
 
 (test (vec-concat [] []) [])
 
@@ -287,6 +287,7 @@
   (test (->> m :a) {:b 10 :c 20})
   (test (->> m :a :b) 10)
   (test (->> m :e 1) 40)
+  (test (->> m :x :y) :nil)
   (test (->> m (:a) (:b)) (->> m :a :b)))
 
 (test (pair?) :t)
@@ -363,3 +364,10 @@
 (test (fn? if) :f)
 (test (fn? list apply) :t)
 (test (fn? list when) :f)
+
+
+(test (atom "foo") :foo)
+(test (atom "()") ())
+(test (atom "_") _)
+
+(test (sym "foo") 'foo)

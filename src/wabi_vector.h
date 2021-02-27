@@ -59,7 +59,6 @@ static const wabi_size wabi_vector_digit_max_size = 32;
 static inline wabi_vector_digit
 wabi_vector_digit_new(wabi_vm vm, wabi_size nsize, wabi_size size)
 {
-
   wabi_vector_digit res;
   res = (wabi_vector_digit) wabi_vm_alloc(vm, WABI_VECTOR_DIGIT_SIZE + nsize);
   if(res) {
@@ -68,6 +67,11 @@ wabi_vector_digit_new(wabi_vm vm, wabi_size nsize, wabi_size size)
     WABI_SET_TAG(res, wabi_tag_vector_digit);
   }
   return res;
+}
+
+static inline wabi_vector
+wabi_vector_empty(const wabi_vm vm) {
+  return (wabi_vector) wabi_vector_digit_new(vm, 0, 0);
 }
 
 
@@ -180,10 +184,6 @@ wabi_val
 wabi_vector_pop_right(wabi_vm vm, wabi_vector d);
 
 
-void
-wabi_vector_builtins(const wabi_vm vm, const wabi_env env);
-
-
 wabi_vector
 wabi_vector_concat(wabi_vm vm, wabi_vector l, wabi_vector r);
 
@@ -201,5 +201,12 @@ wabi_vector_iter_next(const wabi_vector_iter iter);
 
 wabi_val
 wabi_vector_iter_current(const wabi_vector_iter iter);
+
+
+wabi_vector
+wabi_vector_set(const wabi_vm vm,
+                const wabi_vector d,
+                const wabi_size p,
+                const wabi_val v);
 
 #endif
