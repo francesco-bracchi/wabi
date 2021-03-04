@@ -1,17 +1,21 @@
-(defn nat (v)
-  (rec nat (j 0)
+(defn nat
+    (v)
+  (rec nat
+      (j 0)
     (v j)
     (nat (inc j))))
 
 
-(defn foo (f)
+(defn foo
+    (f)
   (f 1 2 3)
   (f 4 5 6)
   (f 7 8 9)
   :nil)
 
 
-(defn bar (f)
+(defn bar
+    (f)
   (f 10)
   (f 2)
   (f 10)
@@ -26,7 +30,8 @@
 
 (defn fibv
     (v)
-  (rec fib (i 0 j 1)
+  (rec fib
+      (i 0 j 1)
     (v j)
     (fib j (+ i j))))
 

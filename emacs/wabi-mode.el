@@ -20,10 +20,10 @@
   ":[^];{}()#]*")
 
 (defconst wabi-atom-regexp
-  "\\(:[^];{}()#]*\\|()\\|_\\)")
+  "\\(:[^];{}()# ]*\\|()\\|_\\)")
 
 (defconst wabi-number-regexp
-  "\\([0-9][0-9_]*\\)")
+  "\\W\\([0-9][0-9_]*\\)")
 
 (defconst wabi-core-combiners
   (list
@@ -90,9 +90,6 @@
      (,wabi-comment-regexp
       (1 font-lock-comment-face))
 
-     (,wabi-number-regexp
-      (1 font-lock-constant-face))
-
      ("(\\(def\\)[ \r\n\t]+(\\([/[:alpha:]*!_-][^(){}[:space:]]*\\))[ \r\n\t]"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face))
@@ -127,16 +124,22 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
+     ("(\\(f/let\\)[ \r\n\t]*" (1 font-lock-keyword-face))
+
      (,wabi-builtin-regexp
       (1 font-lock-builtin-face))
 
      (,wabi-atom-regexp
       (1 font-lock-constant-face))
 
+     (,wabi-number-regexp
+      (1 font-lock-constant-face))
+
      )))
 
 (defun wabi-indent ()
   (put 'let 'lisp-indent-function 'defun)
+  (put 'f/let 'lisp-indent-function 1)
   (put 'letr 'lisp-indent-function 'defun)
   (put 'rec 'lisp-indent-function 2)
   (put 'def 'lisp-indent-function 1)

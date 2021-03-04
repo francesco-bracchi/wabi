@@ -1,10 +1,12 @@
 (load "wabi-lib/l1.wabi")
 (load "wabi-lib/visit.wabi")
 (load "wabi-lib/amb.wabi")
-
+(load "wabi-lib/fluid.wabi")
+(load "wabi-lib/generic.wabi")
 (load "wabi-lib/testing.wabi")
 
 (load "test/l1-test.wabi")
-(fib 10)
 (load "test/visit-test.wabi")
 (load "test/amb-test.wabi")
+(load "test/fluid-test.wabi")
+(load "test/generic-test.wabi")

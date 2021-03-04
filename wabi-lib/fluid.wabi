@@ -1,0 +1,34 @@
+(defn f/new
+    ()
+  (defn me
+      xs
+    (ctrl me res (cons res xs))))
+
+
+(defn f/get?
+    (xs)
+  (and (pair? xs)
+       (cont? (car xs))
+       (= () (cdr xs))))
+
+
+(defn f/set?
+    (xs)
+  (and (pair? xs)
+       (cont? (car xs))
+       (/= () (cdr xs))))
+
+
+(defx f/let
+    e (bs . xs)
+  (rec outer (bs bs)
+    (if
+     (= bs ()) (eval e (list* do xs))
+     (let (p (eval e (car bs)))
+       (rec inner
+           (s (eval e (snd bs))
+            x (prmt p (-> bs cdr cdr outer)))
+         (if
+          (f/get? x) (inner s (prmt p ((car x) s)))
+          (f/set? x) (inner (snd x) (prmt p ((car x) :ok)))
+          x))))))

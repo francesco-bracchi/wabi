@@ -66,6 +66,10 @@ wabi_builtin_sum(const wabi_vm vm)
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
+    if (!wabi_is_fixnum(a)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
     ac += WABI_CAST_INT64(a);
   }
   if(!wabi_atom_is_empty(vm, ctrl)) {
@@ -92,6 +96,10 @@ wabi_builtin_mul(const wabi_vm vm)
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
+    if (!wabi_is_fixnum(a)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
     ac *= WABI_CAST_INT64(a);
   }
   if(! wabi_atom_is_empty(vm, ctrl)) {
@@ -123,6 +131,10 @@ wabi_builtin_dif(const wabi_vm vm)
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
+    if (!wabi_is_fixnum(a)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
   ac = WABI_CAST_INT64(a);
 
   if(wabi_atom_is_empty(vm, ctrl)) {
@@ -137,6 +149,10 @@ wabi_builtin_dif(const wabi_vm vm)
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
     ctrl = wabi_cdr((wabi_pair) ctrl);
+    if (!wabi_is_fixnum(a)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
     ac -= WABI_CAST_INT64(a);
   }
   if(! wabi_atom_is_empty(vm, ctrl)) {
@@ -165,10 +181,18 @@ wabi_builtin_div(const wabi_vm vm)
 
   a = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
+  if (!wabi_is_fixnum(a)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
   ac = WABI_CAST_INT64(a);
 
   while(wabi_is_pair(ctrl)) {
     a = wabi_car((wabi_pair) ctrl);
+    if (!wabi_is_fixnum(a)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    }
     x = WABI_CAST_INT64(a);
     ctrl = wabi_cdr((wabi_pair) ctrl);
     if(x == 0) {
@@ -208,7 +232,6 @@ wabi_builtin_car(const wabi_vm vm) {
     vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
     return;
   }
-
   if (wabi_atom_is_empty(vm, pair) || wabi_atom_is_nil(vm, pair)) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
@@ -562,6 +585,12 @@ wabi_builtin_stdenv(const wabi_vm vm)
   if(vm->ert) return NULL;
 
   wabi_defn(vm, env, "plc-cas", WABI_BT_PLC_CAS);
+  if(vm->ert) return NULL;
+
+  wabi_defn(vm, env, "comb-meta", WABI_BT_CMB_META);
+  if(vm->ert) return NULL;
+
+  wabi_defn(vm, env, "comb-meta!", WABI_BT_CMB_SET_META);
   if(vm->ert) return NULL;
 
   return env;
@@ -1465,7 +1494,7 @@ wabi_builtin_fx(const wabi_vm vm)
   fx->caller_env_name = (wabi_word) e;
   fx->parameters = (wabi_word) fs;
   fx->body = (wabi_word) ctrl;
-  fx->compiled_body = (wabi_word) vm->nil;
+  fx->meta = (wabi_word) vm->nil;
   WABI_SET_TAG(fx, wabi_tag_oper);
   vm->ctrl = (wabi_val) fx;
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
@@ -1494,7 +1523,7 @@ wabi_builtin_fn(const wabi_vm vm)
   fn->caller_env_name = (wabi_word) vm->ign;
   fn->parameters = (wabi_word) fs;
   fn->body = (wabi_word) ctrl;
-  fn->compiled_body = (wabi_word) vm->nil;
+  fn->meta = (wabi_word) vm->nil;
   WABI_SET_TAG(fn, wabi_tag_app);
   vm->ctrl = (wabi_val) fn;
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
@@ -2309,6 +2338,74 @@ wabi_builtin_plc_cas(const wabi_vm vm)
   vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
+
+void
+wabi_builtin_combiner_meta(const wabi_vm vm)
+{
+  wabi_val ctrl;
+  wabi_combiner_derived comb;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  comb = (wabi_combiner_derived) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(!wabi_atom_is_empty(vm, ctrl)){
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  if(wabi_atom_is_nil(vm, (wabi_val) comb)){
+    vm->ctrl = vm->nil;
+    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
+    return;
+  }
+
+  if(! wabi_combiner_is_derived((wabi_val) comb)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+
+  vm->ctrl = (wabi_val) wabi_combiner_derived_meta(comb);
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
+}
+
+
+void
+wabi_builtin_combiner_set_meta(const wabi_vm vm)
+{
+  wabi_val ctrl, meta;
+  wabi_combiner_derived comb;
+
+  ctrl = vm->ctrl;
+  if(!wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  comb = (wabi_combiner_derived) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(! wabi_combiner_is_derived((wabi_val) comb)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+
+  meta = (wabi_val) wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(!wabi_atom_is_empty(vm, ctrl)){
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+
+  comb->meta = (wabi_word) meta;
+  vm->ctrl = meta;
+  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
+}
+
+
 void
 wabi_builtin_call(const wabi_vm vm,
                   const wabi_word func)
@@ -2514,6 +2611,12 @@ wabi_builtin_call(const wabi_vm vm,
     break;
   case WABI_BT_COLLECT:
     wabi_builtin_collect(vm);
+    break;
+  case WABI_BT_CMB_META:
+    wabi_builtin_combiner_meta(vm);
+    break;
+  case WABI_BT_CMB_SET_META:
+    wabi_builtin_combiner_set_meta(vm);
     break;
   default:
     vm->ert = wabi_error_other;

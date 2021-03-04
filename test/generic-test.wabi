@@ -1,0 +1,16 @@
+
+(defg greet (fn (x) (x :type)))
+
+(defm greet :human
+    (h)
+  (bin-cat "hello my name is " (->> h :name)))
+
+(defm greet :animal
+    (h)
+  (bin-cat (->> h :verse) " " (->> h :verse)))
+
+(test (greet {:type :human :name "jack"})
+      "hello my name is jack")
+
+(test (greet {:type :animal :verse "wof"})
+      "wof wof")

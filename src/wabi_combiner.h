@@ -26,7 +26,7 @@ typedef struct wabi_combiner_derived_struct {
   wabi_word caller_env_name;
   wabi_word parameters;
   wabi_word body;
-  wabi_word compiled_body;
+  wabi_word meta;
 } wabi_combiner_derived_t;
 
 typedef wabi_combiner_derived_t* wabi_combiner_derived;
@@ -90,9 +90,9 @@ wabi_combiner_derived_body(const wabi_combiner_derived c)
 }
 
 static inline wabi_val
-wabi_combiner_derived_compiled_body(const wabi_combiner_derived c)
+wabi_combiner_derived_meta(const wabi_combiner_derived c)
 {
-  return (wabi_val) c->compiled_body;
+  return (wabi_val) c->meta;
 }
 
 static inline void*

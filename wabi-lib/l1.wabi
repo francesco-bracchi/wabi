@@ -167,7 +167,7 @@
    (rec loop (b (eval e (car bs)) bs (cdr bs))
      (if (= bs ()) b
          b b
-         (loop (car bs) (cdr bs))))))
+         (loop (eval e (car bs)) (cdr bs))))))
 
 
 (defx and
@@ -398,7 +398,7 @@
 (defx afx
     e bs
   (eval (ext e)
-    (list* defx 'myself
+    (list* defx 'me
            'env 'they
            (list (list* let (list it (list car 'they)) bs)))))
 
@@ -420,6 +420,9 @@
     (v j fn . xs)
   (vec-set v j (apply fn (list* (v j) xs))))
 
+(defn map-update
+    (m k f . as)
+  (assoc m k (apply f (cons (m k) as))))
 
 (defn plc-swap
     (p f . as)

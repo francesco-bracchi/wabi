@@ -1,0 +1,25 @@
+(def a
+  (f/new))
+
+(def b
+  (f/new))
+
+(test
+ (f/let () :foo) :foo)
+
+(test
+ (f/let (a 10) (a)) 10)
+
+(test
+ (f/let (a 10) (a 20)) :ok)
+
+(test
+ (f/let (a 10) (a 20) (a)) 20)
+
+(f/let (a 10 b 20)
+  (test (a) 10)
+  (test (b) 20)
+  (a 1023)
+  (b 4095)
+  (test (a) 1023)
+  (test (b) 4095))

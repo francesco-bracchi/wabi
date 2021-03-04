@@ -101,5 +101,7 @@ wabi_builtin_call(const wabi_vm vm,
 #define WABI_BT_BIN_CAT 67
 #define WABI_BT_BIN_SUB 68
 #define WABI_BT_COLLECT 69
+#define WABI_BT_CMB_META 70
+#define WABI_BT_CMB_SET_META 71
 
 #endif
