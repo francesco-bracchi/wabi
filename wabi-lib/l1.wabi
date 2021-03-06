@@ -407,8 +407,8 @@
     e bs
   (eval (ext e)
     (list* defn 'me
-           'them
-           (list (list* let '((it . _) them) bs)))))
+           'they
+           (list (list* let '((it . _) they) bs)))))
 
 
 (defn vec-ref

@@ -197,7 +197,7 @@
 
 (test (map #(if (zero? it) 0 (one? it) 1 (+ (me (- it 1)) (me (- it 2)))) (ran 6)) (map fib (ran 6)))
 
-(test (apply #(fold + 0 them) (ran 10)) (apply + (ran 10)))
+(test (apply #(fold + 0 they) (ran 10)) (apply + (ran 10)))
 
 (test (assoc {} 10 :ten) {10 :ten})
 (test (dissoc {:a 10 :b 20} :a :c) {:b 20})

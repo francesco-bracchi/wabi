@@ -1,0 +1,28 @@
+;"memoization"
+
+(def mem (f/new))
+
+(defn memoize
+    (f)
+  (fn xs
+    (or ((mem) (cons f xs))
+        (let (r (apply f xs))
+          (mem (assoc (mem) (cons f xs) r))
+          r))))
+
+
+(defx fmem
+    e (fs . bs)
+  (memoize (eval e (list* fn fs bs))))
+
+
+(defx defm
+    e (n fs . bs)
+  (eval e
+    (list def n (list* fmem fs bs))))
+
+
+(defx dyn
+    e xs
+  (f/let (mem {})
+    (eval e (list* do xs))))

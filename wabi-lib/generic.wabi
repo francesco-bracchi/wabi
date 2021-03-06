@@ -1,10 +1,10 @@
 (defn gen
-    (dfn)
-  (defn me them
-    (let (r (apply dfn them))
-      (apply (->> comb-meta me :generic r) them)))
-  (comb-meta! me {:generic {}})
-  me)
+    (d)
+  (defn gf xs
+    (let (v (apply d xs))
+      (apply (->> comb-meta gf :generic v) xs)))
+  (comb-meta! gf {:generic {}})
+  gf)
 
 
 (defx defg
@@ -15,9 +15,7 @@
 
 (defx defm
     e (g d as . xs)
-  (letr (g (eval e g)
-         d (eval e d)
-         f (eval e (list* fn as xs))
+  (letr ((g d f) (map (part eval e) (list g d (list* fn as xs)))
          m (comb-meta g)
          r (m :generic))
       (comb-meta! g (assoc m :generic (assoc r d f)))))
