@@ -1,0 +1,23 @@
+(defn signal
+    (t . xs)
+  (control cond k
+    (list* signal t #(prompt cond (k it)) xs)))
+
+
+(defn resignal
+    (k t . xs)
+  (k (apply signal (list* t xs))))
+
+
+(defn signal?
+    (r)
+  (and (pair? r) (= (car r) signal)))
+
+
+(defx guard
+    e (fs b . xs)
+  (let (h (eval e (list fn fs b)))
+    (rec loop (res (prompt cond (eval e (list* do xs))))
+      (if
+       (signal? res) (loop (apply h (cdr res)))
+       res))))

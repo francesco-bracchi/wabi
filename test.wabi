@@ -3,6 +3,7 @@
 (load "wabi-lib/amb.wabi")
 (load "wabi-lib/fluid.wabi")
 (load "wabi-lib/generic.wabi")
+(load "wabi-lib/condition.wabi")
 (load "wabi-lib/testing.wabi")
 
 (load "test/l1-test.wabi")
@@ -10,3 +11,4 @@
 (load "test/amb-test.wabi")
 (load "test/fluid-test.wabi")
 (load "test/generic-test.wabi")
+(load "test/condition-test.wabi")

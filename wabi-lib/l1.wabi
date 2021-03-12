@@ -436,3 +436,14 @@
 (defn plc-reset
     (p v)
   (plc-swap p (always v)))
+
+
+(defx case
+    e (t . cs)
+  (let (t (eval e t))
+    (rec case (cs cs)
+      (if
+       (= () cs) :nil
+       (= () (cdr cs)) (eval e (car cs))
+       (= (car cs) t) (eval e (snd cs))
+       (case (drop 2 cs))))))

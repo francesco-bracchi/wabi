@@ -1,0 +1,20 @@
+(test (guard (t k . xs) :error 42) 42)
+
+(test (guard (t k . xs) t (signal :foo)) :foo)
+
+(test (guard (t k . xs) (k 22) (+ 1 (signal :foo))) 23)
+
+(test (guard (t k x) (k (x :key)) (signal :foo {:key 10})) 10)
+
+(test (guard (t k x) (k (x :key)) (signal :foo {:key 10})) 10)
+
+(test (guard (t k _) (k 42)
+             (guard (t k i)
+                    (case t
+                      :ex-foo (k (+ 1000 1))
+                      :ex-baz (k 12)
+                      (resignal k t i))
+                    (+ (signal :ex-foo 31)
+                       (signal :ex-bar 32)
+                       (signal :ex-baz 33))))
+      1055)

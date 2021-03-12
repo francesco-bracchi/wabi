@@ -46,7 +46,7 @@
    ;; map
    "map/new" "assoc" "dissoc" "map-len" "map\\?" ;"map-get"
    ;; symbols
-   "sym\\?" "sym"
+   "sym?" "sym"
    ;; places
    "plc" "plc\\?" "plc-val" "plc-cas"
    ;; vectors
@@ -58,7 +58,7 @@
    ;; "fold" "foldr" "conc" "part" "flip" "rev" "always" "all\\?" "some\\?"
    ;; "last" "but-last"
    ;; "->" "->>"
-   ;; "or" "and"
+   "or" "and"
    ;; "map" "each"
    ;; "rec" "let" "letr"
    ;; "comp" "inc" "dec" "zero\\?" "one\\?" "pos\\?" "neg\\?" "ign\\?"
