@@ -5,7 +5,7 @@
 
 
 (defn resignal
-    (k t . xs)
+    (t k . xs)
   (k (apply signal (list* t xs))))
 
 

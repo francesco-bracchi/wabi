@@ -1,4 +1,4 @@
-(test (guard (t k . xs) :error 42) 42)
+(test (guard (t k . xs) :nope 42) 42)
 
 (test (guard (t k . xs) t (signal :foo)) :foo)
 
@@ -13,8 +13,26 @@
                     (case t
                       :ex-foo (k (+ 1000 1))
                       :ex-baz (k 12)
-                      (resignal k t i))
+                      (resignal t k i))
                     (+ (signal :ex-foo 31)
                        (signal :ex-bar 32)
                        (signal :ex-baz 33))))
       1055)
+
+
+(let ()
+  (defn div
+      (n . ds)
+    (fold (fn (n0 d)
+            (if
+             (= d 0) (signal :division-by-zero {:num n0 :dem d})
+             (/ n0 d)))
+          n
+          ds))
+
+  (test (guard (type continue info)
+               (case type
+                 :division-by-zero (continue (info :num))
+                 (resignal type continue info))
+               (div 99 1 0 2))
+        49))
