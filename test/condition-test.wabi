@@ -1,23 +1,31 @@
-(test (guard (t k . xs) :nope 42) 42)
+(test
+ (with-guard 42 _ :nope)
+ 42)
 
-(test (guard (t k . xs) t (signal :foo)) :foo)
+(test
+ (with-guard (signal :foo :info)
+   :foo (k i) i)
+ :info)
 
-(test (guard (t k . xs) (k 22) (+ 1 (signal :foo))) 23)
+(test
+ (with-guard (+ 1 (signal :foo))
+   :foo (k) (k 22))
+ 23)
 
-(test (guard (t k x) (k (x :key)) (signal :foo {:key 10})) 10)
+(test
+ (with-guard
+     (+ 2 (signal :foo {:key 10}))
+   :foo (k info) (k (info :key)))
+ 12)
 
-(test (guard (t k x) (k (x :key)) (signal :foo {:key 10})) 10)
-
-(test (guard (t k _) (k 42)
-             (guard (t k i)
-                    (case t
-                      :ex-foo (k (+ 1000 1))
-                      :ex-baz (k 12)
-                      (resignal t k i))
-                    (+ (signal :ex-foo 31)
-                       (signal :ex-bar 32)
-                       (signal :ex-baz 33))))
-      1055)
+(test (with-guard
+          (with-guard (list (signal :ex-foo)
+                            (signal :ex-bar)
+                            (signal :ex-baz))
+            :ex-foo (k) (k 1001)
+            :ex-baz (k) (k 12))
+        :ex-bar (k) (k 42))
+      '(1001 42 12))
 
 
 (let ()
@@ -25,14 +33,21 @@
       (n . ds)
     (fold (fn (n0 d)
             (if
-             (= d 0) (signal :division-by-zero {:num n0 :dem d})
+             (= d 0) (signal :division-by-zero {:num n0 :den d})
              (/ n0 d)))
           n
           ds))
+  (test
+   (with-guard
+       (div 99 1 0 2)
+     :division-by-zero (k info) (k (info :num)))
+   49)
 
-  (test (guard (type continue info)
-               (case type
-                 :division-by-zero (continue (info :num))
-                 (resignal type continue info))
-               (div 99 1 0 2))
-        49))
+  (test
+   (handle
+    (fn (type cont info)
+      (case type
+        :division-by-zero (cont (info :num))
+        (resignal type cont info)))
+    (fn () (div 99 1 0 2)))
+   49))

@@ -30,39 +30,39 @@
    ;; builtins
    "def" "if" "do" "pr" "eval" "clock" "not" "hash" "l0" "collect" "load"
    ;; combiners
-   "fx" "wrap" "unwrap" "comb" "fx\\?" "fn\\?" "cont\\?"
+   "fx" "wrap" "unwrap" "comb" "fx?" "fn?" "cont?"
    ;; list
-   "cons" "car" "cdr" "pair\\?" "list\\?" "len"
+   "cons" "car" "cdr" "pair?" "list?" "len"
    ;; numbers
    "+" "*" "-" "/"
    ;; binarites
-   "bin\\?" "bin-len" "bin-cat" "bin-sub"
+   "bin?" "bin-len" "bin-cat" "bin-sub"
    ;; compare
    "=" "/=" ">" "<" ">=" "<="
    ;; env
-   "env\\?" "ext"
+   "env?" "ext"
    ;; continuations
    "prompt" "control" "prmt" "ctrl"
    ;; map
-   "map/new" "assoc" "dissoc" "map-len" "map\\?" ;"map-get"
+   "map/new" "assoc" "dissoc" "map-len" "map?" ;"map-get"
    ;; symbols
    "sym?" "sym"
    ;; places
-   "plc" "plc\\?" "plc-val" "plc-cas"
+   "plc" "plc?" "plc-val" "plc-cas"
    ;; vectors
-   "vec" "vec-len" "vec\\?" "push-right" "push-left" "right" "left" "pop-left" "pop-right" "vec-concat" "vec-set"
+   "vec" "vec-len" "vec?" "push-right" "push-left" "right" "left" "pop-left" "pop-right" "vec-concat" "vec-set"
    ;; l1
    ;; "q" "qs" "id" "list" "cmt" "env" "apply" "list*"
    ;; "fn" "defx" "defn"
    ;; "prmt" "ctrl"
-   ;; "fold" "foldr" "conc" "part" "flip" "rev" "always" "all\\?" "some\\?"
+   ;; "fold" "foldr" "conc" "part" "flip" "rev" "always" "all?" "some?"
    ;; "last" "but-last"
    ;; "->" "->>"
    "or" "and"
    ;; "map" "each"
    ;; "rec" "let" "letr"
-   ;; "comp" "inc" "dec" "zero\\?" "one\\?" "pos\\?" "neg\\?" "ign\\?"
-   ;; "take" "drop" "filter" "remove" "find" "in\\?" "take\\?" "drop\\?" "iter" "ran"
+   ;; "comp" "inc" "dec" "zero?" "one?" "pos?" "neg?" "ign?"
+   ;; "take" "drop" "filter" "remove" "find" "in?" "take?" "drop?" "iter" "ran"
    ;; "snd" "trd" "fth" "nth"
    ;; "when" "unless" "awhen" "afn"
    ;; "vec-update" "plc-swap" "type"

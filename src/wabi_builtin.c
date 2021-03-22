@@ -545,6 +545,9 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defn(vm, env, "sym", WABI_BT_SYM);
   if(vm->ert) return NULL;
 
+  wabi_defn(vm, env, "sym-bin", WABI_BT_SYM_BIN);
+  if(vm->ert) return NULL;
+
   wabi_defn(vm, env, "atom", WABI_BT_ATOM);
   if(vm->ert) return NULL;
 
@@ -1848,6 +1851,31 @@ wabi_builtin_sym(const wabi_vm vm)
 }
 
 static inline void
+wabi_builtin_sym_bin(const wabi_vm vm)
+{
+  wabi_val ctrl, sym, res;
+
+  ctrl = vm->ctrl;
+
+  if(wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  sym = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+
+  if(!wabi_is_symbol(sym)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+  res = wabi_symbol_to_binary(sym);
+  if (vm->ert)
+    return;
+  vm->ctrl = res;
+  vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
+}
+
+static inline void
 wabi_builtin_atom(const wabi_vm vm)
 {
   wabi_val ctrl, bin, res;
@@ -2440,6 +2468,9 @@ wabi_builtin_call(const wabi_vm vm,
     break;
   case WABI_BT_SYM_Q:
     wabi_builtin_sym_q(vm);
+    break;
+  case WABI_BT_SYM_BIN:
+    wabi_builtin_sym_bin(vm);
     break;
   case WABI_BT_ATOM_Q:
     wabi_builtin_atom_q(vm);

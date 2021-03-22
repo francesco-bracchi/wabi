@@ -14,10 +14,21 @@
   (and (pair? r) (= (car r) signal)))
 
 
-(defx guard
-    e (fs b . xs)
-  (let (h (eval e (list fn fs b)))
-    (rec loop (res (prompt cond (eval e (list* do xs))))
-      (if
-       (signal? res) (loop (apply h (cdr res)))
-       res))))
+(defn handle
+    (h g)
+  (rec handle (res (prompt cond (g)))
+    (if
+     (signal? res) (handle (apply h (cdr res)))
+     res)))
+
+
+(defx with-guard
+    e (x . hs)
+  (handle
+   (fn (t k . is)
+     (rec handler (hs hs)
+       (if (= () hs) (apply resignal (list* t k is))
+           (let ((t0 fs0 x0 . hs0) hs)
+             (if (= t0 t) (eval e (list let (list fs0 (list* qs k is)) x0))
+                 (handler hs0))))))
+   (fn () (eval e x))))

@@ -1,4 +1,4 @@
-(defn gen
+(defn generic
     (d)
   (defn gf xs
     (let (v (apply d xs))
@@ -7,13 +7,13 @@
   gf)
 
 
-(defx defg
+(defx defgeneric
     e (n d)
   (eval e
-    (list def n (list gen d))))
+    (list def n (list generic d))))
 
 
-(defx defm
+(defx defmethod
     e (g d as . xs)
   (letr ((g d f) (map (part eval e) (list g d (list* fn as xs)))
          m (comb-meta g)

@@ -1,11 +1,11 @@
 
-(defg greet (fn (x) (x :type)))
+(defgeneric greet (fn (x) (x :type)))
 
-(defm greet :human
+(defmethod greet :human
     (h)
   (bin-cat "hello my name is " (->> h :name)))
 
-(defm greet :animal
+(defmethod greet :animal
     (h)
   (bin-cat (->> h :verse) " " (->> h :verse)))
 

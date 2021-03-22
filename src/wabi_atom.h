@@ -96,7 +96,6 @@ wabi_is_falsey(const wabi_vm vm, const wabi_val v)
   return wabi_atom_is_false(vm, v) || wabi_atom_is_nil(vm, v);
 }
 
-
 static inline int
 wabi_is_truthy(const wabi_vm vm, const wabi_val v)
 {

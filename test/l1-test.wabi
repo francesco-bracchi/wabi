@@ -380,3 +380,6 @@
 (test (comb-meta test-comb-fn) :nil)
 (comb-meta! test-comb-fn {:doc "foo doc"})
 (test (->> comb-meta test-comb-fn :doc) "foo doc")
+
+
+(test (sym-bin 'foo) "foo")
