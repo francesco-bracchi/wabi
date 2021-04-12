@@ -74,6 +74,23 @@ wabi_collect_env_copy_val(const wabi_vm vm,
   vm->stor.heap += WABI_ENV_SIZE + size;
 }
 
+static inline void
+wabi_collect_sym_copy_val(const wabi_vm vm, const wabi_symbol src)
+{
+  wabi_val old_sym = (wabi_val) src;
+  wabi_val old_bin = WABI_DEREF(old_sym);
+
+  wabi_symbol new_sym = (wabi_symbol) vm->stor.heap;
+  vm->stor.heap++;
+  wabi_binary new_bin = (wabi_binary) vm->stor.heap;
+  wabi_collect_binary_copy_val(vm, (wabi_binary) old_bin);
+
+  *new_sym = (wabi_word) new_bin;
+  WABI_SET_TAG(new_sym, wabi_tag_symbol);
+
+  *old_bin = (wabi_word) new_bin;
+  WABI_SET_TAG(old_bin, wabi_tag_forward);
+}
 
 wabi_val
 wabi_copy_val(wabi_vm vm, wabi_val src)
@@ -91,10 +108,13 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
     return WABI_DEREF(src);
 
   case wabi_tag_fixnum:
-  case wabi_tag_symbol:
   case wabi_tag_atom:
     *res = *src;
     vm->stor.heap++;
+    break;
+
+  case wabi_tag_symbol:
+    wabi_collect_sym_copy_val(vm, (wabi_symbol) src);
     break;
 
   case wabi_tag_bin_leaf:
