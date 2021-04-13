@@ -21,7 +21,7 @@
  *
  * TODO:
  * 1. merge multiple environmnets
- * 2. more environment manipulation (i.e. undef?)
+ * 2. more environment introspection
  */
 
 #define wabi_env_c
@@ -40,7 +40,6 @@
 
 static wabi_size rnd = 0;
 
-
 static inline wabi_word
 wabi_env_uid(wabi_env env)
 {
@@ -53,31 +52,48 @@ wabi_env_extend(wabi_vm vm, wabi_env prev)
 {
   wabi_env res;
   res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
-  if(res) {
-    res->prev = (wabi_word) prev;
-    res->uid = wabi_env_uid(res);
-    res->numE = 0;
-    res->maxE = WABI_ENV_INITIAL_SIZE;
-    res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
-    WABI_SET_TAG(res, wabi_tag_env);
-  }
+  if(vm->ert) return NULL;
+
+  res->prev = (wabi_word) prev;
+  res->uid = wabi_env_uid(res);
+  res->numE = 0;
+  res->maxE = WABI_ENV_INITIAL_SIZE;
+  res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
+  WABI_SET_TAG(res, wabi_tag_env);
+  wabi_env_reset(res);
   return res;
+}
+
+
+static inline void
+wabi_env_copy_from(const wabi_env env,
+                   const wabi_env_pair old_data,
+                   const wabi_word old_size)
+{
+  int j;
+  wabi_env_pair p;
+  for (int j = 0; j < old_size; j++) {
+    p = old_data + j;
+    if(p->key) wabi_env_set_raw(env, p);
+  }
 }
 
 void
 wabi_env_set_expand(const wabi_vm vm,
                     const wabi_env env)
 {
-  uint32_t new_size;
-  wabi_word *new_data;
-
-  new_size = env->numE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
-  new_data = (wabi_word*) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
+  printf("EXPAND\n");
+  wabi_word old_size, old_data, new_size, new_data;
+  old_size = env->maxE;
+  old_data = env->data;
+  new_size = env->maxE <= 0 ? WABI_ENV_INITIAL_SIZE : env->numE * 2;
+  new_data = (wabi_word) wabi_vm_alloc(vm, new_size * WABI_ENV_PAIR_SIZE);
   if(vm->ert) return;
 
-  wordcopy(new_data, (wabi_word*) env->data, env->numE * WABI_ENV_PAIR_SIZE);
-  env->data = (wabi_word) new_data;
+  env->data = new_data;
   env->maxE = new_size;
+  wabi_env_reset(env);
+  wabi_env_copy_from(env, (wabi_env_pair) old_data, old_size);
 }
 
 static inline void
@@ -85,36 +101,31 @@ wabi_env_actually_set(const wabi_env env,
                       const wabi_val k,
                       const wabi_val v)
 {
-  *(((wabi_val) env->data) + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) k;
-  *(((wabi_val) env->data) + 1 + WABI_ENV_PAIR_SIZE * env->numE) = (wabi_word) v;
+  wabi_env_pair_t p;
+  p.key = (wabi_word) k;
+  p.val = (wabi_word) v;
+  wabi_env_set_raw(env, &p);
   env->numE++;
 }
 
 wabi_val
 wabi_env_lookup_local(const wabi_env env, const wabi_val k)
 {
-  wabi_size j, l;
-  wabi_val k0, res;
-  wabi_word sk, sv;
+  wabi_env_pair p;
+  wabi_env_pair data;
+  wabi_word delta;
 
-  for(j = 0; j < env->numE; j++) {
-    k0 = (wabi_val) *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
-    if(k0 != k) continue;
-    res = (wabi_val) (wabi_val) *((wabi_word*) env->data + 1 + WABI_ENV_PAIR_SIZE * j);
-    if(j >= WABI_ENV_LOW_LIMIT) {
-      // this stuff moves the most recent visited symbols at the first part of the list
-      // can a better algorithm be devised?
-      rnd = l = (rnd+1) % WABI_ENV_LOW_LIMIT;
-      sk = *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE);
-      sv = *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + 1 + j * WABI_ENV_PAIR_SIZE) = *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE);
-      *((wabi_word*) env->data + l * WABI_ENV_PAIR_SIZE) = sk;
-      *((wabi_word*) env->data + 1 + l * WABI_ENV_PAIR_SIZE) = sv;
-    }
-    return res;
-  }
-  return NULL;
+  data = (wabi_env_pair) env->data;
+  delta = wabi_env_hash((wabi_symbol) k) % env->maxE;
+
+  do {
+    p = data + delta;
+    if (p->key == 0)
+      return NULL;
+    if (wabi_eq((wabi_val)p->key, k))
+      return (wabi_val)p->val;
+    delta = (delta + 1) % env->maxE;
+  } while(1);
 }
 
 wabi_val
@@ -134,17 +145,19 @@ wabi_env_lookup(const
   return NULL;
 }
 
+
 void
 wabi_env_set(const wabi_vm vm,
              const wabi_env env,
              const wabi_val k,
              const wabi_val v)
 {
+  // todo raise exception when the key is found in actually set
   if(wabi_env_lookup_local(env, k)) {
     vm->ert = wabi_error_already_defined;
     return;
   }
-  if(env->numE >= env->maxE) {
+  if(env->numE > env->maxE * WABI_ENV_FILL_RATIO) {
     wabi_env_set_expand(vm, env);
     if(vm->ert) return;
   }

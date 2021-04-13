@@ -969,8 +969,8 @@ wabi_vm_run(const wabi_vm vm,
   vm->ert = wabi_error_none;
 
   while(vm->cont) {
-    // printf("ctrl: "); wabi_prn(vm, vm->ctrl);
-    // printf("cont: "); wabi_prn(vm, vm->cont);
+    /* printf("ctrl: "); wabi_prn(vm, vm->ctrl); */
+    /* printf("cont: "); wabi_prn(vm, vm->cont); */
     wabi_vm_reduce(vm);
     if (vm->ert == wabi_error_nomem) {
       wabi_vm_collect(vm);
