@@ -82,7 +82,6 @@ void
 wabi_env_set_expand(const wabi_vm vm,
                     const wabi_env env)
 {
-  printf("EXPAND\n");
   wabi_word old_size, old_data, new_size, new_data;
   old_size = env->maxE;
   old_data = env->data;
@@ -118,19 +117,20 @@ wabi_env_lookup_local(const wabi_env env, const wabi_val k)
   data = (wabi_env_pair) env->data;
   delta = wabi_env_hash((wabi_symbol) k) % env->maxE;
 
-  do {
+  for(;;) {
     p = data + delta;
-    if (p->key == 0)
+    if((wabi_val) p->key == k) {
+      return (wabi_val) p->val;
+    }
+    if (p->key == 0) {
       return NULL;
-    if (wabi_eq((wabi_val)p->key, k))
-      return (wabi_val)p->val;
+    }
     delta = (delta + 1) % env->maxE;
-  } while(1);
+  }
 }
 
 wabi_val
-wabi_env_lookup(const
-                wabi_env env0,
+wabi_env_lookup(const wabi_env env0,
                 const wabi_val k)
 {
   wabi_env env;

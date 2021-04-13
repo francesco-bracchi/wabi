@@ -67,10 +67,8 @@ wabi_collect_env_copy_val(const wabi_vm vm,
   wabi_word *res;
 
   res = vm->stor.heap;
-  size = env->numE * WABI_ENV_PAIR_SIZE;
   wordcopy(res, (wabi_word*) env, WABI_ENV_SIZE);
-  wordcopy(res + WABI_ENV_SIZE, (wabi_word*) env->data, size);
-  ((wabi_env)res)->data = (wabi_word) (res + WABI_ENV_SIZE);
+  size = env->maxE * WABI_ENV_PAIR_SIZE;
   vm->stor.heap += WABI_ENV_SIZE + size;
 }
 
@@ -297,20 +295,31 @@ wabi_collect_combiner_bt(const wabi_vm vm, const wabi_combiner_builtin c)
 static inline void
 wabi_collect_env(wabi_vm vm, wabi_env env)
 {
-  wabi_size j;
-  wabi_word *k, *v;
+  wabi_env_pair old_data, p0;
+  wabi_env_pair_t p;
+  wabi_val k, v;
+  wabi_size size, j;
+
+
+  old_data = (wabi_env_pair) env->data;
+  size = env->maxE;
+  env->data = (wabi_word)((wabi_val) env + WABI_ENV_SIZE);
+  wabi_env_reset(env);
+
+  for (j = 0; j < size; j++) {
+    p0 = old_data + j;
+    if (p0->key) {
+      p.key = (wabi_word) wabi_copy_val(vm, (wabi_val) p0->key);
+      p.val = (wabi_word) wabi_copy_val(vm, (wabi_val) p0->val);
+      wabi_env_set_raw(env, &p);
+    }
+  }
+
   if(WABI_WORD_VAL(env->prev)) {
     env->prev = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(env->prev));
   }
-  env->maxE = env->numE;
-  for(j = 0; j < env->numE; j++) {
-    k = ((wabi_val) env->data) + 2 * j;
-    v = ((wabi_val) env->data) + 1 + 2 * j;
-    *k = (wabi_word) wabi_copy_val(vm, (wabi_val) *k);
-    *v = (wabi_word) wabi_copy_val(vm, (wabi_val) *v);
-  }
   WABI_SET_TAG(env, wabi_tag_env);
-  vm->stor.scan += WABI_ENV_SIZE + env->numE * WABI_ENV_PAIR_SIZE;
+  vm->stor.scan += WABI_ENV_SIZE + size * WABI_ENV_PAIR_SIZE;
 }
 
 static inline void

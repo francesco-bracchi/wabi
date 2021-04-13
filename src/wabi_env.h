@@ -82,7 +82,7 @@ wabi_env_hash(wabi_val sym)
 static inline void
 wabi_env_reset(wabi_env env)
 {
-  memset((void*) env->data, 0, WABI_ENV_PAIR_SIZE * WABI_WORD_SIZE);
+  memset((void*) env->data, 0, env->maxE * WABI_ENV_PAIR_SIZE * WABI_WORD_SIZE);
 }
 
 static inline void
