@@ -79,13 +79,13 @@ wabi_vm_alloc(const wabi_vm vm, const wabi_size size)
 {
   wabi_word* res;
 
-  if(vm->stor.heap + size < vm->stor.limit) {
-    res = vm->stor.heap;
-    vm->stor.heap += size;
-    return res;
+  if (vm->stor.heap + size >= vm->stor.limit) {
+    vm->ert = wabi_error_nomem;
+    return NULL;
   }
-  vm->ert = wabi_error_nomem;
-  return NULL;
+  res = vm->stor.heap;
+  vm->stor.heap += size;
+  return res;
 }
 
 #endif

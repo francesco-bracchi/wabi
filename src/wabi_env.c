@@ -130,13 +130,10 @@ wabi_env_lookup_local(const wabi_env env, const wabi_val k)
 }
 
 wabi_val
-wabi_env_lookup(const wabi_env env0,
+wabi_env_lookup(wabi_env env,
                 const wabi_val k)
 {
-  wabi_env env;
   wabi_val res;
-
-  env = env0;
   do {
     res = wabi_env_lookup_local(env, k);
     if(res) return res;
