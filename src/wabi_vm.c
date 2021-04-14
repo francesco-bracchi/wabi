@@ -62,6 +62,27 @@
 
 
 wabi_val
+wabi_vm_cache_lookup(const wabi_vm vm,
+                     const wabi_env env,
+                     const wabi_symbol sym)
+{
+  wabi_word hash;
+  wabi_val val;
+  wabi_vm_cache_item_t *item;
+
+  hash = wabi_env_hash(sym) % WABI_VM_CACHE_SIZE;
+  item = vm->cache + hash;
+
+  if (item->sym == (wabi_val)sym && item->env == (wabi_val)env) {
+    return item->val;
+  }
+  val = wabi_env_lookup(env, sym);
+  *item = (wabi_vm_cache_item_t) {.sym = (wabi_val) sym, .env = (wabi_val) env, .val = val};
+
+  return val;
+}
+
+wabi_val
 wabi_vm_atom_from_cstring(const wabi_vm vm, const char *cstring) {
   wabi_val bin;
   bin = (wabi_val)wabi_binary_leaf_new_from_cstring(vm, cstring);
@@ -299,7 +320,7 @@ wabi_vm_reduce_eval_symbol(const wabi_vm vm)
   cont = (wabi_cont) vm->cont;
   env  = (wabi_env) vm->env;
 
-  val = wabi_env_lookup(env, symb);
+  val = wabi_vm_cache_lookup(vm, env, symb);
   if (!val) {
     vm->ert = wabi_error_unbound_name;
     return;
