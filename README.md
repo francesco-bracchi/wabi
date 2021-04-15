@@ -2,7 +2,7 @@
 ```shell
 autoreconf --install
 
-./configure
+./configure CFLAGS="-O3 -march=native -Wall"
 
 make
 

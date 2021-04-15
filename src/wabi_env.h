@@ -79,24 +79,9 @@ wabi_env_hash(wabi_val sym)
   return *sym >> WABI_ENV_SYMBOL_OFFSET;
 }
 
-static inline void
+void
 wabi_env_set_raw(const wabi_env env,
-                 const wabi_env_pair p0)
-{
-  wabi_env_pair data, p;
-  wabi_word delta;
-
-  delta = wabi_env_hash((wabi_val) p0->key) % env->maxE;
-  data = (wabi_env_pair) env->data;
-  do {
-    p = data + delta;
-    if (p->key == 0) {
-      *p = *p0;
-      return;
-    }
-    delta = (delta + 1) % env->maxE;
-  } while(1);
-}
+                 const wabi_env_pair p0);
 
 static inline void
 wabi_env_reset(wabi_env env)

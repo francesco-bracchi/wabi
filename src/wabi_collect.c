@@ -20,21 +20,21 @@ wabi_copy_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size)
   vm->stor.heap += size;
 }
 
-
 static inline void
 wabi_collect_binary_memcopy(char *dst, wabi_binary src) {
   wabi_word pivot;
 
-  if(WABI_IS(wabi_tag_bin_leaf, src)) {
-    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
-  } else {
+  while (WABI_IS(wabi_tag_bin_node, src)) {
     pivot = wabi_binary_length((wabi_binary) ((wabi_binary_node) src)->left);
     //todo use a loop?
     wabi_collect_binary_memcopy(dst, (wabi_binary) ((wabi_binary_node) src)->left);
-    wabi_collect_binary_memcopy(dst + pivot, (wabi_binary) ((wabi_binary_node) src)->right);
+    dst += pivot;
+    src = (wabi_binary) ((wabi_binary_node) src)->right;
+  }
+  if(WABI_IS(wabi_tag_bin_leaf, src)) {
+    memcpy(dst, (char *)((wabi_binary_leaf) src)->data_ptr, wabi_binary_length(src));
   }
 }
-
 
 static inline void
 wabi_collect_binary_copy_val(const wabi_vm vm, const wabi_binary src)
