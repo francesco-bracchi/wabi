@@ -297,7 +297,6 @@ wabi_collect_env(wabi_vm vm, wabi_env env)
 {
   wabi_env_pair old_data, p0;
   wabi_env_pair_t p;
-  wabi_val k, v;
   wabi_size size, j;
 
 

@@ -38,8 +38,6 @@
 #include "wabi_builtin.h"
 #include "wabi_atom.h"
 
-static wabi_size rnd = 0;
-
 static inline wabi_word
 wabi_env_uid(wabi_env env)
 {
@@ -72,7 +70,7 @@ wabi_env_copy_from(const wabi_env env,
 {
   int j;
   wabi_env_pair p;
-  for (int j = 0; j < old_size; j++) {
+  for (j = 0; j < old_size; j++) {
     p = old_data + j;
     if(p->key) wabi_env_set_raw(env, p);
   }
@@ -129,14 +127,34 @@ wabi_env_lookup_local(const wabi_env env, const wabi_val k)
   }
 }
 
+/* wabi_val */
+/* wabi_env_lookup(wabi_env env, */
+/*                 const wabi_val k) */
+/* { */
+/*   wabi_val res; */
+/*   do { */
+/*     res = wabi_env_lookup_local(env, k); */
+/*     if(res) return res; */
+/*     env = (wabi_env) WABI_WORD_VAL(env->prev); */
+/*   } while(env); */
+/*   return NULL; */
+/* } */
+
+
 wabi_val
 wabi_env_lookup(wabi_env env,
                 const wabi_val k)
 {
-  wabi_val res;
+  wabi_env_pair data, top, cur;
   do {
-    res = wabi_env_lookup_local(env, k);
-    if(res) return res;
+    data = (wabi_env_pair) env->data;
+    top = data + env->maxE;
+    cur = data + (wabi_env_hash(k) % env->maxE);
+    for (;;) {
+      if((wabi_val) cur->key == k) return (wabi_val) cur->val;
+      if(cur->key == 0) break;
+      if(++cur >= top) cur = data;
+    }
     env = (wabi_env) WABI_WORD_VAL(env->prev);
   } while(env);
   return NULL;

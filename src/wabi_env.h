@@ -80,12 +80,6 @@ wabi_env_hash(wabi_val sym)
 }
 
 static inline void
-wabi_env_reset(wabi_env env)
-{
-  memset((void*) env->data, 0, env->maxE * WABI_ENV_PAIR_SIZE * WABI_WORD_SIZE);
-}
-
-static inline void
 wabi_env_set_raw(const wabi_env env,
                  const wabi_env_pair p0)
 {
@@ -102,6 +96,12 @@ wabi_env_set_raw(const wabi_env env,
     }
     delta = (delta + 1) % env->maxE;
   } while(1);
+}
+
+static inline void
+wabi_env_reset(wabi_env env)
+{
+  memset((void*) env->data, 0, env->maxE * WABI_ENV_PAIR_SIZE * WABI_WORD_SIZE);
 }
 
 #endif
