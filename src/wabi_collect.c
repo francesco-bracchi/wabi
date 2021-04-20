@@ -310,7 +310,7 @@ wabi_collect_env(wabi_vm vm, wabi_env env)
     if (p0->key) {
       p.key = (wabi_word) wabi_copy_val(vm, (wabi_val) p0->key);
       p.val = (wabi_word) wabi_copy_val(vm, (wabi_val) p0->val);
-      wabi_env_set_raw(env, &p);
+      wabi_env_def_raw(env, &p);
     }
   }
 

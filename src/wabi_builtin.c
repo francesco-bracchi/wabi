@@ -341,7 +341,7 @@ wabi_defx(const wabi_vm vm,
   if(vm->ert) return;
   oper = wabi_operator_builtin_new(vm, fun);
   if(vm->ert) return;
-  wabi_env_set(vm, env, sym, (wabi_val) oper);
+  wabi_env_def(vm, env, sym, (wabi_val) oper);
 }
 
 void
@@ -359,7 +359,7 @@ wabi_defn(const wabi_vm vm,
   if(vm->ert) return;
   app = wabi_application_builtin_new(vm, fun);
   if(vm->ert) return;
-  wabi_env_set(vm, env, sym, (wabi_val) app);
+  wabi_env_def(vm, env, sym, (wabi_val) app);
 }
 
 void
@@ -375,7 +375,7 @@ wabi_def(const wabi_vm vm,
   if(vm->ert) return;
   sym = wabi_symbol_new(vm, (wabi_val) bin);
   if(vm->ert) return;
-  wabi_env_set(vm, env, sym, val);
+  wabi_env_def(vm, env, sym, val);
 }
 
 wabi_env
@@ -387,6 +387,9 @@ wabi_builtin_stdenv(const wabi_vm vm)
   if(vm->ert) return NULL;
 
   wabi_defx(vm, env, "def", WABI_BT_DEF);
+  if(vm->ert) return NULL;
+
+  wabi_defx(vm, env, "set", WABI_BT_SET);
   if(vm->ert) return NULL;
 
   wabi_defx(vm, env, "if", WABI_BT_IF);
@@ -657,6 +660,45 @@ wabi_builtin_def(const wabi_vm vm)
   cont = wabi_cont_push_eval(vm, cont);
   if(vm->ert) return;
   vm->ctrl = rgt;
+  vm->cont = (wabi_val) cont;
+  vm->env = (wabi_val) env;
+}
+
+static inline void
+wabi_builtin_set(const wabi_vm vm)
+{
+  wabi_val ctrl, sym, val;
+  wabi_env env;
+  wabi_cont cont;
+
+  ctrl = vm->ctrl;
+  cont = (wabi_cont) vm->cont;
+  env = (wabi_env) ((wabi_cont_call) cont)->env;
+  cont = wabi_cont_pop(cont);
+  val = vm->nil;
+
+  while (wabi_is_pair(ctrl)) {
+    sym = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+    if (!wabi_is_symbol(sym)) {
+      vm->ert = wabi_error_type_mismatch;
+      return;
+    };
+    if (!wabi_is_pair(ctrl)) {
+      vm->ert = wabi_error_bindings;
+      return;
+    }
+    val = wabi_car((wabi_pair) ctrl);
+    ctrl = wabi_cdr((wabi_pair) ctrl);
+
+    wabi_env_set(vm, env, sym, val);
+    if (vm->ert) return;
+  }
+  if (!wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_bindings;
+    return;
+  }
+  vm->ctrl = val;
   vm->cont = (wabi_val) cont;
   vm->env = (wabi_val) env;
 }
@@ -1265,7 +1307,7 @@ wabi_builtin_control(const wabi_vm vm)
 
     prompt = wabi_cont_prompt_next_prompt(prompt);
   }
-  wabi_env_set(vm, env, kname, (wabi_val)kval);
+  wabi_env_def(vm, env, kname, (wabi_val)kval);
   if (vm->ert)
     return;
 
@@ -2450,6 +2492,9 @@ wabi_builtin_call(const wabi_vm vm,
     break;
   case WABI_BT_DEF:
     wabi_builtin_def(vm);
+    break;
+  case WABI_BT_SET:
+    wabi_builtin_set(vm);
     break;
   case WABI_BT_IF:
     wabi_builtin_if(vm);

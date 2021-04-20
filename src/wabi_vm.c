@@ -216,7 +216,7 @@ wabi_vm_bind(const wabi_vm vm,
       /* } */
     }
     if(wabi_is_symbol(params)) {
-      wabi_env_set(vm, env, (wabi_symbol) params, args);
+      wabi_env_def(vm, env, (wabi_symbol) params, args);
       return;
     }
     if(wabi_atom_is_ignore(vm, params))

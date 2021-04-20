@@ -383,3 +383,12 @@
 
 
 (test (sym-bin 'foo) "foo")
+
+(let ()
+  (def (x y) (list 10 20))
+  (set! x (+ 1 2) y (bin-cat "test " "set!"))
+  (test x 3)
+  (test y "test set!")
+  (defn incx (y) (set! x (+ x y)))
+  (incx 13)
+  (test x (+ 13 3)))

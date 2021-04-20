@@ -59,7 +59,7 @@ wabi_is_env(const wabi_val val) {
 }
 
 void
-wabi_env_set_expand(const wabi_vm vm,
+wabi_env_def_expand(const wabi_vm vm,
                     const wabi_env env);
 wabi_val
 wabi_env_lookup(const
@@ -67,7 +67,7 @@ wabi_env_lookup(const
                 const wabi_val k);
 
 void
-wabi_env_set(const wabi_vm vm,
+wabi_env_def(const wabi_vm vm,
              const wabi_env env,
              const wabi_val k,
              const wabi_val v);
@@ -80,7 +80,7 @@ wabi_env_hash(wabi_val sym)
 }
 
 void
-wabi_env_set_raw(const wabi_env env,
+wabi_env_def_raw(const wabi_env env,
                  const wabi_env_pair p0);
 
 static inline void
@@ -89,4 +89,10 @@ wabi_env_reset(wabi_env env)
   memset((void*) env->data, 0, env->maxE * WABI_ENV_PAIR_SIZE * WABI_WORD_SIZE);
 }
 
+
+void
+wabi_env_set(const wabi_vm vm,
+             const wabi_env env,
+             const wabi_val k,
+             const wabi_val v);
 #endif

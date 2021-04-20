@@ -46,7 +46,7 @@ wabi_env_uid(wabi_env env)
 }
 
 void
-wabi_env_set_raw(const wabi_env env,
+wabi_env_def_raw(const wabi_env env,
                  const wabi_env_pair p0)
 {
   wabi_env_pair data, p;
@@ -65,7 +65,7 @@ wabi_env_set_raw(const wabi_env env,
 }
 
 void
-wabi_env_set_check(const wabi_vm vm,
+wabi_env_def_check(const wabi_vm vm,
                    const wabi_env env,
                    const wabi_env_pair p0)
 {
@@ -114,12 +114,12 @@ wabi_env_copy_from(const wabi_env env,
   wabi_env_pair p;
   for (j = 0; j < old_size; j++) {
     p = old_data + j;
-    if(p->key) wabi_env_set_raw(env, p);
+    if(p->key) wabi_env_def_raw(env, p);
   }
 }
 
 void
-wabi_env_set_expand(const wabi_vm vm,
+wabi_env_def_expand(const wabi_vm vm,
                     const wabi_env env)
 {
   wabi_word old_size, old_data, new_size, new_data;
@@ -192,7 +192,7 @@ wabi_env_lookup(wabi_env env,
 
 
 void
-wabi_env_set(const wabi_vm vm,
+wabi_env_def(const wabi_vm vm,
              const wabi_env env,
              const wabi_val k,
              const wabi_val v)
@@ -200,11 +200,39 @@ wabi_env_set(const wabi_vm vm,
   wabi_env_pair_t p;
 
   if(env->numE > env->maxE * WABI_ENV_FILL_RATIO) {
-    wabi_env_set_expand(vm, env);
+    wabi_env_def_expand(vm, env);
     if(vm->ert) return;
   }
   p.key = (wabi_word) k;
   p.val = (wabi_word) v;
-  wabi_env_set_check(vm, env, &p);
+  wabi_env_def_check(vm, env, &p);
   env->numE++;
+}
+
+
+void
+wabi_env_set(const wabi_vm vm,
+             wabi_env env,
+             const wabi_val k,
+             const wabi_val v)
+{
+  wabi_env_pair data, p;
+  wabi_word delta;
+
+  while(env) {
+    delta = wabi_env_hash(k) % env->maxE;
+    data = (wabi_env_pair) env->data;
+    for(;;) {
+      p = data + delta;
+      if (p->key == (wabi_word) k) {
+        p->val = (wabi_word) v;
+        return;
+      }
+      if (p->key == 0) {
+        break;
+      }
+      delta = (delta + 1) % env->maxE;
+    }
+    env = (wabi_env) WABI_WORD_VAL(env->prev);
+  }
 }
