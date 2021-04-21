@@ -73,7 +73,7 @@ wabi_vm_atom_from_cstring(const wabi_vm vm, const char *cstring) {
 void
 wabi_vm_init(const wabi_vm vm, const wabi_size size)
 {
-  wabi_val meta, atbl, stbl, emp, nil, ign, fls, trh;
+  wabi_val atbl, stbl, emp, nil, ign, fls, trh;
 
   if(wabi_store_init(&(vm->stor), size)) {
     vm->ert = wabi_error_nomem;
@@ -917,47 +917,47 @@ wabi_vm_reduce_def(const wabi_vm vm)
 }
 
 
-static inline void
-wabi_vm_reduce(const wabi_vm vm)
-{
-  switch (WABI_TAG(vm->cont)) {
+/* static inline void */
+/* wabi_vm_reduce(const wabi_vm vm) */
+/* { */
+/*   switch (WABI_TAG(vm->cont)) { */
 
-  case wabi_tag_cont_eval:
-    wabi_vm_reduce_eval(vm);
-    break;
+/*   case wabi_tag_cont_eval: */
+/*     wabi_vm_reduce_eval(vm); */
+/*     break; */
 
-  case wabi_tag_cont_apply:
-    wabi_vm_reduce_apply(vm);
-    break;
+/*   case wabi_tag_cont_apply: */
+/*     wabi_vm_reduce_apply(vm); */
+/*     break; */
 
-  case wabi_tag_cont_prompt:
-    wabi_vm_reduce_prompt(vm);
-    break;
+/*   case wabi_tag_cont_prompt: */
+/*     wabi_vm_reduce_prompt(vm); */
+/*     break; */
 
-  case wabi_tag_cont_args:
-    wabi_vm_reduce_args(vm);
-    break;
+/*   case wabi_tag_cont_args: */
+/*     wabi_vm_reduce_args(vm); */
+/*     break; */
 
-  case wabi_tag_cont_call:
-    wabi_vm_reduce_call(vm);
-    break;
+/*   case wabi_tag_cont_call: */
+/*     wabi_vm_reduce_call(vm); */
+/*     break; */
 
-  case wabi_tag_cont_sel:
-    wabi_vm_reduce_sel(vm);
-    break;
+/*   case wabi_tag_cont_sel: */
+/*     wabi_vm_reduce_sel(vm); */
+/*     break; */
 
-  case wabi_tag_cont_prog:
-    wabi_vm_reduce_prog(vm);
-    break;
+/*   case wabi_tag_cont_prog: */
+/*     wabi_vm_reduce_prog(vm); */
+/*     break; */
 
-  case wabi_tag_cont_def:
-    wabi_vm_reduce_def(vm);
-    break;
-  default:
-    vm->ert = wabi_error_other;
-    break;
-  }
-}
+/*   case wabi_tag_cont_def: */
+/*     wabi_vm_reduce_def(vm); */
+/*     break; */
+/*   default: */
+/*     vm->ert = wabi_error_other; */
+/*     break; */
+/*   } */
+/* } */
 
 
 /* void */
@@ -1012,7 +1012,10 @@ wabi_vm_run(const wabi_vm vm,
     vm->ert = wabi_error_timeout;
     return;
   }
-  goto *cont_ptrs[(*(vm->cont) >> 56) - 0x13];
+  if (vm->cont) {
+    goto *cont_ptrs[(*(vm->cont) >> 56) - 0x13];
+  }
+  return;
 
  eval:
   wabi_vm_reduce_eval(vm);
