@@ -14,9 +14,9 @@ typedef enum wabi_error_type_enum {
   wabi_error_out_of_range = 8,
   wabi_error_read = 9,
   wabi_error_file_not_found = 10,
-  wabi_error_other = 253,
-  wabi_error_timeout = 254,
-  wabi_error_done = 255
+  wabi_error_other = 11,
+  wabi_error_timeout = 12,
+  wabi_error_done = 13
 } wabi_error_type;
 
 

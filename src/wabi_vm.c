@@ -73,7 +73,7 @@ wabi_vm_atom_from_cstring(const wabi_vm vm, const char *cstring) {
 void
 wabi_vm_init(const wabi_vm vm, const wabi_size size)
 {
-  wabi_val atbl, stbl, emp, nil, ign, fls, trh;
+  wabi_val meta, atbl, stbl, emp, nil, ign, fls, trh;
 
   if(wabi_store_init(&(vm->stor), size)) {
     vm->ert = wabi_error_nomem;
@@ -960,27 +960,89 @@ wabi_vm_reduce(const wabi_vm vm)
 }
 
 
+/* void */
+/* wabi_vm_run(const wabi_vm vm, */
+/*             const wabi_size fuel) */
+/* { */
+/*   vm->fuel = fuel; */
+/*   vm->ert = wabi_error_none; */
+
+/*   while(vm->cont) { */
+/*     /\* printf("ctrl: "); wabi_prn(vm, vm->ctrl); *\/ */
+/*     /\* printf("cont: "); wabi_prn(vm, vm->cont); *\/ */
+/*     wabi_vm_reduce(vm); */
+/*     if (vm->ert == wabi_error_nomem) { */
+/*       wabi_vm_collect(vm); */
+/*       if (vm->ert) return; */
+/*       continue; */
+/*     } */
+/*     if(vm->fuel <= 0) { */
+/*       vm->ert = wabi_error_timeout; */
+/*       return; */
+/*     } */
+/*     if (vm->ert) */
+/*       return; */
+/*   } */
+/* } */
+
+
 void
 wabi_vm_run(const wabi_vm vm,
             const wabi_size fuel)
 {
+  static void *cont_ptrs[] = { &&eval, &&prompt, &&apply, &&call, &&sel, &&args, &&def, &&prog };
+  static void *err_ptrs[] = { &&none, &&nomem, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err  };
+
   vm->fuel = fuel;
   vm->ert = wabi_error_none;
 
-  while(vm->cont) {
-    /* printf("ctrl: "); wabi_prn(vm, vm->ctrl); */
-    /* printf("cont: "); wabi_prn(vm, vm->cont); */
-    wabi_vm_reduce(vm);
-    if (vm->ert == wabi_error_nomem) {
-      wabi_vm_collect(vm);
-      if (vm->ert) return;
-      continue;
-    }
-    if(vm->fuel <= 0) {
-      vm->ert = wabi_error_timeout;
-      return;
-    }
-    if (vm->ert)
-      return;
+ next:
+  goto *err_ptrs[vm->ert];
+
+ nomem:
+  wabi_vm_collect(vm);
+  if (vm->ert) return;
+  goto none;
+
+ err:
+  return;
+
+ none:
+  if (vm->fuel <= 0) {
+    vm->ert = wabi_error_timeout;
+    return;
   }
+  goto *cont_ptrs[(*(vm->cont) >> 56) - 0x13];
+
+ eval:
+  wabi_vm_reduce_eval(vm);
+  goto next;
+
+ apply:
+  wabi_vm_reduce_apply(vm);
+  goto next;
+
+ prompt:
+  wabi_vm_reduce_prompt(vm);
+  goto next;
+
+ args:
+  wabi_vm_reduce_args(vm);
+  goto next;
+
+ call:
+  wabi_vm_reduce_call(vm);
+  goto next;
+
+ sel:
+  wabi_vm_reduce_sel(vm);
+  goto next;
+
+ prog:
+  wabi_vm_reduce_prog(vm);
+  goto next;
+
+ def:
+  wabi_vm_reduce_def(vm);
+  goto next;
 }
