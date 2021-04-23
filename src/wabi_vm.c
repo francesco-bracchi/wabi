@@ -637,7 +637,7 @@ wabi_vm_reduce_call_derived(const wabi_vm vm)
   fst = wabi_car((wabi_pair) body);
   rst = wabi_cdr((wabi_pair) body);
 
-  envr = wabi_env_extend(vm, envr);
+  envr = wabi_env_extend(vm, WABI_ENV_INITIAL_SIZE, envr);
   if(vm->ert) return;
   wabi_vm_bind(vm, envr, cenv, penv);
   if(vm->ert) return;

@@ -89,16 +89,18 @@ wabi_env_def_check(const wabi_vm vm,
 }
 
 wabi_env
-wabi_env_extend(wabi_vm vm, wabi_env prev)
+wabi_env_extend(const wabi_vm vm,
+                const wabi_size size,
+                const wabi_env prev)
 {
   wabi_env res;
-  res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_ALLOC_SIZE);
+  res = (wabi_env) wabi_vm_alloc(vm, WABI_ENV_SIZE + WABI_ENV_PAIR_SIZE * size);
   if(vm->ert) return NULL;
 
   res->prev = (wabi_word) prev;
   res->uid = wabi_env_uid(res);
   res->numE = 0;
-  res->maxE = WABI_ENV_INITIAL_SIZE;
+  res->maxE = size;
   res->data = (wabi_word) ((wabi_word*) res + WABI_ENV_SIZE);
   WABI_SET_TAG(res, wabi_tag_env);
   wabi_env_reset(res);

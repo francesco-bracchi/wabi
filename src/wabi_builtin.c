@@ -383,7 +383,7 @@ wabi_builtin_stdenv(const wabi_vm vm)
 {
   wabi_env env;
 
-  env = wabi_env_new(vm);
+  env = wabi_env_extend(vm, 128, NULL);
   if(vm->ert) return NULL;
 
   wabi_defx(vm, env, "def", WABI_BT_DEF);
@@ -449,7 +449,7 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defn(vm, env, "hash", WABI_BT_HASH);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "l0", WABI_BT_L0);
+  wabi_defn(vm, env, "l0", WABI_BT_LANGUAGE0);
   if(vm->ert) return NULL;
 
   wabi_defn(vm, env, "collect", WABI_BT_COLLECT);
@@ -593,10 +593,10 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defn(vm, env, "plc-cas", WABI_BT_PLC_CAS);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "comb-meta", WABI_BT_CMB_META);
+  wabi_defn(vm, env, "comb-meta", WABI_BT_COMBINER_META);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "comb-meta!", WABI_BT_CMB_SET_META);
+  wabi_defn(vm, env, "comb-meta!", WABI_BT_COMBINER_SET_META);
   if(vm->ert) return NULL;
 
   return env;
@@ -1285,7 +1285,7 @@ wabi_builtin_control(const wabi_vm vm)
   ctrl = wabi_cdr((wabi_pair)ctrl);
 
   env = (wabi_env)((wabi_cont_call)vm->cont)->env;
-  env = wabi_env_extend(vm, env);
+  env = wabi_env_extend(vm, WABI_ENV_INITIAL_SIZE, env);
   if (vm->ert)
     return;
 
@@ -1597,7 +1597,7 @@ wabi_builtin_env_ext(const wabi_vm vm)
     return;
   }
 
-  res = (wabi_val) wabi_env_extend(vm, e0);
+  res = (wabi_val) wabi_env_extend(vm, WABI_ENV_INITIAL_SIZE, e0);
   if(vm->ert) return;
 
   vm->ctrl = res;
@@ -2475,227 +2475,89 @@ wabi_builtin_combiner_set_meta(const wabi_vm vm)
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
 }
 
+typedef void wabi_builtin_f_fun(const wabi_vm vm);
+
+static wabi_builtin_f_fun *wabi_builtin_bt_vector[] = {
+  wabi_builtin_eval,
+  wabi_builtin_cons,
+  wabi_builtin_car,
+  wabi_builtin_cdr,
+  wabi_builtin_def,
+  wabi_builtin_set,
+  wabi_builtin_if,
+  wabi_builtin_do,
+  wabi_builtin_pair_q,
+  wabi_builtin_num_q,
+  wabi_builtin_sym_q,
+  wabi_builtin_sym_bin,
+  wabi_builtin_atom_q,
+  wabi_builtin_bin_q,
+  wabi_builtin_plc_q,
+  wabi_builtin_map_q,
+  wabi_builtin_vec_q,
+  wabi_builtin_env_q,
+  wabi_builtin_cont_q,
+  wabi_builtin_fx_q,
+  wabi_builtin_fn_q,
+  wabi_builtin_sum,
+  wabi_builtin_mul,
+  wabi_builtin_dif,
+  wabi_builtin_div,
+  wabi_builtin_eq,
+  wabi_builtin_neq,
+  wabi_builtin_gt,
+  wabi_builtin_lt,
+  wabi_builtin_gte,
+  wabi_builtin_lte,
+  wabi_builtin_prompt,
+  wabi_builtin_control,
+  wabi_builtin_map_new,
+  wabi_builtin_assoc,
+  wabi_builtin_dissoc,
+  wabi_builtin_map_len,
+  wabi_builtin_sym,
+  wabi_builtin_atom,
+  wabi_builtin_plc,
+  wabi_builtin_plc_val,
+  wabi_builtin_plc_cas,
+  wabi_builtin_vec,
+  wabi_builtin_vec_push_left,
+  wabi_builtin_vec_push_right,
+  wabi_builtin_vec_left,
+  wabi_builtin_vec_right,
+  wabi_builtin_vec_pop_left,
+  wabi_builtin_vec_pop_right,
+  wabi_builtin_vec_len,
+  wabi_builtin_vec_concat,
+  wabi_builtin_vec_set,
+  wabi_builtin_fx,
+  wabi_builtin_fn,
+  wabi_builtin_wrap,
+  wabi_builtin_unwrap,
+  wabi_builtin_list_q,
+  wabi_builtin_not,
+  wabi_builtin_clock,
+  wabi_builtin_pr,
+  wabi_builtin_language0,
+  wabi_builtin_load,
+  wabi_builtin_len,
+  wabi_builtin_env_ext,
+  wabi_builtin_hash,
+  wabi_builtin_bin_len,
+  wabi_builtin_bin_cat,
+  wabi_builtin_bin_sub,
+  wabi_builtin_collect,
+  wabi_builtin_combiner_meta,
+  wabi_builtin_combiner_set_meta
+};
 
 void
 wabi_builtin_call(const wabi_vm vm,
                   const wabi_word func)
 {
-  switch (func) {
-  case WABI_BT_CONS:
-    wabi_builtin_cons(vm);
-    break;
-  case WABI_BT_CAR:
-    wabi_builtin_car(vm);
-    break;
-  case WABI_BT_CDR:
-    wabi_builtin_cdr(vm);
-    break;
-  case WABI_BT_DEF:
-    wabi_builtin_def(vm);
-    break;
-  case WABI_BT_SET:
-    wabi_builtin_set(vm);
-    break;
-  case WABI_BT_IF:
-    wabi_builtin_if(vm);
-    break;
-  case WABI_BT_DO:
-    wabi_builtin_do(vm);
-    break;
-  case WABI_BT_EVAL:
-    wabi_builtin_eval(vm);
-    break;
-  case WABI_BT_PAIR_Q:
-    wabi_builtin_pair_q(vm);
-    break;
-  case WABI_BT_NUM_Q:
-    wabi_builtin_num_q(vm);
-    break;
-  case WABI_BT_SYM_Q:
-    wabi_builtin_sym_q(vm);
-    break;
-  case WABI_BT_SYM_BIN:
-    wabi_builtin_sym_bin(vm);
-    break;
-  case WABI_BT_ATOM_Q:
-    wabi_builtin_atom_q(vm);
-    break;
-  case WABI_BT_BIN_Q:
-    wabi_builtin_bin_q(vm);
-    break;
-  case WABI_BT_PLC_Q:
-    wabi_builtin_plc_q(vm);
-    break;
-  case WABI_BT_MAP_Q:
-    wabi_builtin_map_q(vm);
-    break;
-  case WABI_BT_VEC_Q:
-    wabi_builtin_vec_q(vm);
-    break;
-  case WABI_BT_ENV_Q:
-    wabi_builtin_env_q(vm);
-    break;
-  case WABI_BT_CONT_Q:
-    wabi_builtin_cont_q(vm);
-    break;
-  case WABI_BT_FX_Q:
-    wabi_builtin_fx_q(vm);
-    break;
-  case WABI_BT_FN_Q:
-    wabi_builtin_fn_q(vm);
-    break;
-  case WABI_BT_SUM:
-    wabi_builtin_sum(vm);
-    break;
-  case WABI_BT_MUL:
-    wabi_builtin_mul(vm);
-    break;
-  case WABI_BT_DIF:
-    wabi_builtin_dif(vm);
-    break;
-  case WABI_BT_DIV:
-    wabi_builtin_div(vm);
-    break;
-  case WABI_BT_EQ:
-    wabi_builtin_eq(vm);
-    break;
-  case WABI_BT_NEQ:
-    wabi_builtin_neq(vm);
-    break;
-  case WABI_BT_GT:
-    wabi_builtin_gt(vm);
-    break;
-  case WABI_BT_LT:
-    wabi_builtin_lt(vm);
-    break;
-  case WABI_BT_GTE:
-    wabi_builtin_gte(vm);
-    break;
-  case WABI_BT_LTE:
-    wabi_builtin_lte(vm);
-    break;
-  case WABI_BT_PROMPT:
-    wabi_builtin_prompt(vm);
-    break;
-  case WABI_BT_CONTROL:
-    wabi_builtin_control(vm);
-    break;
-  case WABI_BT_MAP_NEW:
-    wabi_builtin_map_new(vm);
-    break;
-  case WABI_BT_ASSOC:
-    wabi_builtin_assoc(vm);
-    break;
-  case WABI_BT_DISSOC:
-    wabi_builtin_dissoc(vm);
-    break;
-  case WABI_BT_MAP_LEN:
-    wabi_builtin_map_len(vm);
-    break;
-  case WABI_BT_SYM:
-    wabi_builtin_sym(vm);
-    break;
-  case WABI_BT_ATOM:
-    wabi_builtin_atom(vm);
-    break;
-  case WABI_BT_PLC:
-    wabi_builtin_plc(vm);
-    break;
-  case WABI_BT_PLC_VAL:
-    wabi_builtin_plc_val(vm);
-    break;
-  case WABI_BT_PLC_CAS:
-    wabi_builtin_plc_cas(vm);
-    break;
-  case WABI_BT_VEC:
-    wabi_builtin_vec(vm);
-    break;
-  case WABI_BT_VEC_PUSH_LEFT:
-    wabi_builtin_vec_push_left(vm);
-    break;
-  case WABI_BT_VEC_PUSH_RIGHT:
-    wabi_builtin_vec_push_right(vm);
-    break;
-  case WABI_BT_VEC_LEFT:
-    wabi_builtin_vec_left(vm);
-    break;
-  case WABI_BT_VEC_RIGHT:
-    wabi_builtin_vec_right(vm);
-    break;
-  case WABI_BT_VEC_POP_LEFT:
-    wabi_builtin_vec_pop_left(vm);
-    break;
-  case WABI_BT_VEC_POP_RIGHT:
-    wabi_builtin_vec_pop_right(vm);
-    break;
-  case WABI_BT_VEC_LEN:
-    wabi_builtin_vec_len(vm);
-    break;
-  case WABI_BT_VEC_CONCAT:
-    wabi_builtin_vec_concat(vm);
-    break;
-  case WABI_BT_VEC_SET:
-    wabi_builtin_vec_set(vm);
-    break;
-  case WABI_BT_FX:
-    wabi_builtin_fx(vm);
-    break;
-  case WABI_BT_FN:
-    wabi_builtin_fn(vm);
-    break;
-  case WABI_BT_WRAP:
-    wabi_builtin_wrap(vm);
-    break;
-  case WABI_BT_UNWRAP:
-    wabi_builtin_unwrap(vm);
-    break;
-  case WABI_BT_LIST_Q:
-    wabi_builtin_list_q(vm);
-    break;
-  case WABI_BT_NOT:
-    wabi_builtin_not(vm);
-    break;
-  case WABI_BT_CLOCK:
-    wabi_builtin_clock(vm);
-    break;
-  case WABI_BT_PR:
-    wabi_builtin_pr(vm);
-    break;
-  case WABI_BT_L0:
-    wabi_builtin_language0(vm);
-    break;
-  case WABI_BT_LOAD:
-    wabi_builtin_load(vm);
-    break;
-  case WABI_BT_LEN:
-    wabi_builtin_len(vm);
-    break;
-  case WABI_BT_ENV_EXT:
-    wabi_builtin_env_ext(vm);
-    break;
-  case WABI_BT_HASH:
-    wabi_builtin_hash(vm);
-    break;
-  case WABI_BT_BIN_LEN:
-    wabi_builtin_bin_len(vm);
-    break;
-  case WABI_BT_BIN_CAT:
-    wabi_builtin_bin_cat(vm);
-    break;
-  case WABI_BT_BIN_SUB:
-    wabi_builtin_bin_sub(vm);
-    break;
-  case WABI_BT_COLLECT:
-    wabi_builtin_collect(vm);
-    break;
-  case WABI_BT_CMB_META:
-    wabi_builtin_combiner_meta(vm);
-    break;
-  case WABI_BT_CMB_SET_META:
-    wabi_builtin_combiner_set_meta(vm);
-    break;
-  default:
-    vm->ert = wabi_error_other;
-    break;
+  if (func <= WABI_BT_SIZE) {
+    wabi_builtin_bt_vector[func](vm);
+    return;
   }
+  vm->ert = wabi_error_other;
 }
