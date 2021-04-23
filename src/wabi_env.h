@@ -61,9 +61,9 @@ wabi_is_env(const wabi_val val) {
 void
 wabi_env_def_expand(const wabi_vm vm,
                     const wabi_env env);
+
 wabi_val
-wabi_env_lookup(const
-                wabi_env env0,
+wabi_env_lookup(const wabi_env env0,
                 const wabi_val k);
 
 void

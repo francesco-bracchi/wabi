@@ -79,7 +79,6 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
     vm->ert = wabi_error_nomem;
     return;
   }
-
   stbl = (wabi_val) wabi_map_empty(vm);
   if(vm->ert) return;
 
@@ -997,6 +996,8 @@ wabi_vm_run(const wabi_vm vm,
   vm->ert = wabi_error_none;
 
  next:
+  /* printf("ctrl: "); wabi_prn(vm, vm->ctrl); */
+  /* printf("cont: "); wabi_prn(vm, vm->cont); */
   goto *err_ptrs[vm->ert];
 
  nomem:

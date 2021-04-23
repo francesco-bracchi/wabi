@@ -5,4 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 test: src/wabivm
 	src/wabivm test.wabi
 
-.PHONY: test
+bench: src/wabivm
+	src/wabivm bench.wabi
+
+.PHONY: test bench
