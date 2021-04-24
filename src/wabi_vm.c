@@ -427,7 +427,7 @@ wabi_vm_reduce_apply_applicative(const wabi_vm vm,
 
     cont = (wabi_cont) vm->cont;
     cont = wabi_cont_pop(cont);
-    cont = wabi_cont_push_call(vm, (wabi_env) vm->nil, comb, cont);
+    cont = wabi_cont_push_call(vm, (wabi_env) env, comb, cont);
     if(vm->ert) return;
     cont = wabi_cont_push_args(vm, (wabi_env) env, rst, vm->emp, cont);
     if(vm->ert) return;
