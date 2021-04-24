@@ -10,12 +10,6 @@
 
 typedef wabi_val wabi_control;
 
-typedef struct wabi_vm_cache_item_struct {
-  wabi_val sym;
-  wabi_val env;
-  wabi_val val;
-} wabi_vm_cache_item_t;
-
 #define WABI_VM_CACHE_SIZE 8
 
 typedef struct wabi_vm_struct {
@@ -64,8 +58,6 @@ typedef struct wabi_vm_struct {
   /** Error type see `wabi_errors.h` **/
   wabi_error_type ert;
 
-  /** Env cache **/
-  wabi_vm_cache_item_t cache[WABI_VM_CACHE_SIZE];
 } wabi_vm_t;
 
 typedef wabi_vm_t* wabi_vm;

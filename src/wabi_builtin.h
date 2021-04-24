@@ -88,8 +88,6 @@ wabi_builtin_call(const wabi_vm vm,
 #define WABI_BT_BIN_CAT 66
 #define WABI_BT_BIN_SUB 67
 #define WABI_BT_COLLECT 68
-#define WABI_BT_COMBINER_META 69
-#define WABI_BT_COMBINER_SET_META 70
 
-#define WABI_BT_SIZE WABI_BT_COMBINER_SET_META
+#define WABI_BT_SIZE WABI_BT_COLLECT
 #endif

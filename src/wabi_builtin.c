@@ -593,12 +593,6 @@ wabi_builtin_stdenv(const wabi_vm vm)
   wabi_defn(vm, env, "plc-cas", WABI_BT_PLC_CAS);
   if(vm->ert) return NULL;
 
-  wabi_defn(vm, env, "comb-meta", WABI_BT_COMBINER_META);
-  if(vm->ert) return NULL;
-
-  wabi_defn(vm, env, "comb-meta!", WABI_BT_COMBINER_SET_META);
-  if(vm->ert) return NULL;
-
   return env;
 }
 
@@ -1539,7 +1533,6 @@ wabi_builtin_fx(const wabi_vm vm)
   fx->caller_env_name = (wabi_word) e;
   fx->parameters = (wabi_word) fs;
   fx->body = (wabi_word) ctrl;
-  fx->meta = (wabi_word) vm->nil;
   WABI_SET_TAG(fx, wabi_tag_oper);
   vm->ctrl = (wabi_val) fx;
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
@@ -1568,7 +1561,6 @@ wabi_builtin_fn(const wabi_vm vm)
   fn->caller_env_name = (wabi_word) vm->ign;
   fn->parameters = (wabi_word) fs;
   fn->body = (wabi_word) ctrl;
-  fn->meta = (wabi_word) vm->nil;
   WABI_SET_TAG(fn, wabi_tag_app);
   vm->ctrl = (wabi_val) fn;
   vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
@@ -2408,73 +2400,6 @@ wabi_builtin_plc_cas(const wabi_vm vm)
   vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
 }
 
-
-void
-wabi_builtin_combiner_meta(const wabi_vm vm)
-{
-  wabi_val ctrl;
-  wabi_combiner_derived comb;
-
-  ctrl = vm->ctrl;
-  if(!wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  comb = (wabi_combiner_derived) wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  if(!wabi_atom_is_empty(vm, ctrl)){
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-
-  if(wabi_atom_is_nil(vm, (wabi_val) comb)){
-    vm->ctrl = vm->nil;
-    vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
-    return;
-  }
-
-  if(! wabi_combiner_is_derived((wabi_val) comb)) {
-    vm->ert = wabi_error_type_mismatch;
-    return;
-  }
-
-  vm->ctrl = (wabi_val) wabi_combiner_derived_meta(comb);
-  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
-}
-
-
-void
-wabi_builtin_combiner_set_meta(const wabi_vm vm)
-{
-  wabi_val ctrl, meta;
-  wabi_combiner_derived comb;
-
-  ctrl = vm->ctrl;
-  if(!wabi_is_pair(ctrl)) {
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-  comb = (wabi_combiner_derived) wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-
-  if(! wabi_combiner_is_derived((wabi_val) comb)) {
-    vm->ert = wabi_error_type_mismatch;
-    return;
-  }
-
-  meta = (wabi_val) wabi_car((wabi_pair) ctrl);
-  ctrl = wabi_cdr((wabi_pair) ctrl);
-  if(!wabi_atom_is_empty(vm, ctrl)){
-    vm->ert = wabi_error_bindings;
-    return;
-  }
-
-  comb->meta = (wabi_word) meta;
-  vm->ctrl = meta;
-  vm->cont = (wabi_val) wabi_cont_pop((wabi_cont)vm->cont);
-}
-
 typedef void wabi_builtin_f_fun(const wabi_vm vm);
 
 static wabi_builtin_f_fun *wabi_builtin_bt_vector[] = {
@@ -2546,9 +2471,7 @@ static wabi_builtin_f_fun *wabi_builtin_bt_vector[] = {
   wabi_builtin_bin_len,
   wabi_builtin_bin_cat,
   wabi_builtin_bin_sub,
-  wabi_builtin_collect,
-  wabi_builtin_combiner_meta,
-  wabi_builtin_combiner_set_meta
+  wabi_builtin_collect
 };
 
 void

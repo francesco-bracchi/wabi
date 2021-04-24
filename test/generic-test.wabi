@@ -1,13 +1,12 @@
-
-(defgeneric greet (fn (x) (x :type)))
+(defgeneric greet #(it :type))
 
 (defmethod greet :human
     (h)
-  (bin-cat "hello my name is " (->> h :name)))
+  (bin-cat "hello my name is " (h :name)))
 
 (defmethod greet :animal
     (h)
-  (bin-cat (->> h :verse) " " (->> h :verse)))
+  (bin-cat (h :verse) " " (h :verse)))
 
 (test (greet {:type :human :name "jack"})
       "hello my name is jack")

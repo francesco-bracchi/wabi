@@ -1,21 +1,19 @@
+(def generic-register {})
+
 (defn generic
     (d)
-  (defn gf xs
-    (let (v (apply d xs))
-      (apply (->> comb-meta gf :generic v) xs)))
-  (comb-meta! gf {:generic {}})
+  (def fr {})
+  (defn gf xs (apply (fr (apply d xs)) xs))
+  (defn ge (dv f) (swap! fr assoc dv f))
+  (swap! generic-register assoc gf ge)
   gf)
-
 
 (defx defgeneric
     e (n d)
   (eval e
     (list def n (list generic d))))
 
-
 (defx defmethod
-    e (g d as . xs)
-  (letr ((g d f) (map (part eval e) (list g d (list* fn as xs)))
-         m (comb-meta g)
-         r (m :generic))
-      (comb-meta! g (assoc m :generic (assoc r d f)))))
+    e (g dv as . xs)
+  (eval e
+    (list (list generic-register g) dv (list* fn as xs))))

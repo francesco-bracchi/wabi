@@ -449,8 +449,14 @@
        (case (drop 2 cs))))))
 
 
-(def set!
-  (fx e (k v . kvs)
-    (let (vv (eval e v))
-      (eval e (list set k vv))
-      (if (= kvs ()) vv (eval e (cons set! kvs))))))
+(defx set!
+    e (k v . kvs)
+  (let (vv (eval e v))
+    (eval e (list set k vv))
+    (if (= kvs ()) vv (eval e (cons set! kvs)))))
+
+
+(defx swap!
+    e (k f . as)
+  (eval e
+    (list set! k (list* f k as))))

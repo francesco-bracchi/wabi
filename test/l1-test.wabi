@@ -374,14 +374,6 @@
 
 (test (sym "foo") 'foo)
 
-(defn test-comb-fn (x) (+ 1 x))
-
-(test (comb-meta :nil) :nil)
-(test (comb-meta test-comb-fn) :nil)
-(comb-meta! test-comb-fn {:doc "foo doc"})
-(test (->> comb-meta test-comb-fn :doc) "foo doc")
-
-
 (test (sym-bin 'foo) "foo")
 
 (let ()
@@ -392,3 +384,8 @@
   (defn incx (y) (set! x (+ x y)))
   (incx 13)
   (test x (+ 13 3)))
+
+(let ()
+  (def x 10)
+  (swap! x + 44)
+  (test x 54))
