@@ -17,3 +17,7 @@
     e (g dv as . xs)
   (eval e
     (list (list generic-register g) dv (list* fn as xs))))
+
+(defx delgeneric
+    e (gf)
+  (swap! generic-register dissoc gf))

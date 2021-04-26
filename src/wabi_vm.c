@@ -41,6 +41,7 @@
 #define wabi_vm_c
 
 #include <stdio.h>
+
 #include "wabi_vm.h"
 #include "wabi_store.h"
 #include "wabi_system.h"

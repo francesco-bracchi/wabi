@@ -196,6 +196,10 @@ static inline int
 wabi_cmp_derived(const wabi_combiner_derived a, const wabi_combiner_derived b)
 {
     int cmp;
+    cmp =  wabi_cmp(wabi_combiner_derived_static_env(a),
+                    wabi_combiner_derived_static_env(b));
+    if(cmp) return cmp;
+
     cmp = wabi_cmp(wabi_combiner_derived_body(a),
                    wabi_combiner_derived_body(b));
     if(cmp) return cmp;
@@ -204,12 +208,9 @@ wabi_cmp_derived(const wabi_combiner_derived a, const wabi_combiner_derived b)
                    wabi_combiner_derived_parameters(a));
     if(cmp) return cmp;
 
-    cmp = wabi_cmp(wabi_combiner_derived_caller_env_name(a),
-                   wabi_combiner_derived_caller_env_name(b));
-    if(cmp) return cmp;
+    return wabi_cmp(wabi_combiner_derived_caller_env_name(a),
+                    wabi_combiner_derived_caller_env_name(b));
 
-    return wabi_cmp(wabi_combiner_derived_static_env(a),
-                    wabi_combiner_derived_static_env(b));
 }
 
 static inline int
