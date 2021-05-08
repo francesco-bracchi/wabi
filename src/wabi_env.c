@@ -112,7 +112,7 @@ wabi_env_copy_from(const wabi_env env,
                    const wabi_env_pair old_data,
                    const wabi_word old_size)
 {
-  int j;
+  unsigned int j;
   wabi_env_pair p;
   for (j = 0; j < old_size; j++) {
     p = old_data + j;

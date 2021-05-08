@@ -306,6 +306,10 @@ wabi_reader_read_symbol(wabi_vm vm, char** c)
   char *buff, *bptr;
   wabi_val res;
   buff = malloc(1024);
+  if (!buff) {
+    vm->ert = wabi_error_other;
+    return NULL;
+  }
   bptr = buff;
   while(!wabi_reader_is_ws(**c) && (**c != ')') && (**c != '}') && (**c != '(') && (**c != '"') && (**c != ';') && (**c != ':')) {
     if(**c == '\\') (*c)++;

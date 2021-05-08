@@ -13,7 +13,7 @@ static const int wabi_fixnum_sign_offset = wabi_word_tag_offset - 1;
 
 static const wabi_word wabi_fixnum_sign_mask = 1UL << wabi_fixnum_sign_offset;
 
-static const wabi_word wabi_fixnum_max = wabi_word_value_mask;
+static const int64_t wabi_fixnum_max = (int64_t) wabi_word_value_mask;
 
 #define FIXNUM_NEG(v) ((v) & wabi_fixnum_sign_mask)
 

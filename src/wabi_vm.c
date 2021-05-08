@@ -742,7 +742,7 @@ wabi_vm_reduce_call_vector(const wabi_vm vm)
   x = WABI_CAST_INT64(key);
   s = wabi_vector_size(vec);
 
-  if(x < 0 || x >= s) {
+  if(x >= s) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val) wabi_cont_pop(cont);
     return;

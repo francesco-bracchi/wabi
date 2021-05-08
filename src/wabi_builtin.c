@@ -287,10 +287,6 @@ wabi_builtin_len(const wabi_vm vm) {
     return;
   }
   l = wabi_list_length(vm, list);
-  if(l < 0) {
-    vm->ert = wabi_error_type_mismatch;
-    return;
-  }
   r = wabi_fixnum_new(vm, l);
   if(vm->ert) return;
   vm->ctrl = (wabi_val) r;
@@ -1710,7 +1706,7 @@ wabi_builtin_bin_sub(const wabi_vm vm)
   l = WABI_CAST_INT64(len);
   l0 = wabi_binary_length(bin);
 
-  if(os < 0 || os >= l0 || l < 0 || l >= l0 - os) {
+  if(os >= l0 || l >= l0 - os) {
     vm->ert = wabi_error_out_of_range;
     return;
   }
@@ -2239,7 +2235,7 @@ wabi_builtin_vec_ref(const wabi_vm vm)
   x = WABI_CAST_INT64(n);
   s = wabi_vector_size(d);
 
-  if(x < 0 || x >= s) {
+  if(x >= s) {
     vm->ctrl = vm->nil;
     vm->cont = (wabi_val) wabi_cont_pop((wabi_cont) vm->cont);
     return;
@@ -2292,7 +2288,7 @@ wabi_builtin_vec_set(const wabi_vm vm)
     x = WABI_CAST_INT64(n);
     s = wabi_vector_size(d);
 
-    if (x < 0 || x >= s) {
+    if (x >= s) {
       vm->ctrl = vm->nil;
       vm->cont = (wabi_val)wabi_cont_pop((wabi_cont)vm->cont);
       return;

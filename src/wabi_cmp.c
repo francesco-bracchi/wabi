@@ -43,7 +43,14 @@ wabi_cmp_bin_leaves(const wabi_binary_leaf left,
     left_char++;
     right_char++;
   }
-  return *left_char == *right_char ? len_left - len_right : *left_char - *right_char;
+  // return *left_char == *right_char ? len_left - len_right : *left_char - *right_char;
+  if (*left_char > *right_char) return 1;
+  if (*left_char < *right_char) return -1;
+
+  if (len_left > len_right) return 1;
+  if (len_left < len_right) return -1;
+
+  return 0;
 }
 
 static inline int

@@ -94,7 +94,7 @@ wabi_pr_map_array(wabi_vm vm, wabi_map_array map)
 {
   wabi_map table = (wabi_map) WABI_MAP_ARRAY_TABLE(map);
   wabi_word size = WABI_MAP_ARRAY_SIZE(map);
-  for(int j = 0; j < size; j++) {
+  for(unsigned int j = 0; j < size; j++) {
     wabi_map_entry row = (wabi_map_entry)(table + j);
     wabi_pr_map_entry(vm, row);
     if(size - j - 1) {
@@ -110,7 +110,7 @@ wabi_pr_map_hash(wabi_vm vm, wabi_map_hash map)
   wabi_word bitmap = WABI_MAP_HASH_BITMAP(map);
   wabi_map table = (wabi_map) WABI_MAP_HASH_TABLE(map);
   wabi_word size = WABI_MAP_BITMAP_COUNT(bitmap);
-  for(int j = 0; j < size; j++) {
+  for(unsigned int j = 0; j < size; j++) {
     wabi_pr_map(vm, table + j);
     putchar(' ');
   }

@@ -5,7 +5,6 @@
         t (clock))
     (list (/ (- t t0) 1000) as v)))
 
-
 (defx time
     e as
   (let ((d as r) (eval e (list* bench as)))
@@ -20,4 +19,4 @@
     e as
   (let (asx (map (part eval e) as))
     (pr (list* '= as)
-        (if (apply = asx) :ok (list :err)))))
+        (if (apply = asx) :ok :err))))
