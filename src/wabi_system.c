@@ -15,7 +15,6 @@
 
 #include <stdio.h>
 
-
 static inline void
 wabi_system_error_signal(const wabi_vm vm)
 {
@@ -24,14 +23,12 @@ wabi_system_error_signal(const wabi_vm vm)
   wabi_prn(vm, vm->cont);
 }
 
-
 static inline void
 wabi_system_inc_vmc(const wabi_system sys) {
   pthread_mutex_lock(&sys->rts.vmlock);
   sys->rts.vmcnt++;
   pthread_mutex_unlock(&sys->rts.vmlock);
 }
-
 
 static inline void
 wabi_system_dec_vmc(const wabi_system sys) {
@@ -41,7 +38,6 @@ wabi_system_dec_vmc(const wabi_system sys) {
     pthread_cond_signal(&sys->rts.vmcond);
   pthread_mutex_unlock(&sys->rts.vmlock);
 }
-
 
 static inline void*
 wabi_system_consume_queue(void* args) {
@@ -80,7 +76,6 @@ wabi_system_init(const wabi_system sys)
   }
 }
 
-
 void
 wabi_system_destroy(const wabi_system sys)
 {
@@ -107,13 +102,11 @@ wabi_system_new_vm(const wabi_system sys)
   return vm;
 }
 
-
 void
 wabi_system_run(const wabi_system sys, const wabi_vm vm) {
   wabi_system_inc_vmc(sys);
   wabi_queue_enq(&sys->rts.vm_queue, vm);
 }
-
 
 void
 wabi_system_wait(const wabi_system sys)

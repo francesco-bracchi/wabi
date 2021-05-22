@@ -1643,6 +1643,10 @@ wabi_builtin_bin_cat(const wabi_vm vm)
       vm->ert = wabi_error_type_mismatch;
       return;
     }
+    if(!wabi_binary_length(bin)) {
+      bin = bin0;
+      continue;
+    }
     if(wabi_binary_length(bin0)) {
       bin = (wabi_binary) wabi_binary_node_new(vm, bin, bin0);
     }
