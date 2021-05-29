@@ -104,8 +104,7 @@ wabi_hash_cont(const wabi_hash_state state,
 {
   wabi_cont cont;
   cont = cont0;
-  wabi_hash_step(state, "O", 1);
-  while(cont) {
+  while(cont != wabi_cont_done) {
     switch(WABI_TAG(cont)) {
     case wabi_tag_cont_eval:
       wabi_hash_step(state, "E", 1);
@@ -149,6 +148,17 @@ wabi_hash_cont(const wabi_hash_state state,
   }
 }
 
+static inline void wabi_hash_meta(const wabi_hash_state state,
+                                  const wabi_meta meta0)
+{
+  wabi_meta meta;
+  meta = meta0;
+  while (meta != wabi_meta_empty) {
+    wabi_hash_val(state, wabi_meta_tag(meta));
+    wabi_hash_cont(state, wabi_meta_cont(meta));
+    meta = wabi_meta_pop(meta);
+  }
+}
 void
 wabi_hash_val(wabi_hash_state state, wabi_val val)
 {
@@ -226,18 +236,10 @@ wabi_hash_val(wabi_hash_state state, wabi_val val)
     // todo rename ct_app to _ct
   case wabi_tag_ct:
     wabi_hash_step(state, "CC", 2);
-    wabi_hash_val(state, (wabi_val) wabi_combiner_continuation_cont((wabi_combiner_continuation) val));
+    wabi_hash_cont(state, wabi_combiner_continuation_cont((wabi_combiner_continuation) val));
+    wabi_hash_meta(state, wabi_combiner_continuation_atem((wabi_combiner_continuation) val));
     return;
 
-  case wabi_tag_cont_eval:
-  case wabi_tag_cont_apply:
-  case wabi_tag_cont_call:
-  case wabi_tag_cont_sel:
-  case wabi_tag_cont_args:
-  case wabi_tag_cont_def:
-  case wabi_tag_cont_prog:
-    wabi_hash_cont(state, (wabi_cont) val);
-    return;
   case wabi_tag_place:
     wabi_hash_step(state, "R", 1);
     wabi_hash_step(state, (char*) &(((wabi_place) val)->uid), WABI_WORD_SIZE);

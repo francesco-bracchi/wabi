@@ -18,7 +18,6 @@
 void
 wabi_pr_binary(wabi_binary val);
 
-
 void
 wabi_pr_bin_leaf(wabi_binary_leaf leaf)
 {
@@ -30,14 +29,12 @@ wabi_pr_bin_leaf(wabi_binary_leaf leaf)
     putchar(*c);
 }
 
-
 void
 wabi_pr_bin_node(wabi_binary_node node)
 {
   wabi_pr_binary((wabi_binary) node->left);
   wabi_pr_binary((wabi_binary) node->right);
 }
-
 
 void wabi_pr_binary(wabi_binary val)
 {
@@ -47,7 +44,6 @@ void wabi_pr_binary(wabi_binary val)
   }
   wabi_pr_bin_node((wabi_binary_node) val);
 }
-
 
 void wabi_pr_pair(const wabi_vm vm, wabi_pair val) {
   wabi_val car, cdr;
@@ -75,7 +71,6 @@ void wabi_pr_pair(const wabi_vm vm, wabi_pair val) {
   } while(1);
 }
 
-
 void
 wabi_pr_map_entry(wabi_vm vm, wabi_map_entry entry)
 {
@@ -84,10 +79,8 @@ wabi_pr_map_entry(wabi_vm vm, wabi_map_entry entry)
   wabi_pr(vm, (wabi_val) WABI_WORD_VAL(entry->value));
 }
 
-
 void
 wabi_pr_map(wabi_vm vm, wabi_map map);
-
 
 void
 wabi_pr_map_array(wabi_vm vm, wabi_map_array map)
@@ -103,7 +96,6 @@ wabi_pr_map_array(wabi_vm vm, wabi_map_array map)
   }
 }
 
-
 void
 wabi_pr_map_hash(wabi_vm vm, wabi_map_hash map)
 {
@@ -115,7 +107,6 @@ wabi_pr_map_hash(wabi_vm vm, wabi_map_hash map)
     putchar(' ');
   }
 }
-
 
 void
 wabi_pr_map(wabi_vm vm, wabi_map map)
@@ -136,13 +127,11 @@ wabi_pr_map(wabi_vm vm, wabi_map map)
   }
 }
 
-
 void
 wabi_pr_env(const wabi_vm vm, wabi_env env)
 {
-  printf("#env[%lx]", env->uid);
+  printf("<env %lx>", env->uid);
 }
-
 
 void
 wabi_pr_applicative(wabi_vm vm, wabi_combiner_derived val)
@@ -162,7 +151,6 @@ wabi_pr_applicative(wabi_vm vm, wabi_combiner_derived val)
   }
   printf(")");
 }
-
 
 void
 wabi_pr_operative(const wabi_vm vm, wabi_combiner_derived val)
@@ -185,7 +173,6 @@ wabi_pr_operative(const wabi_vm vm, wabi_combiner_derived val)
   printf(")");
 }
 
-
 void
 wabi_pr_binary_blob(wabi_word *val)
 {
@@ -201,88 +188,14 @@ wabi_pr_binary_blob(wabi_word *val)
   }
 }
 
-
-void
-wabi_pr_cont0(const wabi_vm vm, wabi_cont val)
-{
-  switch(WABI_TAG(val)) {
-    case wabi_tag_cont_eval:
-      printf("(EVAL)");
-      break;
-    case wabi_tag_cont_apply:
-      printf("(APPLY ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_apply) val)->args);
-      printf(")");
-      break;
-    case wabi_tag_cont_call:
-      printf("(CALL ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_call) val)->combiner);
-      printf(")");
-      break;
-    case wabi_tag_cont_sel:
-      printf("(SEL ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_sel) val)->left);
-      printf(" ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_sel) val)->right);
-      printf(")");
-      break;
-    case wabi_tag_cont_args:
-      printf("(ARGS ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_args) val)->data);
-      printf(" ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_args) val)->done);
-      printf(")");
-      break;
-    case wabi_tag_cont_def:
-      printf("(DEF ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_def) val)->pattern);
-      printf(")");
-      break;
-    case wabi_tag_cont_prog:
-      printf("(PROG ");
-      wabi_pr(vm, (wabi_val) ((wabi_cont_prog) val)->expressions);
-      printf(")");
-      break;
-    default:
-      if(WABI_IS(wabi_tag_forward, val)) {
-        wabi_pr_cont0(vm, (wabi_cont) WABI_DEREF((wabi_val) val));
-        break;
-      }
-      if(wabi_atom_is_nil(vm, (wabi_val) val)) {
-        break;
-      }
-      printf("(NAC ");
-      wabi_pr(vm, (wabi_val) val);
-      printf(")");
-      break;
-    }
-}
-
-
 void
 wabi_pr_cont_combiner(const wabi_vm vm, wabi_combiner_continuation val)
 {
-  wabi_cont cont;
-  cont = (wabi_cont) WABI_WORD_VAL(val->cont);
-
-  printf("~cont");
+  printf("<cont %lx>", wabi_hash((wabi_val) val));
 }
-
-
-void
-wabi_pr_cont(const wabi_vm vm, wabi_cont val) {
-  do {
-    wabi_pr_cont0(vm, val);
-    val = (wabi_cont) WABI_WORD_VAL(val->next);
-    if(val) printf(" ");
-  } while(val != NULL);
-}
-
-
 
 static void
 wabi_pr_vector(const wabi_vm vm, wabi_vector d, wabi_size lvl);
-
 
 static inline void
 wabi_pr_vector_digit(const wabi_vm vm, wabi_vector_digit d, wabi_size lvl)
@@ -325,7 +238,6 @@ wabi_pr_vector_deep(const wabi_vm vm, wabi_vector_deep d, wabi_size lvl)
   putchar(' ');
   wabi_pr_vector_digit(vm, r, lvl);
 }
-
 
 static void
 wabi_pr_vector(const wabi_vm vm, wabi_vector d, wabi_size lvl)
@@ -394,18 +306,6 @@ wabi_pr(const wabi_vm vm, wabi_val val) {
   case wabi_tag_bt_oper:
     printf("~B(%lu)", WABI_WORD_VAL(((wabi_combiner_builtin) val)->bid));
     break;
-  case wabi_tag_cont_eval:
-  case wabi_tag_cont_apply:
-  case wabi_tag_cont_call:
-  case wabi_tag_cont_sel:
-  case wabi_tag_cont_args:
-  case wabi_tag_cont_def:
-  case wabi_tag_cont_prog:
-    printf("<");
-    wabi_pr_cont(vm, (wabi_cont) val);
-    printf(">");
-    break;
-
   case wabi_tag_env:
     wabi_pr_env(vm, (wabi_env) val);
     break;
@@ -427,10 +327,9 @@ wabi_pr(const wabi_vm vm, wabi_val val) {
     printf("]");
     break;
   default:
-    printf("unknown %lx", WABI_TAG(val));
+    printf("<UNKWNOWN %lx>", WABI_TAG(val));
   }
 }
-
 
 void
   wabi_prn(const wabi_vm vm, wabi_val val)
