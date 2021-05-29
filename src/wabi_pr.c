@@ -270,15 +270,7 @@ wabi_pr_cont_combiner(const wabi_vm vm, wabi_combiner_continuation val)
   wabi_cont cont;
   cont = (wabi_cont) WABI_WORD_VAL(val->cont);
 
-  printf("~cont(");
-
-  do {
-    wabi_pr_cont0(vm, cont);
-    cont = (wabi_cont) wabi_cont_pop(cont);
-    if(cont) printf(" ");
-  } while(cont);
-
-  printf(")");
+  printf("~cont");
 }
 
 

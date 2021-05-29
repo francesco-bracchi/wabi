@@ -109,6 +109,7 @@ wabi_vm_init(const wabi_vm vm, const wabi_size size)
   vm->env = NULL;
   vm->cont = (wabi_val) wabi_cont_done;
   vm->prmt = (wabi_val) wabi_cont_done;
+  vm->meta = (wabi_val) wabi_meta_empty;
   vm->emp = emp;
   vm->nil = nil;
   vm->ign = ign;
@@ -584,7 +585,8 @@ wabi_vm_reduce_call_continuation(const wabi_vm vm)
   wabi_cont cont, cont0;
   wabi_meta meta, etam;
   wabi_val ctrl,fst;
-
+  int j;
+  j = 0;
   call = (wabi_cont_call) vm->cont;
   comb = (wabi_combiner_continuation) call->combiner;
 
@@ -596,7 +598,6 @@ wabi_vm_reduce_call_continuation(const wabi_vm vm)
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-
   fst = wabi_car((wabi_pair) ctrl);
   ctrl = wabi_cdr((wabi_pair) ctrl);
   if(!wabi_atom_is_empty(vm, ctrl)) {
@@ -605,9 +606,10 @@ wabi_vm_reduce_call_continuation(const wabi_vm vm)
   }
 
   cont0 = (wabi_cont) call;
-  cont0 = wabi_cont_pop(cont);
+  cont0 = wabi_cont_pop(cont0);
 
   meta = (wabi_meta) vm->meta;
+
   if (cont0 != wabi_cont_done) {
     meta = wabi_meta_push(vm, meta, (wabi_val)NULL, cont0);
     if(vm->ert) return;
@@ -967,7 +969,14 @@ wabi_vm_run(const wabi_vm vm,
 
  next:
   /* printf("ctrl: "); wabi_prn(vm, vm->ctrl); */
-  /* printf("cont: "); wabi_prn(vm, vm->cont); */
+  /* printf("cont: "); */
+  /* if (vm->cont) { */
+  /*   wabi_prn(vm, vm->cont); */
+  /* } else { */
+  /*   printf("DONE\n"); */
+  /* } */
+  /* printf("\n"); */
+
   goto *err_ptrs[vm->ert];
 
  nomem:
@@ -985,6 +994,11 @@ wabi_vm_run(const wabi_vm vm,
   }
   if (vm->cont) {
     goto *cont_ptrs[(*(vm->cont) >> 56) - 0x13];
+  }
+  if (vm->meta) {
+    vm->cont = (wabi_val) wabi_meta_cont((wabi_meta) vm->meta);
+    vm->meta = (wabi_val) wabi_meta_pop((wabi_meta) vm->meta);
+    goto next;
   }
   return;
 

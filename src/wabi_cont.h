@@ -237,8 +237,4 @@ wabi_cont_pop(wabi_cont cont)
   return (wabi_cont) WABI_WORD_VAL(cont->next);
 }
 
-void
-wabi_cont_concat_cont(const wabi_vm vm,
-                      const wabi_cont cont);
-
 #endif

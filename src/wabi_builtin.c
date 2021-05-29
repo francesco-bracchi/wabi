@@ -1218,7 +1218,7 @@ wabi_builtin_prompt(const wabi_vm vm)
   env = (wabi_env)((wabi_cont_call)vm->cont)->env;
   meta = (wabi_meta) vm->meta;
   cont = (wabi_cont) vm->cont;
-
+  cont = wabi_cont_pop(cont);
   meta = wabi_meta_push(vm, meta, tag, cont);
   if(vm->ert) return;
 
@@ -1294,12 +1294,14 @@ wabi_builtin_control(const wabi_vm vm)
     if(wabi_eq(tag, wabi_meta_tag(meta))) break;
 
     if (is_symbol) {
-      etam = wabi_meta_push(vm, etam, wabi_meta_tag(meta), wabi_meta_cont(meta));xo
+      etam = wabi_meta_push(vm, etam, wabi_meta_tag(meta), wabi_meta_cont(meta));
       if (vm->ert) return;
     }
     meta = wabi_meta_pop(meta);
   }
   if (is_symbol) {
+    cont = (wabi_cont) vm->cont;
+    cont = wabi_cont_pop(cont);
     kval = wabi_combiner_continuation_new(vm, cont, etam);
     wabi_env_def(vm, env, kname, (wabi_val) kval);
     if (vm->ert) return;
