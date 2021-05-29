@@ -1195,7 +1195,8 @@ wabi_builtin_prompt(const wabi_vm vm)
 {
   wabi_env env;
   wabi_val fst, ctrl, tag;
-  wabi_cont cont, prmt;
+  wabi_cont cont;
+  wabi_meta meta;
 
   ctrl = vm->ctrl;
 
@@ -1215,24 +1216,24 @@ wabi_builtin_prompt(const wabi_vm vm)
   fst = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
   env = (wabi_env)((wabi_cont_call)vm->cont)->env;
+  meta = (wabi_meta) vm->meta;
+  cont = (wabi_cont) vm->cont;
 
-  cont = wabi_cont_pop((wabi_cont)vm->cont);
-  prmt = cont =
-      wabi_cont_push_prompt(vm, tag, (wabi_cont_prompt)vm->prmt, cont);
-  if (vm->ert)
-    return;
+  meta = wabi_meta_push(vm, meta, tag, cont);
+  if(vm->ert) return;
+
+  cont = wabi_cont_done;
   if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
-    if (vm->ert)
-      return;
+    if(vm->ert) return;
   }
   cont = wabi_cont_push_eval(vm, cont);
-  if (vm->ert)
-    return;
+  if(vm->ert) return;
 
   vm->ctrl = fst;
-  vm->cont = (wabi_val)cont;
-  vm->prmt = (wabi_val)prmt;
+  vm->env = (wabi_val) env;
+  vm->cont = (wabi_val) cont;
+  vm->meta = (wabi_val) meta;
 }
 
 static inline void
@@ -1243,6 +1244,8 @@ wabi_builtin_control(const wabi_vm vm)
   wabi_cont_prompt prompt;
   wabi_cont cont;
   wabi_combiner kval;
+  wabi_meta meta, etam;
+  int is_symbol;
 
   ctrl = vm->ctrl;
   if (!wabi_is_pair(ctrl)) {
@@ -1261,11 +1264,11 @@ wabi_builtin_control(const wabi_vm vm)
   kname = wabi_car((wabi_pair)ctrl);
   ctrl = wabi_cdr((wabi_pair)ctrl);
 
-  if (!wabi_is_symbol(kname) && !wabi_atom_is_ignore(vm, kname)) {
+  is_symbol= wabi_is_symbol(kname);
+  if (!is_symbol && !wabi_atom_is_ignore(vm, kname)) {
     vm->ert = wabi_error_type_mismatch;
     return;
   }
-
   if (!wabi_is_pair(ctrl)) {
     vm->ert = wabi_error_type_mismatch;
     return;
@@ -1279,29 +1282,31 @@ wabi_builtin_control(const wabi_vm vm)
   if (vm->ert)
     return;
 
-  cont = wabi_cont_pop((wabi_cont)vm->cont);
-  prompt = (wabi_cont_prompt)vm->prmt;
-
-  kval = wabi_combiner_continuation_new(vm, cont);
-  if (vm->ert)
-    return;
+  meta = (wabi_meta) vm->meta;
+  etam = wabi_meta_empty;
 
   for (;;) {
-    if (!prompt) {
+    if (meta == wabi_meta_empty) {
       vm->ert = wabi_error_no_prompt;
       return;
     }
 
-    if (wabi_eq(tag, (wabi_val)wabi_cont_prompt_tag(prompt)))
-      break;
+    if(wabi_eq(tag, wabi_meta_tag(meta))) break;
 
-    prompt = wabi_cont_prompt_next_prompt(prompt);
+    if (is_symbol) {
+      etam = wabi_meta_push(vm, etam, wabi_meta_tag(meta), wabi_meta_cont(meta));xo
+      if (vm->ert) return;
+    }
+    meta = wabi_meta_pop(meta);
   }
-  wabi_env_def(vm, env, kname, (wabi_val)kval);
-  if (vm->ert)
-    return;
+  if (is_symbol) {
+    kval = wabi_combiner_continuation_new(vm, cont, etam);
+    wabi_env_def(vm, env, kname, (wabi_val) kval);
+    if (vm->ert) return;
+  }
 
-  cont = wabi_cont_pop((wabi_cont)prompt);
+  cont = wabi_meta_cont(meta);
+  meta = wabi_meta_pop(meta);
 
   if (wabi_is_pair(ctrl)) {
     cont = wabi_cont_push_prog(vm, env, ctrl, cont);
@@ -1315,9 +1320,7 @@ wabi_builtin_control(const wabi_vm vm)
   vm->ctrl = fst;
   vm->env = (wabi_val)env;
   vm->cont = (wabi_val)cont;
-  vm->prmt = (wabi_val)wabi_cont_prompt_next_prompt(prompt);
-
-  *((wabi_val) prompt) = 0L;
+  vm->meta = (wabi_val)meta;
 }
 
 static inline void

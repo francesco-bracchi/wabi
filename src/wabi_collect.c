@@ -11,7 +11,7 @@
 #include "wabi_combiner.h"
 #include "wabi_place.h"
 #include "wabi_vector.h"
-
+#include "wabi_meta.h"
 
 static inline void
 wabi_copy_val_size(const wabi_vm vm, const wabi_val obj, const wabi_size size)
@@ -59,7 +59,6 @@ wabi_collect_binary_copy_val(const wabi_vm vm, const wabi_binary src)
   WABI_SET_TAG(new_leaf, wabi_tag_bin_leaf);
   wabi_collect_binary_memcopy((char*)(new_blob + 1), (wabi_binary) src);
 }
-
 
 static inline void
 wabi_collect_env_copy_val(const wabi_vm vm,
@@ -130,6 +129,10 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
   case wabi_tag_map_entry:
   case wabi_tag_map_hash:
     wabi_copy_val_size(vm, src, WABI_MAP_SIZE);
+    break;
+
+  case wabi_tag_meta:
+    wabi_copy_val_size(vm, src, WABI_META_SIZE);
     break;
 
   case wabi_tag_env:
@@ -289,12 +292,6 @@ wabi_collect_map_hash(wabi_vm vm, wabi_map_hash map)
 }
 
 static inline void
-wabi_collect_combiner_bt(const wabi_vm vm, const wabi_combiner_builtin c)
-{
-  vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
-}
-
-static inline void
 wabi_collect_env(wabi_vm vm, wabi_env env)
 {
   wabi_env_pair old_data, p0;
@@ -335,6 +332,22 @@ wabi_collect_prompt(const wabi_vm vm, const wabi_cont_prompt cont)
   }
   WABI_SET_TAG(cont, wabi_tag_cont_prompt);
   vm->stor.scan+=WABI_CONT_PROMPT_SIZE;
+}
+
+static inline void
+wabi_collect_meta(const wabi_vm vm, const wabi_meta meta)
+{
+  if(meta->tag) {
+    meta->tag = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(meta->tag));
+  }
+  if(meta->next != (wabi_word) wabi_meta_empty) {
+    meta->next = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(meta->next));
+  }
+  if(meta->cont != (wabi_word) wabi_cont_done) {
+    meta->cont = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(meta->cont));
+  }
+  WABI_SET_TAG(meta, wabi_tag_meta);
+  vm->stor.scan+=WABI_META_SIZE;
 }
 
 
@@ -418,7 +431,7 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
 
   case wabi_tag_bt_app:
   case wabi_tag_bt_oper:
-    wabi_collect_combiner_bt(vm, (wabi_combiner_builtin) val);
+    vm->stor.scan += WABI_COMBINER_BUILTIN_SIZE;
     break;
 
   case wabi_tag_ct:
@@ -427,6 +440,10 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
 
   case wabi_tag_env:
     wabi_collect_env(vm, (wabi_env) val);
+    break;
+
+  case wabi_tag_meta:
+    wabi_collect_meta(vm, (wabi_meta) val);
     break;
 
   case wabi_tag_cont_prompt:

@@ -10,6 +10,7 @@
 #include "wabi_builtin.h"
 #include "wabi_symbol.h"
 #include "wabi_atom.h"
+#include "wabi_meta.h"
 #include "wabi_error.h"
 
 
@@ -39,12 +40,13 @@ wabi_application_builtin_new(const wabi_vm vm,
 }
 
 wabi_combiner
-wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont)
+wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont, const wabi_meta atem)
 {
   wabi_combiner_continuation res;
   res = (wabi_combiner_continuation) wabi_vm_alloc(vm, WABI_COMBINER_CONTINUATION_SIZE);
   if(vm->ert) return NULL;
   res->cont = (wabi_word) cont;
+  res->atem = (wabi_word) atem;
   WABI_SET_TAG(res, wabi_tag_ct);
   return (wabi_combiner) res;
 }

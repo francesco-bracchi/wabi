@@ -1,10 +1,8 @@
 (defn nat
     (v)
-  (rec nat
-      (j 0)
+  (rec nat (j 0)
     (v j)
     (nat (inc j))))
-
 
 (defn foo
     (f)
@@ -12,7 +10,6 @@
   (f 4 5 6)
   (f 7 8 9)
   :nil)
-
 
 (defn bar
     (f)
@@ -35,7 +32,6 @@
     (v j)
     (fib j (+ i j))))
 
-
 (test (-> nat
           (s/reject #(<= it 100))
           (s/map inc)
@@ -50,9 +46,7 @@
 
 (test (s/list foo) '(1 2 3 4 5 6 7 8 9))
 
-
 (test (-> bar s/dedup s/list) (list 10 2 10 4 5 4))
-
 
 (test (-> nat (s/take 10) (s/every 3) (s/map +) (s/list)) '(3 12 21))
 

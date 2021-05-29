@@ -44,7 +44,8 @@ typedef enum wabi_tag_enum {
   wabi_tag_ct             = 0x1B00000000000000,
 
   wabi_tag_vector_digit   = 0x1D00000000000000,
-  wabi_tag_vector_deep    = 0x1E00000000000000
+  wabi_tag_vector_deep    = 0x1E00000000000000,
+  wabi_tag_meta           = 0x1F00000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;

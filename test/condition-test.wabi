@@ -27,7 +27,6 @@
         :ex-bar (k) (k 42))
       '(1001 42 12))
 
-
 (let ()
   (defn div
       (n . ds)

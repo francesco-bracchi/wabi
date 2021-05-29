@@ -22,7 +22,10 @@ typedef struct wabi_vm_struct {
   /** Continuation register it's similar to the stack. Can comprise different action types **/
   wabi_val        cont;
 
-  /** Another register that references the latest prompt, used to accelerate the `control` operator **/
+  /** Meta Continuation: a stack of continuations **/
+  wabi_val        meta;
+
+  /** Deprecated **/
   wabi_val        prmt;
 
   /** Symbol table: used to avoid repetitions in symbols **/

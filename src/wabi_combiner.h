@@ -17,6 +17,7 @@
 #include "wabi_cont.h"
 #include "wabi_vm.h"
 #include "wabi_env.h"
+#include "wabi_meta.h"
 #include "wabi_error.h"
 
 typedef void (*wabi_builtin_fun)(wabi_vm);
@@ -38,6 +39,7 @@ typedef wabi_combiner_builtin_t* wabi_combiner_builtin;
 
 typedef struct wabi_combiner_continuation_struct {
   wabi_word cont;
+  wabi_word atem;
 } wabi_combiner_continuation_t;
 
 typedef wabi_combiner_continuation_t* wabi_combiner_continuation;
@@ -128,7 +130,9 @@ wabi_combiner_is_derived(const wabi_val combiner)
 }
 
 wabi_combiner
-wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
+wabi_combiner_continuation_new(const wabi_vm vm,
+                               const wabi_cont cont,
+                               const wabi_meta meta);
 
 static inline wabi_cont
 wabi_combiner_continuation_cont(const wabi_combiner_continuation cont)
@@ -136,7 +140,15 @@ wabi_combiner_continuation_cont(const wabi_combiner_continuation cont)
   return (wabi_cont) WABI_WORD_VAL(cont->cont);
 }
 
+static inline wabi_meta
+wabi_combiner_continuation_atem(const wabi_combiner_continuation cont)
+{
+  return (wabi_meta) cont->atem;
+}
+
 wabi_combiner
-wabi_combiner_continuation_new(const wabi_vm vm, const wabi_cont cont);
+wabi_combiner_continuation_new(const wabi_vm vm,
+                               const wabi_cont cont,
+                               const wabi_meta meta);
 
 #endif

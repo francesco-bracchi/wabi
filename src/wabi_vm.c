@@ -581,9 +581,47 @@ wabi_vm_reduce_call_continuation(const wabi_vm vm)
   wabi_cont_call call;
   wabi_combiner_continuation comb;
 
+  wabi_cont cont, cont0;
+  wabi_meta meta, etam;
+  wabi_val ctrl,fst;
+
   call = (wabi_cont_call) vm->cont;
   comb = (wabi_combiner_continuation) call->combiner;
-  wabi_cont_concat_cont(vm, wabi_combiner_continuation_cont(comb));
+
+  cont = wabi_combiner_continuation_cont(comb);
+  etam = wabi_combiner_continuation_atem(comb);
+
+  ctrl = vm->ctrl;
+  if(! wabi_is_pair(ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+
+  fst = wabi_car((wabi_pair) ctrl);
+  ctrl = wabi_cdr((wabi_pair) ctrl);
+  if(!wabi_atom_is_empty(vm, ctrl)) {
+    vm->ert = wabi_error_type_mismatch;
+    return;
+  }
+
+  cont0 = (wabi_cont) call;
+  cont0 = wabi_cont_pop(cont);
+
+  meta = (wabi_meta) vm->meta;
+  if (cont0 != wabi_cont_done) {
+    meta = wabi_meta_push(vm, meta, (wabi_val)NULL, cont0);
+    if(vm->ert) return;
+  }
+  while(etam != wabi_meta_empty) {
+    meta = wabi_meta_push(vm, meta, wabi_meta_tag(etam), wabi_meta_cont(etam));
+    if(vm->ert) return;
+    etam = wabi_meta_pop(etam);
+  }
+  vm->cont = (wabi_val) cont;
+  vm->meta = (wabi_val) meta;
+  vm->ctrl = fst;
+  vm->env = vm->nil;
+  // wabi_cont_concat_cont(vm, wabi_combiner_continuation_cont(comb));
 }
 
 
