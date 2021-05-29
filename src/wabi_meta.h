@@ -35,7 +35,7 @@ wabi_meta_push(const wabi_vm vm,
   meta->next = (wabi_word) next;
   meta->cont = (wabi_word) cont;
   meta->tag = (wabi_word) tag;
-  WABI_SET_TAG(meta, wabi_tag_cont_prompt);
+  WABI_SET_TAG(meta, wabi_tag_meta);
   return meta;
 
 }

@@ -110,10 +110,6 @@ wabi_hash_cont(const wabi_hash_state state,
     case wabi_tag_cont_eval:
       wabi_hash_step(state, "E", 1);
       break;
-    case wabi_tag_cont_prompt:
-      wabi_hash_step(state, "P", 1);
-      wabi_hash_val(state, (wabi_val) ((wabi_cont_prompt) cont)->tag);
-      break;
     case wabi_tag_cont_apply:
       wabi_hash_step(state, "A", 1);
       wabi_hash_val(state, (wabi_val) ((wabi_cont_apply) cont)->env);

@@ -138,6 +138,8 @@ wabi_vm_collect(const wabi_vm vm)
   if(vm->ert) return;
   if(vm->cont) vm->cont = wabi_copy_val(vm, vm->cont);
   if(vm->ert) return;
+  if(vm->meta) vm->meta = wabi_copy_val(vm, vm->meta);
+  if(vm->ert) return;
   if(vm->prmt) vm->prmt = wabi_copy_val(vm, vm->prmt);
   if(vm->ert) return;
   if(vm->stbl) vm->stbl = wabi_copy_val(vm, vm->stbl);
@@ -343,33 +345,6 @@ wabi_vm_reduce_eval(const wabi_vm vm)
     break;
   }
 }
-
-
-/* ctrl: c */
-/* envr: e */
-/* cont: ((prompt p) . s) */
-/* prmt: p0 */
-/* -------------------------------------- */
-/* ctrl: c */
-/* envr: e */
-/* cont: s */
-/* prmt: p */
-static inline void
-wabi_vm_reduce_prompt(const wabi_vm vm)
-{
-  wabi_cont cont;
-  wabi_cont_prompt prmt;
-
-  cont = (wabi_cont) vm->cont;
-  prmt = (wabi_cont_prompt) vm->prmt;
-
-  cont = wabi_cont_pop(cont);
-  prmt = wabi_cont_prompt_next_prompt(prmt);
-
-  vm->cont = (wabi_val) cont;
-  vm->prmt = (wabi_val) prmt;
-}
-
 
 /* ctrl: c when (oper? c) */
 /* envr: e */
@@ -961,7 +936,7 @@ void
 wabi_vm_run(const wabi_vm vm,
             const wabi_size fuel)
 {
-  static void *cont_ptrs[] = { &&eval, &&prompt, &&apply, &&call, &&sel, &&args, &&def, &&prog };
+  static void *cont_ptrs[] = { &&eval, &&apply, &&call, &&sel, &&args, &&def, &&prog };
   static void *err_ptrs[] = { &&none, &&nomem, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err, &&err  };
 
   vm->fuel = fuel;
@@ -1008,10 +983,6 @@ wabi_vm_run(const wabi_vm vm,
 
  apply:
   wabi_vm_reduce_apply(vm);
-  goto next;
-
- prompt:
-  wabi_vm_reduce_prompt(vm);
   goto next;
 
  args:

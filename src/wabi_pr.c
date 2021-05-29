@@ -209,11 +209,6 @@ wabi_pr_cont0(const wabi_vm vm, wabi_cont val)
     case wabi_tag_cont_eval:
       printf("(EVAL)");
       break;
-    case wabi_tag_cont_prompt:
-      printf("(PROMPT ");
-      wabi_pr(vm, (wabi_val) wabi_cont_prompt_tag((wabi_cont_prompt) val));
-      printf(")");
-      break;
     case wabi_tag_cont_apply:
       printf("(APPLY ");
       wabi_pr(vm, (wabi_val) ((wabi_cont_apply) val)->args);
@@ -406,7 +401,6 @@ wabi_pr(const wabi_vm vm, wabi_val val) {
   case wabi_tag_cont_args:
   case wabi_tag_cont_def:
   case wabi_tag_cont_prog:
-  case wabi_tag_cont_prompt:
     printf("<");
     wabi_pr_cont(vm, (wabi_cont) val);
     printf(">");

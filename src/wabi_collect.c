@@ -163,10 +163,6 @@ wabi_copy_val(wabi_vm vm, wabi_val src)
     wabi_copy_val_size(vm, src, WABI_CONT_ARGS_SIZE);
     break;
 
-  case wabi_tag_cont_prompt:
-    wabi_copy_val_size(vm, src, WABI_CONT_PROMPT_SIZE);
-    break;
-
   case wabi_tag_cont_sel:
     wabi_copy_val_size(vm, src, WABI_CONT_SEL_SIZE);
     break;
@@ -321,20 +317,6 @@ wabi_collect_env(wabi_vm vm, wabi_env env)
 }
 
 static inline void
-wabi_collect_prompt(const wabi_vm vm, const wabi_cont_prompt cont)
-{
-  cont->tag = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->tag));
-  if(cont->next != (wabi_word) wabi_cont_done) {
-    cont->next = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next));
-  }
-  if(cont->next_prompt != (wabi_word) wabi_cont_done) {
-    cont->next_prompt = (wabi_word) wabi_copy_val(vm, (wabi_val) WABI_WORD_VAL(cont->next_prompt));
-  }
-  WABI_SET_TAG(cont, wabi_tag_cont_prompt);
-  vm->stor.scan+=WABI_CONT_PROMPT_SIZE;
-}
-
-static inline void
 wabi_collect_meta(const wabi_vm vm, const wabi_meta meta)
 {
   if(meta->tag) {
@@ -444,10 +426,6 @@ wabi_collect_val(wabi_vm vm, wabi_val val)
 
   case wabi_tag_meta:
     wabi_collect_meta(vm, (wabi_meta) val);
-    break;
-
-  case wabi_tag_cont_prompt:
-    wabi_collect_prompt(vm, (wabi_cont_prompt) val);
     break;
 
   case wabi_tag_cont_eval:

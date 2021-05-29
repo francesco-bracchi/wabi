@@ -1241,7 +1241,6 @@ wabi_builtin_control(const wabi_vm vm)
 {
   wabi_env env;
   wabi_val kname, ctrl, tag, fst;
-  wabi_cont_prompt prompt;
   wabi_cont cont;
   wabi_combiner kval;
   wabi_meta meta, etam;

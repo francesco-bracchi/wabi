@@ -15,8 +15,6 @@ wabi_cont_size(const wabi_cont cont)
   switch(WABI_TAG(cont)) {
   case wabi_tag_cont_eval:
     return WABI_CONT_EVAL_SIZE;
-  case wabi_tag_cont_prompt:
-    return WABI_CONT_PROMPT_SIZE;
   case wabi_tag_cont_apply:
     return WABI_CONT_APPLY_SIZE;
   case wabi_tag_cont_call:

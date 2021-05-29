@@ -16,14 +16,6 @@ typedef struct wabi_cont_eval_struct {
 
 typedef wabi_cont_eval_t* wabi_cont_eval;
 
-typedef struct wabi_cont_prompt_struct {
-  wabi_word next;
-  wabi_word tag;
-  wabi_word next_prompt;
-} wabi_cont_prompt_t;
-
-typedef wabi_cont_prompt_t* wabi_cont_prompt;
-
 typedef struct wabi_cont_apply_struct {
   wabi_word next;
   wabi_word env;
@@ -90,7 +82,6 @@ typedef wabi_cont_t* wabi_cont;
 static const wabi_cont wabi_cont_done = NULL;
 
 #define WABI_CONT_EVAL_SIZE wabi_sizeof(wabi_cont_eval_t)
-#define WABI_CONT_PROMPT_SIZE 10// wabi_sizeof(wabi_cont_prompt_t)
 #define WABI_CONT_APPLY_SIZE wabi_sizeof(wabi_cont_apply_t)
 #define WABI_CONT_CALL_SIZE wabi_sizeof(wabi_cont_call_t)
 #define WABI_CONT_SEL_SIZE wabi_sizeof(wabi_cont_sel_t)
@@ -109,33 +100,6 @@ wabi_cont_push_eval(wabi_vm vm, wabi_cont next)
   cont->next = (wabi_word) next;
   WABI_SET_TAG(cont, wabi_tag_cont_eval);
   return (wabi_cont) cont;
-}
-
-static inline wabi_cont
-wabi_cont_push_prompt(wabi_vm vm, wabi_val tag, wabi_cont_prompt next_prompt, wabi_cont next)
-{
-  wabi_cont_prompt cont;
-
-  cont = (wabi_cont_prompt) wabi_vm_alloc(vm, WABI_CONT_PROMPT_SIZE);
-  if(vm->ert) return NULL;
-
-  cont->next = (wabi_word) next;
-  cont->tag = (wabi_word) tag;
-  cont->next_prompt = (wabi_word) next_prompt;
-  WABI_SET_TAG(cont, wabi_tag_cont_prompt);
-  return (wabi_cont) cont;
-}
-
-static inline wabi_cont_prompt
-wabi_cont_prompt_next_prompt(wabi_cont_prompt prompt)
-{
-  return (wabi_cont_prompt) prompt->next_prompt;
-}
-
-static inline wabi_tag
-wabi_cont_prompt_tag(wabi_cont_prompt prompt)
-{
-  return (wabi_tag) prompt->tag;
 }
 
 static inline wabi_cont

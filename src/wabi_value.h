@@ -33,19 +33,18 @@ typedef enum wabi_tag_enum {
   wabi_tag_tagged         = 0x1200000000000000,
 
   wabi_tag_cont_eval      = 0x1300000000000000,
-  wabi_tag_cont_prompt    = 0x1400000000000000,
-  wabi_tag_cont_apply     = 0x1500000000000000,
-  wabi_tag_cont_call      = 0x1600000000000000,
-  wabi_tag_cont_sel       = 0x1700000000000000,
-  wabi_tag_cont_args      = 0x1800000000000000,
-  wabi_tag_cont_def       = 0x1900000000000000,
-  wabi_tag_cont_prog      = 0x1A00000000000000,
+  wabi_tag_cont_apply     = 0x1400000000000000,
+  wabi_tag_cont_call      = 0x1500000000000000,
+  wabi_tag_cont_sel       = 0x1600000000000000,
+  wabi_tag_cont_args      = 0x1700000000000000,
+  wabi_tag_cont_def       = 0x1800000000000000,
+  wabi_tag_cont_prog      = 0x1900000000000000,
 
-  wabi_tag_ct             = 0x1B00000000000000,
+  wabi_tag_ct             = 0x1A00000000000000,
 
-  wabi_tag_vector_digit   = 0x1D00000000000000,
-  wabi_tag_vector_deep    = 0x1E00000000000000,
-  wabi_tag_meta           = 0x1F00000000000000
+  wabi_tag_vector_digit   = 0x1B00000000000000,
+  wabi_tag_vector_deep    = 0x1C00000000000000,
+  wabi_tag_meta           = 0x1D00000000000000
 } wabi_tag;
 
 typedef wabi_word* wabi_val;
@@ -119,8 +118,6 @@ wabi_tag_to_string(wabi_word* w)
     return "ragged";
   case wabi_tag_cont_eval:
     return "cont_eval";
-  case wabi_tag_cont_prompt:
-    return "cont_prompt";
   case wabi_tag_cont_apply:
     return "cont_apply";
   case wabi_tag_cont_call:
