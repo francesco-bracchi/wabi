@@ -1230,6 +1230,9 @@ wabi_builtin_prompt(const wabi_vm vm)
   cont = wabi_cont_push_eval(vm, cont);
   if(vm->ert) return;
 
+  env = wabi_env_extend(vm, WABI_ENV_INITIAL_SIZE, env);
+  if(vm->ert) return;
+
   vm->ctrl = fst;
   vm->env = (wabi_val) env;
   vm->cont = (wabi_val) cont;
