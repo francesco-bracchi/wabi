@@ -124,7 +124,7 @@
       (1 font-lock-keyword-face)
       (2 font-lock-function-name-face))
 
-     ("(\\(f/let\\)[ \r\n\t]*" (1 font-lock-keyword-face))
+     ("(\\(fluid\\)[ \r\n\t]*" (1 font-lock-keyword-face))
 
      (,wabi-builtin-regexp
       (1 font-lock-builtin-face))
@@ -139,7 +139,7 @@
 
 (defun wabi-indent ()
   (put 'let 'lisp-indent-function 'defun)
-  (put 'f/let 'lisp-indent-function 1)
+  (put 'fluid 'lisp-indent-function 1)
   (put 'letr 'lisp-indent-function 'defun)
   (put 'rec 'lisp-indent-function 2)
   (put 'def 'lisp-indent-function 1)

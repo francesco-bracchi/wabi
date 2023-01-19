@@ -1,4 +1,4 @@
-(defn f/new
+(defn var
     ()
   (defn me
       xs
@@ -19,7 +19,7 @@
        (/= () (cdr xs))))
 
 
-(defx f/let
+(defx fluid
     e (bs . xs)
   (rec outer (bs bs)
     (if

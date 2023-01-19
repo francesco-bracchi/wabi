@@ -1,20 +1,20 @@
 
-(test (prompt amb (amb)) :amb/fail)
+(test (ambiguously (amb)) :amb-fail)
 
-(test (prompt amb (amb 1)) 1)
+(test (ambiguously (amb 1)) 1)
 
-(test (prompt amb (amb 1 2)) 1)
+(test (ambiguously (amb 1 2)) 1)
 
-(test (prompt amb
+(test (ambiguously
         (let (a (amb 1 2 3)
               b (amb 4 5 6))
           (when (not (= (* a b) 15)) (amb))
           (list :ok a b)))
       (list :ok 3 5))
 
-(test (prompt amb
+(test (ambiguously
         (let (a (amb 1 2 3)
               b (amb 4 5 6))
           (when (not (= (* a b) 0)) (amb))
           (list :ok a b)))
-      :amb/fail)
+      :amb-fail)

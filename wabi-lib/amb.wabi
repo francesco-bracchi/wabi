@@ -3,8 +3,12 @@
   (control amb ret
     (rec loop (xs xs)
       (if
-       (= xs ()) :amb/fail
+       (= xs ()) :amb-fail
        (let (r (prompt amb (ret (eval e (car xs)))))
          (if
-          (= r :amb/fail) (prompt amb (loop (cdr xs)))
+          (= r :amb-fail) (prompt amb (loop (cdr xs)))
           r))))))
+
+(defx ambiguously
+    e xs
+  (prompt amb (eval e (list* do xs))))

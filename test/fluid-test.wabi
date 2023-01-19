@@ -1,22 +1,22 @@
 (def a
-  (f/new))
+  (var))
 
 (def b
-  (f/new))
+  (var))
 
 (test
- (f/let () :foo) :foo)
+ (fluid () :foo) :foo)
 
 (test
- (f/let (a 10) (a)) 10)
+ (fluid (a 10) (a)) 10)
 
 (test
- (f/let (a 10) (a 20)) :ok)
+ (fluid (a 10) (a 20)) :ok)
 
 (test
- (f/let (a 10) (a 20) (a)) 20)
+ (fluid (a 10) (a 20) (a)) 20)
 
-(f/let (a 10 b 20)
+(fluid (a 10 b 20)
   (test (a) 10)
   (test (b) 20)
   (a 1023)

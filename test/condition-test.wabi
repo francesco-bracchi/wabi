@@ -37,8 +37,7 @@
           n
           ds))
   (test
-   (with-guard
-       (div 99 1 0 2)
+   (with-guard (div 99 1 0 2)
      :division-by-zero (k info) (k (info :num)))
    49)
 
